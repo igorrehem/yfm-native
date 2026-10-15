@@ -1,0 +1,7 @@
+@bank names
+
+[8001]
+Blue-eyes
+
+[8002]
+Elf

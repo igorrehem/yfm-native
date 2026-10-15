@@ -1,0 +1,590 @@
+#include "port_ptr.h"
+#ifndef MEMORIES_DECOMP_UNMATCHED_H
+#define MEMORIES_DECOMP_UNMATCHED_H
+
+#include "types.h"
+#include "ygo_types.h"
+
+/* Declarations for functions and data that are still generated assembly.
+ *
+ * These have no defining C translation unit, so there is nowhere for a
+ * per-TU header to live and every consumer has been writing its own extern.
+ * That is what lets two files disagree about a function nothing in the tree
+ * can check. This header is the single place those declarations belong.
+ *
+ * WHAT GOES HERE
+ *
+ * A function or global whose status in config/slus_01411/functions.csv is
+ * unmatched_asm, once its consumers are known to agree. Build-integrated
+ * candidates keep function declarations in the header of the unit they came
+ * from: src/candidates/ still gives each of them a defining C translation
+ * unit, so that header is a home in the sense this one is not (see the #3859
+ * sections at the end). The remaining local function declarations are
+ * deliberate disagreements listed below rather than duplication waiting to
+ * be moved. `make check-unmatched-contracts` prints the current counts and
+ * rejects new unaccounted declaration sites.
+ *
+ * Hand-written assembly belongs here on the same terms. The status differs but
+ * the reason does not: handwritten_asm functions have no defining C
+ * translation unit either, so there is nowhere else for a shared declaration
+ * to live, and every consumer otherwise writes its own. The primitive handler
+ * entry points at the end of this file arrived that way.
+ *
+ * WHAT DOES NOT GO HERE, AND WHY THIS FILLS UP SLOWLY
+ *
+ * Several functions need incompatible declarations because the caller-visible
+ * type is what makes code generation match. Those variants still belong here:
+ *
+ *   SD_SEPlay       (u32, s32, s32), (s32, s32, s32) and (u16, u8, s8)
+ *
+ * Where a consumer declares no parameters and calls with none, the argument
+ * register is not empty. It holds the CALLER'S OWN incoming parameter, still
+ * live because nothing clobbered it. That is worth checking per site rather
+ * than assuming, because it decides whether the declaration can be fixed:
+ *
+ *   - model_slot_support.c called func_800540B4 with no argument while $a0
+ *     still held its own `index`. Writing that argument explicitly costs
+ *     nothing, because the register already holds the value, so the true
+ *     one-parameter signature is used there now.
+ *
+ * So a symbol only moves here once every consumer's spelling is accounted
+ * for, and a consumer that cannot state its arguments keeps its local
+ * declaration. When a symbol needs different spellings per consumer it gets
+ * arms selected by guard #defines, the way input.h and sound.h already do,
+ * rather than one flat declaration. Entries are added a few at a time, each
+ * gated on the full build. */
+
+/* Two rules for anything added here.
+ *
+ * A symbol belongs here only while it is genuinely homeless. Once its owning
+ * subsystem is understood, move the declaration to that subsystem's header
+ * rather than leaving it in this one.
+ *
+ * When a consumer cannot take the shared declaration because its spelling is
+ * load-bearing -- a section attribute deciding gp-relative versus absolute
+ * addressing under -G8, a volatile qualifier deciding whether a redundant
+ * access survives, or an asm() alias keeping GCC from holding an address
+ * across a call -- note the exception beside the declaration so it is not
+ * quietly "fixed" later. */
+
+/* Load-bearing caller views that cannot share one flat prototype. Consumers
+ * select the declaration they measured before including this header. */
+/* func_800323F8, which used to lead this list with two consumers, has
+ * matched and is declared by game/func_800323F8.h. */
+
+/* func_800540B4, which had six consumers sharing one spelling, has matched
+ * and is declared by game/func_800540B4.h. */
+
+/* The five below each have exactly one consumer today, so there is no second
+ * spelling to reconcile and nothing was measured away to move them. They are
+ * here because the issue asks for every unmatched prototype to live in one
+ * place, not only the ones that had already drifted: a declaration with one
+ * consumer is simply a duplicate that has not happened yet. Each names the
+ * file that used to declare it. */
+
+/* A buffer base address rather than a byte array anyone indexes: every user
+ * either passes it to DisplayObject_ConfigureSpriteAtPositionWithResource or stores it into an object field, and
+ * none of them read through it. DuelResult_UpdateOrbitSprite sized it [16], but nothing
+ * takes its sizeof, so the bound was decorative. */
+
+/* Six consumers use this second buffer base with the same unsized-byte-array
+ * spelling: three resident transfer paths and three main-menu display paths.
+ * Nothing takes its sizeof. */
+extern u8 D_801AF800[];
+
+/* One consumer, func_8004E9A0.c. D_800F569F is only indexed at zero as the
+ * animation gate; its linker assignment establishes storage but no subsystem
+ * header owns it. */
+extern u8 D_800F569F[];
+
+/* One consumer, Model_ApplyTextureTint. These four contiguous halfwords are filled
+ * as a RECT for StoreImage2, LoadImage2, and MoveImage. The linker assignments
+ * establish the scratch storage, but no subsystem header owns it. */
+extern s16 D_8009B470;
+extern s16 D_8009B472;
+extern s16 D_8009B474;
+extern s16 D_8009B476;
+
+/* One consumer, func_8005C374.c, which writes its three parameters to these
+ * contiguous bytes. Their individual roles remain unknown, and no movie
+ * subsystem header owns the storage. */
+extern u8 D_8009B4A0;
+extern u8 D_8009B4A1;
+extern u8 D_8009B4A2;
+
+/* One consumer, AiScript_Print. Both addresses are passed to printf as format
+ * strings; the second also receives the script checkpoint byte. Their
+ * contents remain unnamed, and no AI subsystem header owns them. */
+extern const char D_80011908[];
+extern const char D_80011918[];
+
+/* A single word at 0x8009B118, four bytes: c_symbols.ld names D_8009B11C
+ * immediately after it, so no element can hide inside. Fifteen files declared
+ * it identically as `extern s32 D_8009B118;`, which is why it can move here
+ * unchanged - there is no per-consumer spelling to preserve.
+ *
+ * It holds an address despite the s32 spelling:
+ * campaign_map_load_package_stage.c passes it to LoadImage2 as (u32 *) and
+ * also adds 0x800 to it. The s32 is left as-is rather than retyped, which is
+ * a separate question from centralizing it.
+ *
+ * Six consumers do NOT take the plain arm, and both reasons are load bearing.
+ * Five carry section(".data"), which is the -G8 lever that keeps the address
+ * being rebuilt per access instead of resolved gp-relative, and
+ * duel_load_package_stage.c additionally spells it u8 * because it does
+ * pointer arithmetic on it. Those two arms are selected by
+ * D_8009B118_IN_DATA and D_8009B118_IS_POINTER_IN_DATA, the same shape
+ * input.h and sound.h use, rather than by re-declaring the symbol locally. */
+#ifdef D_8009B118_IS_POINTER_IN_DATA
+extern u8 *G32 D_8009B118 PSX_SECTION(".data");
+#elif defined(D_8009B118_IN_DATA)
+extern s32 D_8009B118 PSX_SECTION(".data");
+#else
+extern s32 D_8009B118;
+#endif
+
+/* Address-only declarations found by re-measuring the note above rather
+ * than by a scan. Every one is installed as data -- into the duel scene
+ * callback table -- and none is invoked from C. func_80029EC4, the fourth of
+ * this class (D_800E9DB0[3], library_runtime.c), left for
+ * game/func_80029EC4.h when it matched.
+ *
+ * Seven of them were declared in duel_scene_callbacks.c, which is a file I
+ * added when that table moved out of its blob. The argument there was that
+ * taking a function's address does not depend on its signature, so a local
+ * declaration was self-contained. That is true but beside the point: this
+ * header already holds exactly this class, in func_80067220 (and, until it
+ * matched, func_80035E20), and the issue asks for one declaration site rather than
+ * a defensible second one.
+ *
+ * void (void) is the form all nine consumers already used. As with the
+ * entries above, it is safe precisely because there are no call sites for it
+ * to be wrong at, and it is what has to change if a caller is ever matched
+ * and passes an argument. */
+
+/* One byte at 0x8009B363, written by four files that share nothing else.
+ *
+ * frontend_scene_states.c clears it, and duel_effect_basic_commands.c,
+ * func_8002EB48.c and main_run_selection_menus.c each store a value into it;
+ * the last also reads it back to pass to func_8016866C. Four subsystems with
+ * no header above them, which is what makes this genuinely homeless rather
+ * than merely undeclared.
+ *
+ * The array spelling is a lever, not a size. Every one of the four is
+ * compiled and assembled at -G8, where a byte-sized global would otherwise be
+ * reached %gp_rel, and an array is what escapes that -- the table in
+ * notes/build.md, second row. All four already write the same incomplete-array
+ * form, so this declaration reproduces it exactly and no arm is needed.
+ *
+ * It is only ever indexed at [0], in all four files, so nothing here claims
+ * the object is longer than one byte. c_symbols.ld agrees: gDuel_bTerrain
+ * begins at 0x8009B364, immediately after it. */
+extern u8 D_8009B363[];
+
+/* Eleven unmatched_asm functions, each with a single consumer that declared
+ * it locally. Moved together rather than one per change: this header is a
+ * serialisation point, and separate PRs for separate symbols conflict with
+ * each other without making any of them easier to check.
+ *
+ * All eleven clear the bar this header sets. Each has one spelling across the
+ * tree, so there is no disagreement to resolve first. None is declared with
+ * an empty parameter list, so none is a call site relying on whatever the
+ * argument register happened to hold. None has an overlay consumer.
+ *
+ * Eight are void (void), called with no arguments against a no-argument
+ * declaration, so declaration and call already agree. The other three are
+ * not, and are worth naming because assuming otherwise is exactly the
+ * mistake this batch nearly shipped: ModelDebug_UpdateController returns s32,
+ * func_80051350 returns s32 and takes three, and
+ * DisplayObject_RenderSpriteSheet takes three. Each prototype below is copied
+ * from the consumer that had it, not restated.
+ * DisplayObject_RenderSpriteSheet has since matched and is declared by
+ * display_object_render_sprite_sheet.h. ModelDebug_UpdateController is owned
+ * by model_debug_controller.h. func_8004EB00 has since matched and is declared
+ * by game/model_scene_states.h beside func_8004FE2C. func_80051350 has since
+ * matched and is declared by game/func_80051350.h. */
+/* func_800482B0 is now owned by sound_voice_allocator.h, and func_80015EF4
+ * has matched and is declared by game/func_80015EF4.h. */
+
+/* This undefined global is declared identically by every consumer and
+ * only ever read or written as a scalar.
+ *
+ * D_8009B162 is pinned by its neighbour: c_symbols.ld names D_8009B164
+ * two bytes later, so it has no room for an element to carry its own name.
+ * gDuel_wSceneStateFlags has moved to its owner, duel_scene_state.h. */
+extern u16 D_8009B162;   /* nine declarers  */
+extern u16 D_8009B23A;   /* candidate lexical alias for gDuel_wSceneStateFlags */
+
+/* A function found by asking which unmatched functions are never called
+ * by name rather than which are declared oddly.
+ *
+ * func_80067220 is not a callback at all -- model_primitive_handler.c returns its
+ * address as an s32. It was spelled without a prototype by its consumer, which
+ * is the honest form for a function nobody calls by name. It keeps a declared
+ * return type here because its consumer casts the address, not the result.
+ * func_80035E20, which used to sit beside it, has matched and is declared by
+ * game/func_80035E20.h. */
+int func_80067220();
+
+/* Three more undefined globals, moved together for the same reason as the
+ * batch above: this header is a serialisation point, so separate changes for
+ * separate symbols conflict with each other without making any of them
+ * easier to review.
+ *
+ * All three are one-byte state bytes that every consumer spells `extern u8`
+ * and reads or writes whole. None is ever indexed, so there is no array
+ * hiding behind the scalar and no per-consumer addressing form to preserve.
+ *
+ * D_8009B3F9 is the strongest of the three structurally: c_symbols.ld names
+ * gMemCard_wDialogFlags one byte later, so the object is exactly one byte and
+ * nothing can carry a second name inside it. It is the memory card slot the
+ * MemCard* calls are issued against.
+ *
+ * D_8009B3EB and D_8009B174 have larger gaps to the next name -- two bytes
+ * and eight -- but those are upper bounds rather than sizes, like the gap
+ * after gDuel_wSceneStateFlags. Nothing is named inside either gap, and no
+ * consumer of either reads past the byte, so the u8 all five consumers agree
+ * on is what is declared and the bytes above stay unclaimed.
+ *
+ * Both of the latter two are packed state bytes rather than plain counters,
+ * which is why the byte width matters to every reader: D_8009B3EB is switched
+ * on through `& 0xF` with MEM_CARD_DIALOG_FLAG_* bits set above it, and
+ * D_8009B174 carries a step in its low nibble with 0x20, 0x40 and 0x80 used
+ * as independent flags. */
+extern u8 D_8009B3F9;   /* five declarers */
+extern u8 D_8009B3EB;   /* five declarers */
+extern u8 D_8009B174;   /* five declarers */
+
+/* Five more undefined scalars, batched for the reason the two batches above
+ * give: this header serialises, so one change per symbol buys nothing and
+ * conflicts with every other one in flight.
+ *
+ * None of the five is ever indexed anywhere in the tree, so each is a plain
+ * scalar rather than an array wearing a scalar's spelling, and every consumer
+ * already writes the same declaration. Neither the width nor the addressing
+ * form is being changed here; the spellings below are copied from the
+ * consumers that had them.
+ *
+ * Three are pinned exactly, with the next name sitting at precisely the end
+ * of the declared width, so no element can hide inside them: D_8009B3C2 and
+ * D_8009B3C4 are two bytes each with a name two bytes on, and D_8009B1D0 is
+ * two bytes with gDuel_wEffectCardID immediately after it.
+ *
+ * D_8009B3F4 has a larger gap than its width and is treated as an upper
+ * bound rather than a size. Nothing is named
+ * inside that gap and no consumer reads past the declared width, so the
+ * agreed type is what is declared and the bytes above stay unclaimed.
+ *
+ * The first four are memory card state, shared by the create, load, save and
+ * dialog paths together with mem_card_dialog_runtime.c. D_8009B1D0 is
+ * unrelated to them and belongs to the duel side; it is here because it
+ * passed the same checks, not because it is part of that group. */
+extern u16 D_8009B3C2;   /* four declarers */
+extern u16 D_8009B3C4;   /* four declarers */
+extern s32 D_8009B3F4;   /* four declarers */
+extern u16 D_8009B1D0;   /* four declarers */
+
+/* The text engine's control byte, shared with the dialog and duel-effect
+ * screens. Text_HandleChoiceCommand sets it from a command nibble
+ * (`c & 0xF0`), text_stream_commands.c reads it whole, and the other two test
+ * it by mask -- 0x30 for the layout arm and 0x40 for the choice arm. No C
+ * source defines it and the four that use it share no subsystem header, so it
+ * is homeless by the rule at the top of this file.
+ *
+ * Script_OpSavePrompt also clears it, spelled with a .data section
+ * attribute because it addresses the byte outside small data. */
+#ifdef D_8009B34C_IN_DATA
+extern u8 D_8009B34C PSX_SECTION(".data");
+#else
+extern u8 D_8009B34C;
+#endif
+
+/* Linker-resolved data whose matching-C consumers already share this header.
+ *
+ * These declarations are copied from the unanimous local spellings they
+ * replace. Bounds are retained only where consumers already agreed on them;
+ * unsized arrays remain address/range views rather than guessed object sizes.
+ * D_8009B26E is deliberately separate from the guarded frontend mode
+ * bytes owned by main_mode_state.h. */
+extern u8 D_80010074[];
+extern u8 D_80010090[];
+extern u8 D_800100A8[];
+extern s32 D_8009B0FC;
+extern u8 D_8009B108;
+extern u8 D_8009B110;
+extern s32 D_8009B12C;
+extern void (*G32 D_8009B128)(void);
+extern u8 D_8009B1B8;
+extern u8 D_8009B26E;
+extern u16 D_8009B33A;
+extern s32 D_8009B378;
+extern s32 D_8009B3BC;
+extern u16 D_800F5678[];
+extern s16 D_800EFE3C;
+
+/* An eight-byte zeroed block with no common subsystem owner. Main_Init reads
+ * its first byte as the initial sound-output state, while file transfer
+ * control reads the two words as an address adjustment. The consumers share
+ * no narrower state contract, so the raw byte-array view stays here. */
+extern u8 D_800E9EC0[];
+
+/* The thirty-two primitive handler entry points, in retail's own arm order in
+ * memory.
+ *
+ * These are hand-written assembly rather than the unmatched assembly the rest
+ * of this header covers, so they have no defining C translation unit either.
+ * model_primitive_handler.c and model_handler_registry.c both only ever take
+ * their addresses, never call them, so nothing in the tree checked one copy
+ * against the other; the two files used to declare the set locally, then
+ * shared it through a model_primitive_handler_entries.h that existed for no
+ * other purpose. It folds in here.
+ *
+ * They were first placed here because model_handler_registry.c could not
+ * include model_primitive_handler.h: the two spelled func_800603DC
+ * differently. That header now carries both spellings behind
+ * FUNC_800603DC_RETURNS_HANDLER, and the registry defines the guard and
+ * includes it. The entry points stay here because, like everything else in
+ * this header, they have no defining C translation unit.
+ */
+void func_800612C0(void);
+void func_800617E0(void);
+void func_80061DDC(void);
+void func_80062058(void);
+void func_8006233C(void);
+void func_80062600(void);
+void func_80062978(void);
+void func_80062BC0(void);
+void func_80062E70(void);
+void func_80063100(void);
+void func_80063444(void);
+void func_800636AC(void);
+void func_8006397C(void);
+void func_80063C2C(void);
+void func_80063F90(void);
+void func_80064248(void);
+void func_80064568(void);
+void func_80064868(void);
+void func_80064C1C(void);
+void func_80064EF4(void);
+void func_80065234(void);
+void func_80065554(void);
+void func_80065928(void);
+void func_80065BCC(void);
+void func_80065ED8(void);
+void func_800661C4(void);
+void func_80066564(void);
+void func_80066828(void);
+void func_80066B54(void);
+void func_80066E60(void);
+
+/* The sixteen object handler entry points func_800608B8 dispatches to.
+ *
+ * Hand-written assembly like the primitive handlers above, and here too both
+ * consumers -- model_primitive_handler.c and model_handler_registry.c -- only ever take
+ * their addresses, as `return (s32)func_...`, so nothing in the tree checked
+ * one declaration against the other. They had already drifted once:
+ * model_primitive_handler.c spelled them `int X()` while model_handler_registry.c
+ * spelled eight of them `void X(void)`.
+ *
+ * The retail image settled that, and the resolution is preserved here. Every
+ * one of the sixteen reads its first argument through $a0 -- func_80067354
+ * begins `lw $a3, 0x0($a0)` and saves $s0..$s3 into 0x28($a0)..0x34($a0) --
+ * and every one leaves a value in $v0 immediately before `jr $ra`;
+ * func_80067354 ends `lw $v0, 0x0($a0)` / `addiu $v0, $v0, 0x8`. So
+ * `void X(void)` was wrong in both return type and arity, and the
+ * unprototyped form below is the one the image does not contradict.
+ *
+ * What this does NOT claim: the parameter and return types are deliberately
+ * left unspecified. The evidence shows that an argument is taken and a value
+ * returned, not what either is. $a0 is dereferenced as a pointer and the
+ * result derived from it, but nothing establishes the pointee's layout, so a
+ * fuller prototype would assert more than is known.
+ */
+int func_80067354();
+int func_8006759C();
+int func_80067858();
+int func_80067ABC();
+int func_80067D94();
+int func_80067FD0();
+int func_8006825C();
+int func_800684B4();
+int func_8006875C();
+int func_80068A00();
+int func_80068D18();
+int func_80068FD8();
+int func_8006930C();
+int func_800695A4();
+int func_8006988C();
+int func_80069B40();
+
+/* Also reclassified from matching_c by #3859: the mixed -G share. Each of
+ * these matched only under a compiler profile whose GCC and MASPSX
+ * small-data thresholds disagree, or only with register pins #3867 left
+ * load-bearing, so its source now lives in src/candidates/ and the function
+ * is assembly again. Their declarations moved here from the unit headers
+ * that held them, comments included, and headers that held nothing else are
+ * gone. The contract check accepts this home or the former unit header, but
+ * not both.
+ * func_8004A43C takes sound.h's SDSecondaryObject, which cannot be
+ * forward-declared here, so its declaration stays in sound.h for the one
+ * caller, the func_8004AAFC candidate. func_800476B4 takes SDSeqBlock and
+ * lives in sound_pending_entries.h for the func_80045514 caller.
+ * func_80048768 has no caller in C; its matching
+ * definition uses sound_voice_pan.h. SD_SetVoiceEnvelopeFromTone is the named
+ * sound operation and stays in sound.h. Ai_GetHandSize is now matching C; its caller-specific
+ * return declarations live in ai.h. */
+
+struct CardList;
+struct DuelEffectChannel;
+struct DuelRitualResult;
+
+/* The duel screen's per-frame view callback. It reads D_800F2848, programs
+ * the geometry engine from its projection field -- SetGeomScreen,
+ * SetGeomOffset, SetFarColor and SetFogNearFar -- and then walks the field
+ * records.
+ *
+ * Duel_InitScene installs it rather than calling it, as `D_800E9DB0[3] =
+ * func_800164FC;` (src/game/duel_init_scene.c:155), so the declaration
+ * has to match the definition exactly for the address to be taken. */
+
+/* D_80090C50 handler: the two-axis smooth scroll stepper Script_OpViewportTween
+ * hands the scene over to. On its first frame it derives the per-frame 16.16
+ * deltas from the distance to the target over the remaining frame count, then
+ * advances both accumulators, publishes their high halves as the camera
+ * position, and snaps to the target when the counter runs out. */
+/* Entry 5 of the frontend step table gDebugMenu_apfnPrimaryPageSteps (frontend_step_tables.c):
+ * the debug sound test. It steps gDebug_nSceneOrSoundID from the pad, plays
+ * the selected sound effect or BGM, and stops all sound on START. */
+/* One step of the card list's cursor and paging input.
+ *
+ * It first places the scroll box, deriving a y position from the combined
+ * first and cursor rows scaled across 152 pixels by sort_row_count. It then
+ * settles any outstanding scroll: while first differs from first_target it
+ * moves first one row towards it, refreshes eight rows through
+ * func_80031E04 and returns immediately, so a page scroll is animated a row
+ * per call rather than jumped. Only once the two agree does it read the pad
+ * for paging and sorting.
+ *
+ * The return value is a handled flag: build_deck_pane_input.c, the only
+ * consumer, tests it against zero at both call sites and does no more work
+ * when it is set. */
+/* One frame of choice-cursor input on a dialog's text-box record. Returns 1
+ * when the repeat pad held a direction or R1 -- whether or not the cursor
+ * actually moved, because a clamped edge still counts as handled and returns
+ * before the cursor sound -- and 0 when it held none, which is the caller's
+ * signal to look at the other buttons.
+ *
+ * R1 wraps past the last choice to the first; up and down clamp. The record
+ * parameter is only forwarded to Dialog_HighlightChoice, which takes the same
+ * `u8 *record` view in dialog_highlight_choice.h; Script_OpSavePrompt
+ * (script_op_save_prompt.c) holds the same object as
+ * DuelEffectChannel * and casts. */
+/* Unmatched linker data consumed by matching C. These declarations preserve
+ * the existing caller types. The guarded arms are measured code-generation
+ * differences: scalar small-data access, array/address access, explicit
+ * .data placement, and pointer arithmetic are not interchangeable here. */
+extern u8 D_80010538[];
+extern u8 D_800107A8[];
+extern u8 D_800107DC[];
+extern u8 D_800107F4[];
+extern char D_800118AC[];
+extern char D_800118CC[];
+extern char D_800118E4[];
+extern s32 D_8009B0A4;
+extern s32 D_8009B0B0;
+extern s32 D_8009B0BC;
+extern s32 D_8009B0D4;
+extern u8 D_8009B152;
+#ifdef D_8009B_DISPLAY_OBJECTS_VISIBLE
+extern DisplayObject *G32 D_8009B188;
+extern DisplayObject *G32 D_8009B18C;
+#endif
+#ifdef D_8009B_DISPLAY_OBJECTS_VISIBLE
+extern DisplayObject *G32 D_8009B1CC;
+extern DisplayObject *G32 D_8009B1F8;
+#endif
+extern u8 D_8009B261;
+#ifdef D_8009B264_VISIBLE
+extern DuelEffectRequest *G32 D_8009B264;
+#endif
+
+#include "game/main_mode_state.h"
+
+#ifdef D_8009B2F8_AS_ARRAY
+extern u8 D_8009B2F8[];
+#else
+extern u8 D_8009B2F8;
+#endif
+extern s16 D_8009B322;
+extern u8 D_8009B324;
+extern u8 D_8009B325;
+extern s8 D_8009B32C;
+extern u16 D_8009B348[2];
+#ifdef D_8009B370_AS_BYTE_ARRAY
+extern u8 D_8009B370[];
+#else
+extern u16 D_8009B370;
+#endif
+extern u16 D_8009B372;
+/* DuelScene_UpdateBattle (src/game/duel_scene_battle.c) reads it through a
+ * %hi/%lo pair into the load's own register, which is the .data form. */
+#ifdef D_8009B374_IN_DATA
+extern u16 D_8009B374 PSX_SECTION(".data");
+#else
+extern u16 D_8009B374;
+#endif
+
+#ifdef D_8009B_MODEL_VISIBLE
+extern ModelBytes8 D_8009B480;
+#endif
+#ifdef D_800E9ECE_AS_SCALAR
+extern u8 D_800E9ECE;
+#else
+extern u8 D_800E9ECE[];
+#endif
+#ifdef D_800E9ECF_AS_SCALAR
+extern u8 D_800E9ECF;
+#else
+extern u8 D_800E9ECF[];
+#endif
+extern s8 D_800EA02F[];
+
+#ifdef D_800EAE88_VISIBLE
+#ifdef D_800EAE88_AS_BYTES
+extern u8 D_800EAE88[];
+#else
+extern AiSelection D_800EAE88;
+#endif
+#endif
+
+extern u8 D_800EAE8E[];
+extern u8 D_800EF6E0[];
+extern s16 D_800F2B22;
+extern s32 D_800F56FC[];
+extern u8 D_800F5750[];
+#ifdef D_80177EA4_VISIBLE
+extern RECT D_80177EA4[];
+#endif
+extern u8 D_8018C7D8[];
+#ifdef D_801AB00C_VISIBLE
+extern AiActiveCard D_801AB00C[];
+#endif
+extern u8 D_801B122B[];
+extern u8 D_801B1238[];
+extern u8 D_801D160C[];
+extern u8 D_801D1880[];
+extern u8 D_801D9174[];
+extern u8 D_801D9174_b[];
+extern u8 D_801E27F8 PSX_SECTION(".data");
+extern u8 D_801E8FF8 PSX_SECTION(".data");
+#ifdef GCAMPAIGN_SCENE_INDEX_AS_ARRAY
+extern u8 gCampaignSceneIndex[];
+#elif defined(GCAMPAIGN_SCENE_INDEX_AS_SCALAR)
+extern u8 gCampaignSceneIndex;
+#else
+extern u8 gCampaignSceneIndex PSX_SECTION(".data");
+#endif
+extern u8 gDuel_bTerrainCodegenAlias[];
+extern u8 gFile_szSuMrgPath[];
+
+#endif

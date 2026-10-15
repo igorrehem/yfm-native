@@ -1,0 +1,56 @@
+#include "../types.h"
+#include "model_geometry_tables.h"
+
+/* Initialized data at 0x800915E8 through 0x800916E0, previously a generated
+   blob (#2602).
+
+   model_subdivided_effect.c reads D_800915E8 as three six-byte color
+   channels followed by signed height/radius minima and growth/fade
+   durations. The four-byte element view remains the storage owner; the
+   consumer describes the measured 28-byte record locally.
+
+   model_disc_effect.c reads D_80091604 and is matching C too, so
+   D_80091604 is stored as the ModelDiscEffectConfig record it reads.
+   func_8006CD78.c, which reads D_80091610 and D_800916D4, is matching C as
+   well. It reads
+   D_800916D4 as three ring colors stored a channel at a time
+   (ModelBurstPalette in model_burst_effect.h), and the head of D_80091610 as
+   one 28-byte image record (ModelBurstImage): a pixel mode and the
+   frame-buffer rectangles of the image and its color table. Only that first
+   record is ever read, so the storage keeps its flat halfword view.
+
+   The other element widths are the ones the extractor assigned from the
+   labelling and alignment in the image.
+
+   The file name comes from the neighbourhood, not from these tables: the
+   matched siblings just past their readers are recursive triangle
+   subdivision and related geometry. If a later match shows otherwise, this
+   should be renamed. */
+u32 D_800915E8[] = {
+    0x0000A0A0, 0x00A000A0, 0xA0A000A0, 0xA00000A0,
+    0x012CA000, 0x000A012C, 0x0000005A,
+};
+
+ModelDiscEffectConfig D_80091604 = {
+    0x20, 0x20, 0x20, 0, 300, 20, 10, 0,
+};
+
+u16 D_80091610[] = {
+    0x0008, 0x0000, 0x03C0, 0x0000, 0x0008, 0x0040, 0x0000, 0x0000,
+    0x0200, 0x00F5, 0x0010, 0x0001, 0x0000, 0x0000, 0x0009, 0x0000,
+    0x0380, 0x0000, 0x0020, 0x0040, 0x0000, 0x0000, 0x0200, 0x00F4,
+    0x0100, 0x0001, 0x0000, 0x0000, 0x0009, 0x0000, 0x03A0, 0x0000,
+    0x0020, 0x0040, 0x0000, 0x0000, 0x0200, 0x00F4, 0x0100, 0x0001,
+    0x0000, 0x0000, 0x0009, 0x0000, 0x0380, 0x0040, 0x0020, 0x0040,
+    0x0000, 0x0000, 0x0200, 0x00F4, 0x0100, 0x0001, 0x0000, 0x0000,
+    0x0009, 0x0000, 0x03A0, 0x0040, 0x0020, 0x0040, 0x0000, 0x0000,
+    0x0200, 0x00F4, 0x0100, 0x0001, 0x0000, 0x0000, 0x0009, 0x0000,
+    0x0380, 0x0080, 0x0010, 0x0080, 0x0000, 0x0000, 0x0200, 0x00F4,
+    0x0100, 0x0001, 0x0000, 0x0000, 0x0009, 0x0000, 0x0390, 0x0080,
+    0x0010, 0x0080, 0x0000, 0x0000, 0x0200, 0x00F4, 0x0100, 0x0001,
+    0x0000, 0x0000,
+};
+
+u32 D_800916D4[] = {
+    0x404040FF, 0x404040FF, 0x000000FF,
+};

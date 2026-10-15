@@ -1,0 +1,26 @@
+# User-supplied copyrighted game files
+/game/
+*.[bB][iI][nN]
+*.[cC][uU][eE]
+*.[iI][sS][oO]
+*.[cC][hH][dD]
+*.[eE][cC][mM]
+*.[pP][bB][pP]
+**/[sS][lL][uU][sS]_[0-9][0-9][0-9].[0-9][0-9]
+
+# Memory card images written by the native port
+/saves/
+
+# Generated and temporary project state
+/tmp/
+/dist/
+
+# Locally installed or downloaded tool dependencies
+/tools/downloads/
+/tools/environments/
+/tools/toolchains/
+/tools/vendor/
+
+# Tool-generated language caches
+**/__pycache__/
+*.py[cod]

@@ -1,0 +1,14 @@
+{
+    "id": "delta",
+    "name": "Delta \u00e9 \ud83d\ude00 \ud800 \u4e2d xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxñtail",
+    "about": "json.c's reading, which the editor's must match: a \\u escape is its character as UTF-8 (a surrogate pair one character, a lone surrogate U+FFFD), a mod's name is cut to 95 bytes where a letter starts, a member named twice is met twice, and a comma may close an object. And what the readers leave out or match: a chest_overflow limit of 0 (the whole entry left out), an image read row by row (not the one alpha reads with a stride), a star named only once declared (beta names Comet before it is), a rule for a copy of an equip (the rules for the equip reach it).",
+    "font": "delta.ttf",
+    "trap_thresholds": {"Bear Trap": 1600, "Bear Trap": 2000,},
+    "chest_overflow": {"limit": 0, "starchips": 5},
+    "textures": "images",
+    "guardian_stars": {
+        "stars": [{"id": 12, "name": "Comet"}],
+        "matchups": [{"attacker": "Comet", "defender": "Sun", "bonus": 300}]
+    },
+    "equips": [{"card": 800, "add": ["Kuriboh"]}],
+}

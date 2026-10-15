@@ -1,0 +1,10189 @@
+# Yu-Gi-Oh! Forbidden Memories text listing (notes/translation.md).
+# Extracted from the PAL disc's own text (EN), US string ids.
+
+@bank dialog
+
+[0000 0013 0014 0015 0016 0017 001D 001E 001F 0027 002B 002C 002D 0032 0033 0034 0035 0036 0037 0038 0039 003A 003B 003C 0046 0047 0048 0049 004A 004B 004C 004D 004E 004F 0056 0057 0058 0059 005A 005B 005C 005D 005E 005F 0062 0063 0064 0065 0066 0067 0068 0069 006A 006B 006C 006D 006E 006F 0070 0071 0072 0073 0074 0075 0076 0077 0078 0079 007A 007B 007C 007D 007E 007F 0080 0081 0082 0083 0084 0085 0086 0087 0088 0089 008A 008B 008C 008D 008E 008F 00B3 00B4 00B5 00B6 00E6 00E7 00E8 00E9 00EA 00EB 00EC 00F9 00FA 00FB 00FC]  {:LF000}
+{end}
+
+{:LF001}
+{f8 0B 22}{cont}
+{:LF002}
+Button{end}
+
+{:LF003}
+{f8 0B 25}{jump LF002}
+
+[0001]
+{end}
+
+[0002]
+NAME:{call L125A}{f8 16}{end}
+
+[0003]  {:LF004}
+{f8 04 02}{f8 05 08 10}{f8 00 00}{f8 02 04}{f8 00 80}{f8 01 18}{f8 0A 05}GUARDIAN STAR
+{f8 0A 00} {f8 00 01} {f8 00 81}
+ {f8 00 02} {f8 00 82}{f8 01 18}{cont}
+{:LF005}
+{f8 04 02}{f8 05 08 0C}{f8 00 40}{end}
+
+[0004]  {:LF006}
+{f8 04 02}{f8 05 08 10}{f8 00 00}{f8 02 04}{f8 00 80}{f8 01 50}{jump LF005}
+
+{:LF007}
+{f8 06 00 00}{f8 07 10 00}{f8 00 20}{end}
+
+[0007]
+{f8 06 AF 00}{f8 00 00}{f8 02 04}{f8 00 01}{jump LF007}
+
+[0008]  {:LF008}
+{f8 0A 01} YOUR DECK ISN'T READY!{end}
+
+[0009]
+{choice 53}{call LF008}
+{f8 0A 00} BUILD DECK
+ EXIT
+{choose 80 LF000 LF000}
+
+[000A]
+{f8 17 LF00A LF009}
+
+{:LF009}
+{f8 06 A0 00}{cont}
+{:LF00A}
+SETTLED!{end}
+
+[000B]
+{f8 02 08}SELECT CARD TO TRADE
+
+
+ {call LF001}   OK
+
+ {call LF003}   CANCEL
+
+ {f8 0B 24}Button   SELECTION COMPLETE
+
+{f8 02 80}{f8 0B 22}{f8 0B 25}{f8 0B 24}{f8 0A 02}SELECT CARD{end}
+
+[000C]
+{f8 09}
+{f8 01 04}{f8 06 68 00}{f8 0A 02}Win {f8 03 08 56 1D 80 03}{f8 06 C8 00}{f8 0A 06}Loss {f8 03 0C 56 1D 80 03}{end}
+
+[000D]
+  Select Opponent!{end}
+
+[000F]
+{f8 0A 05}{f8 01 F0}English
+{f8 0A 00}{f8 04 02}{f8 05 08 10}3D{f8 06 80 00}NAME
+Campaign{f8 06 80 00}Password
+DUEL{f8 06 80 00}MOVIE
+Detail{f8 06 80 00}Load
+Sound{f8 06 80 00}Save
+BustUp{f8 06 80 00}Trade
+3D MAP{f8 06 80 00}Option
+DeckEdit{f8 06 80 00}LOSE
+FreeDUEL{f8 06 80 00}HIRATA's
+TITLE{f8 06 80 00}Exit{end}
+
+[0011]
+{choice 4C 8F}{f8 02 2C}SAVE
+{f8 02 14}BUILD DECK
+RETURN TO TITLE
+{f8 02 14}LEAVE SHOP
+{choose 80 LF000 LF000 LF000 LF000}
+
+[0012]
+{choice 42}{f8 02 04}NO
+YES
+{choose 80 LF000 LF000}
+
+[001A]
+{f8 0A 05}{f8 03 08 56 1D 80 C3}{f8 0A 84}{f8 04 01}{f8 06 1C 00}♂
+{f8 06 1C 00}♀{f8 01 F8}{f8 06 49 00}{f8 00 00}{f8 02 04}{f8 00 01}{f8 02 04}{f8 00 02}{cont}
+{:LF00B}
+{f8 04 02}{f8 06 83 00}{f8 03 0C 56 1D 80 83}{end}
+
+[001B]
+{f8 0A 05}{f8 03 08 56 1D 80 C3}{f8 0A 84}{f8 06 49 00}{f8 00 00}{f8 02 04}{f8 00 01}{jump LF00B}
+
+[001C]
+{f8 0A 01}{f8 02 24}YOU MUST PREPARE A DECK
+{f8 02 18}TO PLAY THE CAMPAIGN MODE!{end}
+
+[0020]
+
+{f8 0A 80}{f8 02 14}EXECUTE TRADE
+
+{f8 0A 81}{f8 02 24}RE-SELECT
+
+{f8 0A 82}{f8 02 0C}RETURN TO TITLE{end}
+
+[0021]
+{choice 5B 8F}SELECT A GUARDIAN STAR
+      {f8 00 01} {f8 00 81}
+      {f8 00 02} {f8 00 82}
+{choose 80 LF000 LF000}
+
+[0022]
+{choice 53}QUIT DUEL?
+ NO
+ YES
+{choose 80 LF000 LF000}
+
+[0023]
+Secret NO. {f8 03 08 56 1D 80 C4}{f8 03 0C 56 1D 80 C4}{end}
+
+[0024]
+{f8 0A 01}    {f8 03 48 56 1D 80 01}P'S DECK
+
+{f8 02 38}IS NOT READY{end}
+
+[0025]
+{f8 0B 27}{f8 0B 28}Button  START DUEL
+{f8 01 04} {f8 0B 25} Button  RETURN TO TITLE{end}
+
+[0026]
+{f8 0A 06}{call L122B}{f8 01 1A}{f8 0A 02}{jump L1238}
+
+[0028]
+YOU CANNOT COMPETE WITH
+SAME DUELIST CODES!{end}
+
+[0029]
+YOU CANNOT TRADE WITH
+SAME DUELIST CODES!{end}
+
+[002A 002E 002F 0030 0031]
+{end}
+
+[003D]
+{f8 18 LF00C LF00E LF00D LF00F}
+
+[003E]
+{f8 0A 80}{f8 17 LF00C LF00D}
+
+{:LF00C}
+YOU{end}
+
+{:LF00D}
+ 1P{end}
+
+[003F]
+{f8 0A 81}{f8 17 LF00E LF00F}
+
+{:LF00E}
+COM{end}
+
+{:LF00F}
+ 2P{end}
+
+{:LF010}
+{f8 04 01}{f8 06 C3 00}♂{f8 03 08 56 1D 80 84}
+{f8 06 C3 00}♀{f8 03 0C 56 1D 80 84}{f8 01 F8}{f8 06 ED 00}{f8 00 00}{end}
+
+{:LF011}
+{f8 17 LF015 LF012 LF017 LF016}
+
+{:LF012}
+{call LF010}{f8 02 02}{f8 00 01}{f8 02 02}{f8 00 02}{cont}
+{:LF013}
+{f8 07 18 00}{cont}
+{:LF014}
+{f8 04 02}{f8 06 00 00}{f8 00 20}{cont}
+{:LF015}
+{end}
+
+{:LF016}
+{f8 06 07 01}{f8 08}{end}
+
+{:LF017}
+{call LF010}{f8 02 0A}{f8 08}{jump LF013}
+
+[0051]  {:LF018}
+{f8 17 LF015 LF019 LF019 LF015}
+
+{:LF019}
+{f8 06 ED 00}{f8 00 00}{f8 02 02}{f8 00 01}{f8 07 1C 00}{jump LF014}
+
+{:LF01A}
+{f8 18 LF01E LF01B LF01C LF01D}
+
+{:LF01B}
+{f8 01 0C}{f8 06 4C 00}Swords of Revealing Light {f8 04 02}{f8 05 08 10}{f8 0A 05}{f8 03 10 56 1D 80 01}{f8 0A 00}{f8 04 02}{end}
+
+{:LF01C}
+{f8 06 B8 00}{f8 00 10}GUARDIAN STAR{f8 0A 00}{end}
+
+{:LF01D}
+{call LF01C}{call LF01B}{cont}
+{:LF01E}
+{end}
+
+[0052]
+{f8 01 E4}{call LF01A}{f8 01 1C}{jump LF011}
+
+[0053]
+{f8 01 1C}{call LF01A}{f8 01 E4}{jump LF018}
+
+[0054]
+{f8 01 1C}{call LF01A}{f8 01 E4}{jump LF011}
+
+[0055]
+{f8 01 1C}{call LF01A}{f8 01 E4}{jump LF018}
+
+[0060]
+{call LF004}{cont}
+{:LF01F}
+{f8 06 78 FF} {f8 0A 05}{f8 03 08 56 1D 80 C3}{f8 01 12}{f8 0A 00}{f8 06 78 FF}{f8 00 20}{end}
+
+[0061]
+{call LF006}{jump LF01F}
+
+[0090]
+{f8 01 20}Original Character Design
+ Original Monster Design
+     Scenario Draft
+
+{f8 0A 00}    Kazuki TAKAHASHI{end}
+
+[0091]
+{f8 01 20}Planning &
+    Specification Design
+General Director
+{f8 0A 00}
+  Morikuni KUBO{end}
+
+[0092]
+{f8 01 30}Scenario
+
+{f8 0A 00}  Masaaki KARUBE{end}
+
+[0093]
+{f8 01 30}Program Direction
+{f8 0A 00}
+  GUN{end}
+
+[0094]
+{f8 01 30}Thought Logic Design
+{f8 0A 00}
+  Hidehiro HIRATA
+  Morikuni KUBO{end}
+
+[0095]
+{f8 01 30}3D & VFX Direction
+{f8 0A 00}
+  JUN{end}
+
+[0096]
+VFX Team
+{f8 0A 00}
+  Makoto ITAKURA
+  TRUTH
+  Takuya HASHIMOTO
+  UKIN{end}
+
+[0097]
+{f8 01 30}Art Direction
+{f8 0A 00}
+  Masafumi KAMIO{end}
+
+[0098]
+
+
+{f8 0A 03} Card Draft
+
+{f8 0A 00}    Koji NAMIKOSHI(16)
+    Takeshi URABE{end}
+
+[0099]
+
+
+{f8 0A 03} Card Painting
+
+{f8 0A 00}    Yukiko HATANAKA
+    Tetsuya KADONO
+    Tomoji OMOTANI
+    Masafumi KAMIO
+    Koji NAMIKOSHI(16){end}
+
+[009A]
+
+
+{f8 0A 03} Campaign Part Draft
+
+{f8 0A 00}    Takeshi URABE
+    Kenji INOUE
+
+{f8 0A 03} Campaign Part Painting
+
+{f8 0A 00}    Yukiko HATANAKA{end}
+
+[009B]
+
+
+{f8 0A 03} Game Component Graphics
+
+{f8 0A 00}    Yukiko HATANAKA
+    Koji NAMIKOSHI(16)
+    Kanako KOHYAMA{end}
+
+[009C]
+
+
+{f8 0A 03} Campaign Part Scenery
+
+{f8 0A 00}    Ikuro ISHIHARA{end}
+
+[009D]
+
+
+{f8 0A 03} Monster Modeling & Motion
+
+{f8 0A 00}  Naoki KUMAGAI
+  Takeshi URABE
+  Mitsuko SAKAMOTO
+  Kenji INOUE
+  Tomoji OMOTANI
+  Masafumi KAMIO
+  Tetsuya KADONO
+  Noriyuki SUGIMOTO
+  Koji NAMIKOSHI(16){end}
+
+[009E]
+
+
+{f8 0A 03} VFX Materials Design
+
+{f8 0A 00}    Tetsuya KADONO
+    Masafumi KAMIO
+
+{f8 0A 03} Opening Movie Design
+
+{f8 0A 00}    Yasuhiko TANAKA{end}
+
+[009F]
+{f8 01 20}Music
+
+{f8 0A 00}  Naoko ISHII
+  Hiroshi(nabeyan)TANABE
+  Waichiro OZAKI{end}
+
+[00A0]
+{f8 01 30}Sound Effects
+
+{f8 0A 00}  ARY{end}
+
+[00A1]
+{f8 01 30}Sound Program
+
+{f8 0A 00}  Naomitsu TSUGIIWA{end}
+
+[00A2]
+Localization Team
+
+{f8 0A 03} Program
+
+{f8 0A 00}    Tsutomu WATANABE
+    Makoto ITAKURA
+
+
+{f8 0A 03} Graphics
+
+{f8 0A 00}    Yasuhiko TANAKA{end}
+
+[00A3]
+{f8 01 30}Product Design
+
+{f8 0A 00}  Akio MASUDA
+  Shizuko SUZUKI{end}
+
+[00A4]
+{f8 01 30}Card Rule Co-Design
+
+{f8 0A 00}  Nobuhiro YAMADA
+  Takuri CHIDA{end}
+
+[00A5]
+
+
+{f8 0A 00}  Kazuhiko TORISHIMA
+  Toshimasa TAKAHASHI
+  Yoshihisa HEISHI
+  Tomoyuki SHIMA
+  Masana TAKAHASHI{end}
+
+[00A6]
+
+
+{f8 0A 00}  Hideo YOSHIKURA
+  Takeshi NOMURA
+  Muneharu MACHIDA{end}
+
+[00A7]
+
+
+{f8 0A 00}  Seiichi SHIMIZU{end}
+
+[00A8]
+
+
+{f8 0A 00}  Kazumi KITAUE
+  Masaki YAMADA
+  Takashi NUMAZAWA
+  Tetsuya HIYOSHI{end}
+
+[00A9]
+
+
+{f8 0A 00}  Scott DOLPH
+
+  Takao HIYOSHI
+  Hiroaki KAMATA
+  Masaya AIHARA
+  Momoko MIZUSHIMA
+  Kanako NAKAHARA{end}
+
+[00AA]
+
+
+{f8 0A 00}  4KIDS Entertainment
+  ASATSU-DK Inc.
+  XAX Entertainment
+  INTAC{end}
+
+[00AB]
+{f8 01 30}Producer
+
+{f8 0A 00}  Satoshi SHIMOMURA{end}
+
+[00AC]
+{f8 01 30}Executive Producer
+
+{f8 0A 00}  Motoyuki YOSHIOKA{end}
+
+[00AD]
+{f8 01 30}{f8 0A 00}{f8 04 02} Created by
+
+ Konami Computer Entertainment {f8 0A 06}J{f8 0A 00}apan{end}
+
+[00AE 00AF 00B0]
+2{cont}
+{:LF020}
+D Graphics{end}
+
+[00B1]
+3{jump LF020}
+
+[00B2]
+Special Thanks{end}
+
+[00B8]
+{end}
+
+[00B9]
+{end}
+
+[00BA]
+{jump LF026}
+
+[00BB]
+{jump LF025}
+
+[00BC]
+{choice 53}BACKUP DATA LOAD?
+ START
+ QUIT
+{choose 80 LF000 LF000}
+
+[00BD]
+
+{f8 0A 06}{f8 02 4C}ILLEGAL DATA!{end}
+
+[00BE]
+{f8 02 3C}{f8 0A 01}NOW FORMATTING...
+{f8 0A 00}{jump LF026}
+
+[00BF]
+
+{f8 02 40}FORMAT{jump LF024}
+
+[00B7]
+{f8 02 20}{f8 0A 01}ACCESSING MEMORY CARD...
+{f8 0A 00}{f8 02 08}DO NOT PLUG/UNPLUG MEMORY CARD
+{f8 02 1C}IN MEMORY CARD slot 1 & 2{end}
+
+[00C0]
+{f8 02 20}{f8 0A 01}ACCESSING MEMORY CARD...
+{f8 0A 00}{f8 02 08}DO NOT PLUG/UNPLUG MEMORY CARD
+{f8 02 2C}IN MEMORY CARD slot {f8 03 48 56 1D 80 01}{end}
+
+[00C1]
+{f8 02 24}MEMORY CARD NOT PLUGGED
+{f8 02 28}IN MEMORY CARD slot {f8 03 48 56 1D 80 01}!{end}
+
+[00C2]
+{f8 02 2A}{f8 0A 06}1P{f8 0A 00} MEMORY CARD slot 1
+{f8 02 2A}{f8 0A 02}2P{f8 0A 00} MEMORY CARD slot 2
+{f8 0A 05}     {f8 0B 22}BEGIN LOAD  {f8 0B 25}CANCEL{end}
+
+[00C3]
+{f8 01 08}{f8 0A 01}{f8 02 38}MEMORY CARD slot {f8 03 48 56 1D 80 01}
+{f8 02 38}HAS BEEN REPLACED!
+{f8 0A 00}{end}
+
+[00C4]
+{f8 02 34}{f8 0A 01}NOW TRADING CARD(S)
+{f8 0A 00}{f8 02 08}DO NOT PLUG/UNPLUG MEMORY CARD
+{f8 02 1C}IN MEMORY CARD slot 1 & 2{end}
+
+[00C5]
+
+{f8 02 4C}TRADE FAILED!{end}
+
+[00C6]
+
+{f8 02 44}TRADE COMPLETE!{end}
+
+[00C7]
+
+{f8 02 40}LOAD{jump LF022}
+
+[00C8]
+{choice 53}{f8 0A 01}LOAD{cont}
+{:LF021}
+{f8 0A 00}?
+{jump LF023}
+
+[00C9]
+{choice 53}{f8 0A 01}SAVE{jump LF021}
+
+[00CA]
+{choice 53}{f8 0A 01}DOWNLOAD{jump LF021}
+
+[00CB]
+
+DOWNLOAD INCOMPLETE!{end}
+
+[00CC]
+
+{f8 02 18}DOWNLOAD{jump LF024}
+
+[00CD]
+
+{f8 02 40}SAVE{cont}
+{:LF022}
+ INCOMPLETE!{end}
+
+[00CE]
+{f8 0A 01}{f8 02 14}UNABLE TO LOCATE LOAD DATA!
+{f8 0A 00}{f8 02 20}PLUG IN MEMORY CARD WITH
+{f8 02 54}SAVED DATA!{end}
+
+[00CF]
+{choice 53}{f8 0A 01}OVERWRITE?
+{f8 0A 00}{cont}
+{:LF023}
+ YES
+ NO
+{choose 80 LF000 LF000}
+
+[00D0]
+
+{f8 02 48}LOAD{cont}
+{:LF024}
+ COMPLETE!{end}
+
+[00D1]
+
+{f8 02 48}SAVE{jump LF024}
+
+[00D2]
+{f8 02 30}MEMORY CARD REQUIRED
+{f8 02 28}IN MEMORY CARD slot {f8 03 48 56 1D 80 01}!{end}
+
+{:LF025}
+{end}
+
+[00D3]
+
+{f8 02 60}NO DATA!{end}
+
+[00D4]
+{f8 02 2C}{f8 0A 01}ACCESSING MEMORY CARD
+{f8 0A 00}{cont}
+{:LF026}
+{f8 02 08}DO NOT PLUG/UNPLUG MEMORY CARD
+{f8 02 2C}IN MEMORY CARD slot {f8 03 48 56 1D 80 01}{end}
+
+[00D5]
+{f8 02 58}{f8 0A 01}LOADING...
+{f8 0A 00}{jump LF026}
+
+[00D6]
+{f8 02 58}{f8 0A 01}SAVING...
+{f8 0A 00}{jump LF026}
+
+[00D7]
+{f8 02 48}{f8 0A 01}DOWNLOADING...
+{f8 0A 00}{jump LF026}
+
+[00D8]
+
+{f8 02 40}LOAD{cont}
+{:LF027}
+ INCOMPLETE!{end}
+
+[00D9]
+
+{f8 02 40}SAVE{jump LF027}
+
+[00DA]
+{f8 02 40}UNABLE TO ACCESS
+{f8 02 50}MEMORY CARD!{end}
+
+[00DB]
+{f8 0A 01} NOT ENOUGH FREE MEMORY BLOCKS!
+{f8 0A 00}{f8 02 48}{f8 03 08 56 1D 80 82} BLOCKS USED
+{f8 02 38}{f8 03 0C 56 1D 80 02} BLOCK REQUIRED{end}
+
+[00DC]
+
+{f8 02 30}DOWNLOAD{jump LF027}
+
+[00DD]
+
+{f8 02 38}FORMAT{jump LF027}
+
+[00DE]
+
+{f8 02 18}MEMORY CARD NOT FORMATTED!{end}
+
+[00DF]
+{choice 53}{f8 0A 01}FORMAT?
+{f8 0A 00} NO
+ YES
+{choose 80 LF000 LF000}
+
+[00E0]
+{end}
+
+[00E1]
+{f8 0A 01}STARCHIP
+{f8 0A 00}{f8 04 03} {f8 0B 26}x{f8 03 08 56 1D 80 06}{end}
+
+[00E2]
+Please enter
+'PASSWORD'
+
+    {f8 0B 22}OK {f8 0B 25}END{end}
+
+{:LF028}
+CARD NUMBER {f8 03 0C 56 1D 80 C3}
+{f8 0B 26}x{f8 03 08 56 1D 80 06}{end}
+
+[00E3]
+{choice 64}{call LF028}{cont}
+{:LF029}
+
+ EXCHANGE
+{f8 0A 00} QUIT
+{choose 80 LF000 LF000}
+
+[00E4]
+{choice 6C 02}{call LF028}{f8 0A 04}{jump LF029}
+
+[00E5]
+{call LF028}
+{f8 0A 01} This 'PASSWORD'
+   has already
+  been entered!{end}
+
+[00ED]
+{f8 03 08 56 1D 80 83}
+{f8 00 20}{end}
+
+[00F2]
+ABCDEFGHIJK
+LMNOPQRSTUV
+WXYZ
+abcdefghijk
+lmnopqrstuv
+wxyz
+0123456789
++-*/&$%!?.:{end}
+
+[00F4]
+{f8 01 18}{f8 02 28}Input your NAME!{end}
+
+[00F5]
+{choice 53}Your NAME is {f8 0A 01}{call L125A}{f8 0A 00}-
+ YES
+ NO
+{choose 80 LF02B LF02A}
+
+{:LF02A}
+{f8 16}{end}
+
+{:LF02B}
+{f8 1A}{f8 04 02}Your duelist code has
+been recorded.{page}You cannot DUEL or TRADE
+with the same DUELIST CODE.{end}
+
+[00F6]
+{choice 53}DUEL RESULTS
+WIN
+LOSE
+{choose 80 LF000 LF000}
+
+[00F8]
+<{f8 03 08 56 1D 80 83}/722>{end}
+
+[00FD]
+{buffer}
+
+[00FE]
+{buffer}
+
+[00FF]
+{buffer}
+
+
+@bank dialog
+
+{:L0004}
+{fx 2B 80}{fx 2C 80}{fx 2D 80}{fx 3C 80}{fx 3D 80}{fx 3E 80}{end}
+
+[0546]
+{state 05 00 41}{f8 10 03 80 87 00}{f8 15 A0}{page}{jump L0028}
+
+[0500]  {:L0028}
+{state 05 01 01}This is it...{page}I've found it at last...{page}The forbidden treasure of
+the ancient sorcerers...{page}{state 05 00 02}{state 0B C0 00 00 00 2C 01}Hahahahaha!{page}Hahahahaha...
+Hahahahaha!!!
+{state 0A}{f8 0E 20 70}{state 0F 3C 00}{f8 16}{end}
+
+[0501]
+My dear prince!
+Are you going to the city
+to play cards again!?{page}You are of royal blood!
+Walking the city streets
+dressed as a commoner...{page}...Have you no shame!?
+Quite frankly, I'm embarrassed!{page}{choice 02}«Run away»
+«Keep listening»
+{choose 80 L037B L01AC}
+
+{:L01AC}
+The Pharaoh has gotten
+wind of your activities...
+And he's quite concerned!{page}{choice 02}«Run away»
+«Keep listening»
+{choose 80 L037B L021C}
+
+{:L021C}
+I realize I'm to blame for
+teaching you the card game...
+But you overindulge, my prince!{page}{choice 02}«Run away»
+«Keep listening»
+{choose 80 L037B L0299}
+
+{:L0299}
+It is high time you put aside
+this ridiculous pastime and
+focus on your studies.{page}{choice 02}«Run away»
+«Keep listening»
+{choose 80 L037B L030E}
+
+{:L030E}
+It is wrong to worry the
+Pharaoh and the Queen so much!{page}Please, dear Prince...
+Return to your room.{page}{fx 01 80}{set 406E}{jump L31EE}
+
+{:L037B}
+{fx 01 41}Wait! Stop, my prince!{page}{fx 01 40}Drat!
+He's gone...{end}
+
+[0502]
+{fx 01 00}Prince {call L125A}.
+You've returned...{page}It is well into the night...
+Please return to the palace.{page}Dear prince...
+If you still wish to
+play cards...{page}...then try your hand
+against me.{page}If you lose, you must
+return to your room.{page}I'm sure you'll find
+me a worthy opponent.{page}{choice 02}«Duel»
+«Pass»
+{choose 80 L04C6 L054B}
+
+{:L04C6}
+Ho ho ho. My dear prince...
+I taught you the game.{page}You don't really think
+you're going to win, do you?{page}Prepare yourself!{page}{f8 11 00}{f8 0D 01 60 61 00 00 72}{end}
+
+{:L054B}
+{if 006F L05A1}Now, then, young man...
+Go to your room!{page}Ahem... please.{page}{choice 02}«Don't go»
+«Go»
+{choose 80 L0608 L05B5}
+
+{:L05A1}
+{fx 01 41}Wait!
+Come back!{end}
+
+{:L05B5}
+Hmph...
+You are wise to heed me.{page}The hour is late.
+Sleep well, my prince.{page}{fx 01 80}{set 406E}{jump L31EE}
+
+{:L0608}
+{fx 01 41}Wait!
+Come back here!{end}
+
+[0503]
+You won...{page}T'would seem that
+I taught you well...
+You've grown strong.{page}You've won fair and square.
+As promised, you may go.
+I've nothing more to say...{page}{f8 19 01}{f8 16}{end}
+
+[0504]
+Hmmm...
+T'would seem I've won.{page}Many days have passed since
+I taught you the game...
+But you've still much to learn.{page}Now, please...
+Return to the palace!{end}
+
+[0505]
+{fx 01 00}Have you played enough,
+my prince?{page}I haven't told you this,
+but there's a story that
+goes with those cards...{page}Would you be interested
+in hearing it?{page}{choice 02}«Yes»
+«No»
+{choose 80 L0803 L0ADE}
+
+{:L0803}
+Then, listen well...{page}Today, the Yu-Gi-Oh
+card deck is used simply
+as an entertaining pastime.{page}But long ago, the cards were
+an invaluable magic aid for
+drawing out sorcerous powers.{page}{f8 15 A1}{fx 01 82}{state 05 02 82 32 00 00}{f8 15 A0}{fx 41 00}{state 0B C0 00 32 00 58 02}Magic-users were able to use
+their powers and summon the
+forces depicted on the cards.{page}Some built kingdoms.
+Others waged wars.{page}But the battles between
+mystics grew in intensity...{page}...until finally the use
+of magic was forbidden.{page}Now, only the cards remain
+in our kingdom.{page}They are a reminder of those
+bygone days of magic...
+{state 0A}{page}{fx 41 80}{state 05 01 00}{fx 01 00}And so,
+Prince {call L125A}...{page}Remember this tale when
+next you face an opponent
+with your deck.{page}Never forget that humankind
+once overstepped its bounds
+and walked the path of destruction.{page}{set 4048}{f8 16}{end}
+
+{:L0ADE}
+I see...{page}Go then, but try to be
+back at a decent hour...{page}{fx 01 80}{f8 16}{end}
+
+[0506]
+There's nobody around...{end}
+
+[0507]
+{if 006F L165B}{fx 03 00}I've been waiting for you... {call L125A}.{page}Jono was also here
+a few minutes ago.
+But he's gone now...{page}How about a duel?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L1317 L0BE1 L1287}
+
+{:L0BE1}
+Okay...
+I'll see you later.{page}{fx 03 80}{jump L0CCC}
+
+[0508]  {:L0C03}
+{call L0004}{if 0021 L0C5A}{jump L0C0E}
+
+[0509]  {:L0C0E}
+{fx 03 00}How about one game?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L1317 L0CA5 L1287}
+
+[050A]  {:L0C5A}
+{fx 03 00}Aren't you ready to go yet?{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L0CA5 L1287}
+
+[050B]  {:L0CA5}
+I'll see you later.{page}{fx 03 80}{fx 31 80}{if 0023 L0E15}{if 0049 L0DAF}{jump L0CCC}
+
+[050C]  {:L0CCC}
+{fx 2B 00}Y'know, there's some kinda festival
+goin' on in the town plaza.{page}But we'd rather play games
+right here, like we always do.{page}Wanna take me on?{page}C'mon... let's play a game.{page}{set 4049}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L1437 L0E98 L11EE}
+
+[050D]  {:L0DAF}
+{fx 2B 00}Wanna take me on?{page}C'mon... let's play a game.{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L1437 L0E98 L11EE}
+
+[050E]  {:L0E15}
+{fx 2B 00}Play again?{page}I just lost to you a minute ago...
+Gimme some time to plan my strategy.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L0E98 L11EE}
+
+[050F]  {:L0E98}
+{call L0004}{if 0024 L101E}{if 004A L0F99}{jump L0EA8}
+
+[0510]  {:L0EA8}
+{fx 2C 00}Hey. Did you find yourself
+any rare cards?{page}I managed to find a pretty
+good card myself!{page}If you want it, you'll have
+to beat me.{page}But if you lose, you'll have
+to give me one of yours.{page}{set 404A}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L14CB L1096 L11EE}
+
+[0511]  {:L0F99}
+{fx 2C 00}If you win, I'll give
+you my card.{page}If you lose, you'll give
+me one of yours.{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L14CB L1096 L11EE}
+
+[0512]  {:L101E}
+{fx 2C 00}Whoa...
+That's enough for today.{page}If I lose again,
+I'll run out of cards.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1096 L11EE}
+
+[0513]  {:L1096}
+{call L0004}{if 0025 L1187}{if 004B L1134}{jump L10A6}
+
+[0514]  {:L10A6}
+{fx 2D 00}You talkin' to me, boy?
+I got better things to do.{page}Unless ya wanna challenge me...{page}{set 404B}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L157D L0C03 L11EE}
+
+[0515]  {:L1134}
+{fx 2D 00}You wanna play some cards?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L157D L0C03 L11EE}
+
+[0516]  {:L1187}
+{fx 2D 00}I think I've had
+enough, boy...{page}It ain't no fun
+losin'!{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L0C03 L11EE}
+
+{:L11EE}
+{call L0004}{fx 31 80}{fx 03 00}Hey, did you know that
+there's a festival going
+on in the town plaza?{page}Come on! Let's check it out!{page}I'll bet we'll find Jono
+there!{page}{f8 15 A1}{f8 11 82}{state 0F 3C 00}{jump L260C}
+
+{:L1287}
+Hey, did you know that
+there's a festival going
+on in the town plaza?{page}Come on! Let's check it out!{page}I'll bet we'll find Jono
+there!{page}{f8 15 A1}{f8 11 82}{state 0F 3C 00}{jump L260C}
+
+{:L1317}
+Okay, let's play!
+Hope you're not a sore loser!{page}{f8 11 00}{f8 0D 02 62 63 00 00 72}{end}
+
+[0517]
+Ouch!
+Looks like I lost.
+Oh well...{page}I'll play you again when
+I get a little better.{page}{f8 19 02}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L0CA5 L11EE}
+
+[0518]
+I won! I won!
+I think that's the first time
+I beat you, {call L125A}!{page}I hope you didn't just
+let me win...{end}
+
+{:L1437}
+Okay, let's play!{page}{f8 11 00}{f8 0D 04 64 65 00 00 72}{end}
+
+[0519]
+Well, well...
+Let's play again sometime...{page}{f8 19 04}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L0E98 L11EE}
+
+[051A]
+Whattya think?
+Not bad, eh?{end}
+
+{:L14CB}
+All right, let's play!{page}{f8 11 00}{f8 0D 05 66 67 00 00 72}{end}
+
+[051B]
+You won...
+I guess I owe you a card.{page}{f8 19 05}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1096 L11EE}
+
+[051C]
+Yes!!! I win!!! That means
+I get one of your cards!
+Right?{end}
+
+{:L157D}
+Okay, boy. Let's play!{page}{f8 11 00}{f8 0D 06 68 69 00 00 72}{end}
+
+[051D]
+Hmph! I reckon I lost...{page}Looks like this just
+isn't my day...{page}{f8 19 06}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L0C03 L11EE}
+
+[051E]
+Well, boy...
+It looks like I won.{page}Just leave one of your
+cards right there...{end}
+
+[0523]  {:L165B}
+{fx 02 00}Geez... Who does that mage
+think he is anyway!?{page}I gotta admit, though...
+that guy was real tough...{page}Hey,{call L125A},
+How about a game until
+that guy comes back?{page}{choice 02}«Duel»
+«Pass»
+{choose 80 L170C L182F}
+
+[0524]  {:L170C}
+All right! Let's do it!{page}I may have lost the last game...
+But I ain't lost my touch!{page}{f8 11 00}{f8 0D 03 6A 6B 00 00 72}{end}
+
+[0525]
+Geez, {call L125A}!
+You whipped me!
+Y'know... you are good!{page}Do me a favor and beat
+that mage, willya?{page}{f8 19 03}{jump L19C0}
+
+[0526]
+What's wrong, {call L125A}?
+You can do better than that!{page}If that's your best, you'll
+never beat that mage!{end}
+
+[0527]  {:L182F}
+'Fraid of starting off on
+the wrong foot, eh?
+I can understand that.{page}Let's wait for the mage.{page}Y'know, the guy's real tough...{page}Listen. I play here
+day in and day out. And you
+know I'm pretty good...{page}Fact is, there ain't too many
+duelists I can't beat.{page}But that mage...
+Man...! He's good!{page}I didn't have a chance!{page}Listen, {call L125A}...
+Don't underestimate the guy.{page}I know you're good.
+But don't get sloppy...{page}{jump L19C0}
+
+[0528]  {:L19C0}
+There he is...
+He's back.{page}{fx 02 80}{fx 30 80}Look at that...
+{state 05 03 82 3C 00 00}{state 0B 00 00 00 00 87 00}{fx 02 80}{fx 42 00}He's got his own groupies...{page}Do me a favor and
+whip the guy.{page}{fx 42 80}{fx 43 00}Do it, {call L125A}!{page}{fx 43 80}{state 0A}{state 05 02 00}{fx 04 00}I do not know how good you are...
+But I hope you will entertain me.{page}I will have you know that
+I enjoy a good game...{page}Do not disappoint me!{page}{f8 11 00}{f8 0D 07 6C 6D 00 40 72}{end}
+
+[0529]
+I...
+I cannot believe I lost...{page}{fx 32 80}{fx 04 00}But... wait a moment.
+You... you are...{page}Hmmm... I see...{page}Enough.
+That is all for today.{page}I have a feeling our paths
+will cross elsewhere...{page}'Til then... I bid you farewell.{page}{fx 32 80}{fx 04 80}{f8 19 07}{jump L1C1E}
+
+[052A]
+You lose, boy!{page}You'll need better cards
+than that if you wish to
+beat me!{end}
+
+[052B]  {:L1C1E}
+{fx 02 12}You did it!
+{call L125A}.{page}Didja see the look on his face!?
+You were great!!!{page}{fx 02 21}{fx 03 13}{call L125A}...
+You're just too good!{page}{fx 02 20}{fx 03 21}"I bid you farewell"...
+Hah! What a loser!{page}{jump L1CBA}
+
+{:L1CBA}
+{call L125A},
+Well, what now?{page}You still got some time?{page}{choice 02}«Play»
+«Go outside»
+{choose 80 L1D03 L1D52}
+
+{:L1D03}
+{fx 03 80}Okay!
+Why don't we play a quick game?{page}{choice 02}«Duel»
+«Talk to someone else»
+{choose 80 L22D5 L1E70}
+
+{:L1D52}
+Yeah? Well, come around
+again any time...{page}We'll be here.{end}
+
+[052C]
+{fx 02 00}Hey, {call L125A}! You're back!
+Wanna play?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L22D5 L1F29 L1E58}
+
+{:L1DE5}
+{call L0004}{fx 02 00}It's gettin' pretty late,
+{call L125A}.{page}Wanna play another match?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L22D5 L1F29 L1E58}
+
+{:L1E58}
+Right. See ya around...{end}
+
+[052D]  {:L1E70}
+Okay. Catch ya later...{page}{jump L1E8B}
+
+{:L1E8B}
+{call L0004}{fx 02 80}{fx 30 80}{fx 03 00}You did pretty good back there.
+{call L125A}.{page}You know, maybe someday
+I'll be as good as you,
+{call L125A}.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1FD3 L1F1B}
+
+{:L1F1B}
+See you soon!{end}
+
+{:L1F29}
+Right. See ya around...{page}{call L0004}{fx 02 80}{fx 30 80}{fx 03 00}I think I'll be heading home...{page}What with the festival and all,
+I lost track of the time.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1FD3 L1F1B}
+
+[052E]  {:L1FD3}
+{fx 03 80}{if 004E L208C}{fx 2B 00}That was some duel...{page}I never saw anything
+like that before!{page}How's 'bout giving me a chance?
+C'mon, let's play a game...{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L238C L20FA L20EA}
+
+[052F]  {:L208C}
+{fx 2B 00}Listen... I need a break.
+Let's play tomorrow.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L20FA L20EA}
+
+{:L20EA}
+Be seein' ya...{end}
+
+[0530]  {:L20FA}
+{call L0004}{if 004F L2234}{fx 2C 00}Did you manage to get
+any rare cards?{page}I'll play you for them
+if you want to.{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L2448 L219A L2187}
+
+{:L2187}
+See you next time!{end}
+
+[0531]  {:L219A}
+{call L0004}{fx 2D 00}Ya wanna play me?{page}Listen, boy. I learned how good
+ya were the last time we played.{page}I don't like losin'!{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1DE5 L22CD}
+
+[0532]  {:L2234}
+{call L0004}{fx 2D 00}If yer lookin' for that kid
+ya beat, he went home.{page}I ain't gonna play no more.
+Why don't ya go home...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1DE5 L22CD}
+
+{:L22CD}
+Bye.{end}
+
+{:L22D2}
+{f8 16}{end}
+
+[0533]  {:L22D5}
+Okay, let's do it!{page}{f8 11 00}{f8 0D 03 6E 6F 00 00 72}{end}
+
+[0534]
+Geez...
+You're just too good!{page}...or maybe I'm just no good.{page}{f8 19 03}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L1E8B L22D2}
+
+[0535]
+Wow!{page}It looks like today's
+my lucky day!
+{call L125A}.{end}
+
+[0536]  {:L238C}
+Okay... Let's play!{page}{f8 11 00}{f8 0D 04 70 71 00 00 72}{end}
+
+[0537]
+Hm...
+I can't seem to win.{page}I think it's time I came
+up with another strategy.{page}{f8 19 04}{set 404E}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L20FA L22D2}
+
+[0538]
+Whattya think?
+Not bad, eh?{end}
+
+[0539]  {:L2448}
+Alright, let's play!{page}{f8 11 00}{f8 0D 05 72 73 00 00 72}{end}
+
+[053A]
+Geez...
+You're just too good...{page}I'm going home...
+I'll see you around.{page}{fx 3D 80}{f8 19 05}{set 404F}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L219A L22D2}
+
+[053B]
+I did it! I won!{page}I'll take that card!{end}
+
+[051F]
+{if 006F L25C3}Lots of people are gathered
+at the town plaza...{page}...but there's nothing of interest.{end}
+
+[05F8]  {:L2565}
+Looks like the festival's over.
+Not many people around...{page}...and there's nothing of interest.{end}
+
+{:L25C3}
+{if 0026 L2565}The festival's in full swing...{page}...but there's nothing of interest.{end}
+
+[0520]  {:L260C}
+{state 05 36 00}{f8 0E 40 73}{f8 15 A0}Wow... there're lots of
+people around.{page}Look, the mages are about to
+start their procession...{page}{f8 15 A1}{fx 03 82}{state 05 37 01}{f8 15 A0}{fx 43 00}Awesome...{page}...but kinda spooky, too.{page}This must be the work
+of that detestable
+high mage, Heishin.{page}When I was a kid, it used
+to be more wholesome.{page}Even the attitude of the mages
+have changed for the worse...{page}What's our world
+coming to...?{page}{fx 43 80}{state 05 36 00}{fx 03 00}Want to go someplace else?{page}{f8 15 A1}{fx 03 82}{state 05 00 00}{f8 15 C0}{fx 43 00}Look! It's Jono!
+I can't believe it, but
+he's dueling over there!{page}{fx 43 80}{f8 15 A0}{state 05 38 01}{fx 42 00}I...
+I lost...{page}{fx 42 80}{fx 44 00}I believe I have
+wasted my efforts
+on an insignificant speck.{page}{fx 44 80}{fx 42 00}Say what!{page}{fx 42 80}{fx 44 00}Forgive my choice of words.
+You were... mildly entertaining.{page}{fx 44 80}{fx 43 00}Hey! Jono!{page}{fx 43 80}{fx 42 00}Teana and {call L125A}...{page}{fx 42 80}{state 05 37 00}{fx 02 00}{fx 43 00}{fx 02 21}What's going on?{page}{fx 43 80}{fx 02 20}Whaddaya think?
+Ain't it obvious?{page}{fx 02 21}{fx 43 00}You lost...{page}{fx 43 80}{fx 02 20}Don't be so blunt! I didn't
+lose... I had a setback...{page}{fx 02 80}{fx 04 00}I grow weary of this insect...{page}Is there not one among you that
+is worthy of my attention?{page}{fx 04 21}{fx 42 00}Man!
+The nerve of this guy!{page}{fx 42 80}{fx 43 00}Hey, {call L125A}...
+Why don't you challenge him?{page}After all, you're the best
+duelist I've ever seen!{page}I'll bet you can beat him!{page}{fx 43 80}{fx 42 00}Yeah, {call L125A}!
+Do it! Show him who's
+boss around here!{page}{fx 42 80}{fx 04 20}Hello...
+Are you my next victim?{page}{choice 02}«Duel»
+«Pass»
+{choose 80 L2ACF L2CFF}
+
+[0521]  {:L2ACF}
+I hope you are better than
+the last one.
+Come! Let us duel.{page}{fx 04 21}{fx 45 00}Master Seto! Master Heishin
+calls for you.{page}{fx 45 80}{fx 04 20}I see...{page}So be it. The duel is postponed.{page}Am I correct in assuming that you
+frequent the town's duel field?{page}{fx 04 21}{fx 42 00}That's right.{page}{fx 42 80}{fx 04 20}Then wait there...
+I shall grace you with a visit.{page}Seto is my name.
+Remember it...{page}{fx 04 80}{fx 02 00}Can you believe that guy!?
+A mage with attitude!!!{page}{fx 02 21}{fx 43 00}Yeah... A real charmer.{page}{fx 43 80}{fx 02 20}I got a feeling {call L125A}
+will put him in his place.
+Won't ya, buddy?{page}C'mon, let's look around and
+then head for the duel field.{page}{fx 02 80}{set 406F}{f8 11 00}{f8 14 0A}{end}
+
+[0522]  {:L2CFF}
+Ah! The coward shows his
+true colors...
+Why am I not surprised?{page}You insects are all alike...{page}{fx 04 21}{fx 42 00}Hold on! {call L125A}
+just doesn't want to
+face you here!{page}{fx 42 80}{fx 04 20}Is that so...{page}{fx 04 21}{fx 42 00}There's a duel field where
+we usually play. That's the
+place for a real battle!{page}{fx 42 80}{fx 04 20}The town's duel field...{page}{fx 04 21}{fx 45 00}Master Seto!
+Master Heishin calls!{page}{fx 45 80}{fx 04 20}I see...
+So be it. Duty calls...{page}The duel field, is it?
+Wait there and I will grace
+you with my presence.{page}Seto is my name.
+Remember it...{page}{fx 04 80}{fx 02 00}Can you believe that guy!?
+A mage with attitude!!!{page}{fx 02 21}{fx 43 00}Yeah... A real charmer.{page}{fx 43 80}{fx 02 20}Sorry, {call L125A}...
+I know you didn't want to
+duel the guy.{page}But he called you a coward,
+{call L125A}! I couldn't
+let him get away with that!{page}C'mon let's go to the duel
+field and wait for the guy!{page}{fx 02 80}{set 406F}{f8 11 00}{f8 14 0A}{end}
+
+[053C]
+{fx 06 00}These hallowed halls are
+protected by High Mage Heishin!
+Commoners are not allowed!{page}Begone with you!{end}
+
+[053D]
+{fx 4E 00}Where is Seto?{page}{fx 4E 80}{fx 4F 00}Must we be kept waiting!?{page}{fx 4F 80}{fx 50 00}Where can he be at a
+time like this!?{page}T'would seem Master Heishin's
+favorite chooses to mock us...{page}{fx 50 80}{fx 51 00}Master Heishin does make much
+of Seto's capabilities...{page}...though he is but a child.{page}{fx 51 80}{fx 52 00}I believe we've waited enough.
+Let us go. Master Heishin
+awaits us...{page}{fx 52 80}{set 404D}{f8 16}{end}
+
+[053E]
+Hello there!{end}
+
+[053F]
+{fx 01 00}Well, it's about time!{page}Go on now! Off to your
+room!{page}{fx 01 80}{jump L31EE}
+
+[0540]  {:L31EE}
+{state 05 05 00}{fx 01 00}I really hope you're
+ready to call it a day...{page}{f8 15 A1}{fx 01 82}{f8 11 00}{jump L3230}
+
+[0541]  {:L3230}
+{state 05 02 01}{f8 15 A0}{fx 41 00}Sometimes I wonder if the
+prince does this just to annoy me...{page}{fx 41 80}{fx 53 00}Lord Simon Muran!
+We've got trouble!{page}Th-the High Mage...
+The High Mage Heishin
+and his men...{page}They wield a strange power...
+They're invading the palace!!!{page}{fx 53 80}{fx 01 20}{fx 41 00}{f8 0E B0 71}What!?{page}{fx 41 80}{fx 01 21}{fx 53 00}I think it's sorcery, my lord!
+I'm afraid there's naught we
+can do to fend them off...{page}{fx 53 80}{fx 01 20}{fx 41 00}Where's the High Mage now!?{page}{fx 41 80}{fx 53 00}In the Palace Hall, my lord!{page}{fx 53 80}{state 05 00 00}{fx 41 00}Heishin... Heishin!
+What could that dog have in mind?{page}{fx 41 80}{fx 01 80}{state 05 04 82 60 00 00}{fx 41 00}{state 0B 5C 00 00 00 B4 00}Wha... What the...{page}{state 0A}{fx 41 80}{fx 07 00}It's good to see you again,
+Simon Muran...{page}{fx 07 21}{fx 41 00}You dare to revolt...
+Are you mad!?{page}{fx 41 80}{fx 07 20}Mad...?
+Me?{page}I don't think so...
+I've but come to claim
+my throne.{page}{fx 07 21}{fx 41 00}Your throne!?{page}{fx 41 80}{fx 07 20}Yes, my throne. For I now
+have the 'Power'...{page}{fx 07 21}{fx 41 00}The 'Power'...
+No... It cannot be...{page}{fx 41 80}{fx 07 20}I see recognition in your eyes.
+But then we both draw our roots
+from our sorcerous forefathers...{page}{fx 07 21}{fx 41 00}The power of darkness...!?{page}{fx 41 80}{fx 07 20}That's right. I've discovered
+the forbidden treasure...{page}{f8 15 A1}{fx 07 82}{state 05 03 01}{f8 15 A0}Here! Taste the forbidden
+power of darkness!!!{page}{jump L365F}
+
+[0542]  {:L365F}
+{state 05 05 00}{f8 10 27 00}{state 10 28 00}{state 0F 3C 00}{f8 16}!?{page}{fx 09 00}Prince {call L125A}!{page}The High Mage Heishin
+has invaded the palace!{page}This place is too dangerous!
+We must leave at once!{page}{fx 09 80}{f8 15 A1}{f8 11 83}{state 0F 0A 00}{f8 0E 80 71}{state 05 04 01}{f8 15 A0}{fx 47 00}No...{page}{fx 47 80}{fx 44 00}Prince {call L125A}...
+Did you hope to escape me?{page}{if 006E L374C}We meet again...{page}{jump L374C}
+
+{:L374C}
+All right men...
+Away with this servant!{page}I wish to speak with the prince.{page}{fx 44 80}{fx 04 21}{fx 45 00}By your command!{page}{fx 45 80}{fx 47 00}Prince {call L125A}!{page}{fx 47 80}{fx 45 00}Be quiet and come with us!{page}{fx 45 80}{fx 04 20}{state 05 06 00}{fx 04 00}Why do you flee?
+{call L125A}.{page}Heishin already holds the
+King and Queen captive.{page}Running away would
+only provoke Heishin to
+end their lives...{page}Is that what you want?{page}Well... I'll tell you what I want.
+Something that only one of
+royal blood would know...{page}...the location of the
+Millennium Item.{page}Tell me where it is and I'll
+spare the King and Queen!{page}You know where it is!
+So... tell me!{page}{choice 02}«Refuse»
+«Tell»
+{choose 80 L3995 L397F}
+
+{:L397F}
+Good... Now, talk!{page}{jump L39CA}
+
+{:L3995}
+Don't take me for a fool!
+You know where it is!!!{page}{jump L39CA}
+
+{:L39CA}
+{fx 04 21}{fx 48 00}My prince...!{page}{fx 48 80}{fx 04 20}Simon Muran!{page}{fx 04 80}{state 05 05 01}{fx 48 00}Dear prince...
+Here is the Millennium Item...{page}Take it... take it and run!!!{page}{fx 48 80}{call L125A} gets Millennium Puzzle!{page}{state 05 06 00}{fx 0A 00}You must keep this treasure
+from falling into the
+hands of these vermin!!!{page}The treasure is the final key to
+unlocking the seal to great power.{page}Should it fall in the hands of
+the wicked, it would mean
+armageddon...{page}{fx 0A 21}{fx 44 00}Well, well... You couldn't have
+brought it at a better time.{page}Hand the key over to me right
+now, and I might help the two
+of you escape from Heishin.{page}{fx 44 80}{fx 0A 21}Ignore this cur! He wags his
+tail at Heishin's command!
+He's not to be trusted!{page}Leave him to me, my prince!
+You must escape!{page}{fx 0A 21}{fx 44 00}Out of my way, old man!{page}{fx 44 80}{fx 0A 21}Go, my prince! Run!{page}{choice 02}«Run»
+«Stay»
+{choose 80 L3CAD L3CBA}
+
+{:L3CAD}
+{f8 15 A1}{f8 11 00}{state 0F 3C 00}{jump L3CF8}
+
+{:L3CBA}
+Listen to what I say...
+Get out of here!{page}{choice 02}«Run»
+«Stay»
+{choose 80 L3CAD L3CBA}
+
+{:L3CF8}
+{f8 0E B0 71}{fx 0A 82}{state 05 06 00}{f8 15 A0}{fx 07 00}Do not move! You are mine!{page}I see you've found them, Seto.
+Well done.{page}{fx 07 21}{fx 44 00}Yes, my lord...{page}{fx 44 80}{fx 07 20}You didn't think you'd
+escape me, did you?{page}There's no point in resisting.
+Admit your defeat...{page}...and hand it over.
+Give me the Millennium Item!!!{page}{fx 07 21}{fx 48 00}Only one option remains, my prince.{page}You must do battle with Heishin.
+Challenge him to a duel with your
+cards and the Millennium Item!{page}{fx 48 80}{choice 02}«Duel»
+«Pass»
+{choose 80 L3EA2 L3EE8}
+
+[0543]  {:L3EA2}
+{fx 07 20}A wasted effort, boy!
+You lack the power to
+defeat me!{page}{f8 11 00}{f8 0D 08 74 75 06 30 72}{end}
+
+{:L3EE8}
+{fx 48 00}My dear prince!
+You must confront him!{page}The Millennium Item will
+unleash the dark powers
+of your cards.{page}Face him!
+You must defeat Heishin!{page}{fx 48 80}{choice 02}«Duel»
+«Pass»
+{choose 80 L3EA2 L3EE8}
+
+[0544]
+Foolish child!
+You've wasted my time!{page}If you insist on keeping the
+Millennium Puzzle, I'll just
+rip it from your lifeless fingers!{page}{f8 15 C1}{f8 19 08}{fx 07 82}{state 05 06 01}{f8 0E A0 71}{f8 15 C0}{fx 46 00}!!!{page}Out of my way, old man!
+Or else...{page}{fx 46 80}{fx 48 00}My prince!
+Shatter the Millennium Puzzle...{page}You must not hand it over
+to this vile creature!{page}{fx 48 80}{fx 46 00}Out of my way, old man!
+Get your hands off me!{page}{fx 46 80}{fx 48 00}Prince...
+The puzzle...{page}...don't give them
+the puzzle...{page}{fx 48 80}{choice 02}«Don't shatter the puzzle»
+«Shatter the puzzle»
+{choose 80 L4182 L4161}
+
+{:L4161}
+{f8 11 03}{state 05 07 01}{f8 10 2A 00}{fx 46 00}No!!!{page}{fx 46 80}{f8 15 91}{state 0F 78 00}{f8 16}{end}
+
+{:L4182}
+{fx 48 00}I beg you...
+the puzzle...{page}...shatter it...{page}{fx 48 80}{choice 02}«Don't shatter»
+«Shatter»
+{choose 80 L4182 L4161}
+
+[0545]
+Not bad, boy.{page}But you're wrong if you
+think I'm beaten!{page}{f8 0D 08 74 75 06 30 72}{end}
+
+[0547]
+{f8 15 90}{fx 01 08}{call L125A}...{page}{fx 01 21}!?{page}{fx 01 20}Thank goodness! You've awoken!
+We're inside the Millennium Puzzle.{page}To be precise, your soul is now
+sealed within the puzzle.{page}I'm sorry, my prince. But this
+was the only way I could save
+you and the puzzle.{page}I couldn't allow you to simply
+hand over the puzzle to the
+likes of Heishin.{page}The power of darkness that
+Heishin sought to unravel
+could only lead to destruction.{page}One day, when someone puts the
+puzzle together again, you will
+live to walk among men.{page}Until that day comes...
+Sleep, my prince.{page}I'm sure there is someone
+out there destined to
+assemble the Puzzle.{page}In the end, that person and
+the Millennium Puzzle will
+guide you back to our world.{page}Now rest, dear prince...
+Close your eyes...{page}{f8 11 00}{f8 15 91}{fx 01 82}{jump L44EE}
+
+[0548]  {:L44EE}
+{state 0F 0F 00}{state 05 00 00}{f8 15 90}{fx 4B 00}Hey! Yugi!{page}Wake up, Yugi!{page}{fx 4B 80}{fx 49 00}Huh...?{page}{fx 49 80}{state 05 08 00}{f8 0E 40 70}{fx 0D 00}You dozed off, fella!{page}{fx 0D 21}{fx 49 00}Really...? Sorry...{page}{fx 49 80}{fx 0D 20}What's the matter? So nervous
+you couldn't sleep last night?{page}{fx 0D 21}{fx 49 00}I... had...
+a dream...{page}{fx 49 80}{fx 0D 20}You were dreaming!? Man!
+Nothing fazes you, does it?{page}C'mon. It's time for the
+opening ceremony. Let's go.{page}{fx 0D 80}{fx 49 00}(... ... ... ...){page}{fx 49 80}{jump L4650}
+
+[0549]  {:L4650}
+{f8 15 A1}{f8 11 83}{f8 0E 30 70}{state 05 05 82 00 A2 00}{f8 15 A0}{state 0B A2 00 60 00 78 00}{state 0A}{fx 54 00}Welcome to Yu-Gi-Oh! World
+Tournament, sponsored by
+the Kaiba Corporation!{page}We're now at the TOWN OF DOMINO
+where selected duelists have
+gathered to decide who is
+number one! {page}{fx 54 80}{fx 4B 00}This is it, Yugi.{page}{fx 4B 80}{fx 49 00}Yeah...{page}{fx 49 80}{f8 15 81}{state 05 05 82 00 00 00}{fx 2A 00}{f8 15 80}The battles are about to
+begin...{page}But before we start, there
+are a few rules to explain...{page}Tournament rules are divided
+between the preliminaries and
+the finals. For example...{page}{fx 2A 80}{fx 4B 00}Who cares about the rules.
+All you gotta do is keep winning!{page}Right, Yugi?{page}{fx 4B 80}{fx 49 00}Huh?
+Yeah. I guess so...{page}{fx 49 80}{fx 2A 00}...and now, a few words from
+our sponsor, Mr. Kaiba!{page}{fx 2A 80}{fx 0E 00}I thank you for joining us
+in deciding the king of kings...{page}Today we duel to decide{sp}
+who is the Game Master...
+the ultimate duelist!{page}And I, too, am intent
+upon winning that honor...{page}{fx 42 00}{fx 0E 21}That Kaiba gets on my nerves!{page}If anybody puts him out of the
+tournament, I hope it's me!{page}Yugi, I'm hoping to face you
+in the finals... Okay?{page}{fx 4B 80}{fx 49 00}Sure!{page}{fx 49 80}{fx 0E 80}{fx 2A 00}All right then, ladies and
+gentlemen!
+May the best man win!
+Let the duels begin!!!{page}{f8 15 A1}{fx 2A 82}{f8 16}{end}
+
+[054A 056B]
+Hi, Yugi!{page}I'm working part-time at this
+card shop during the tournament.{page}What do you want to do?{end}
+
+[054B]
+Good luck!{page}{f8 15 A1}{fx 16 82}{f8 11 83}{jump L4AEC}
+
+{:L4AEC}
+{f8 0E 60 70}{state 05 09 00}{fx 54 00}Preliminary Match #1
+Yugi vs Rex Raptor!{page}{fx 54 80}{fx 10 00}It's been awhile, Yugi...{page}Guess you're gonna be
+watching me in the finals!{page}{f8 11 00}{f8 0D 09 76 77 00 D0 71}{end}
+
+[054C]
+{f8 19 09}You... You beat me!!!{page}I don't believe it!!!{page}{fx 35 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[054D]
+Hahaha!
+It looks like the best
+man won... ME!!!{page}Too bad, kid!!!{end}
+
+[056C]
+Looking good, Yugi.
+Looking good!{page}What do you want to do?{end}
+
+[054E]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 60 70}{state 05 09 00}{fx 54 00}Preliminary Match #2
+Yugi vs Weevil Underwood!{page}{fx 54 80}{fx 11 00}Hehehe...
+It's only fair to tell you...
+You ain't got a chance{page}My army of insects will
+make mincemeat out of you!{page}{f8 11 00}{f8 0D 0A 78 79 00 D0 71}{end}
+
+[054F]
+{f8 19 0A}I lost... I LOST!!!{page}My army of insects...
+Defeated by the likes
+of you...{page}{fx 36 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[0550]
+Harharhar!!!
+I'm a winner! I'm a winner!{page}And you... You're a loser!
+Take a hike, loser!
+Buzz off!!!{end}
+
+[056D]
+I hear you're doing pretty well!{page}What do you want to do?{end}
+
+[0551]
+{f8 15 A1}{f8 11 83}{fx 16 82}{state 05 09 00}{f8 0E 60 70}{fx 54 00}Preliminary Match #3
+Yugi vs Mai Valentine!{page}{fx 54 80}{fx 12 00}You should have quit
+before you faced me.{page}You're going to regret it!{page}{f8 11 00}{f8 0D 0B 7A 7B 00 D0 71}{end}
+
+[0552]
+{f8 19 0B}I guess I lost...{page}Oh well... I suppose I'll
+simply wish you luck!{page}{fx 37 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[0553]
+My...
+That was easy...{page}And I thought you were good!{end}
+
+[056E]
+You play a tough game, Yugi!{page}What do you want to do?{end}
+
+[0554]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 60 70}{state 05 09 00}{fx 54 00}Preliminary Match #4
+Yugi vs Bandit Keith!{page}{fx 54 80}{fx 13 00}Long time no see...
+I came to bury you,
+Yugi...{page}Get ready for a thrashing!{page}{f8 11 00}{f8 0D 0C 7C 7D 00 D0 71}{end}
+
+[0555]
+{f8 19 0C}I... I...yai...yai{page}Me... The Card Professor...
+Beaten by this... this kid!{page}{fx 38 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[0556]
+Listen, kid.
+You didn't have a chance.{page}I'm just tooooo good!{end}
+
+[056F]
+I heard you made the
+finals! That's great!
+Keep it up!{page}Now, what do you want to do?{end}
+
+[0557]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 40 70}{state 05 11 00}{fx 0D 00}Hiya Yugi!
+Hear you're winning...{page}{fx 0D 21}{fx 49 00}Yeah.
+How about you?{page}{fx 49 80}{fx 0D 20}Me? Well, I ain't been
+eliminated yet!{page}Maybe this time I will face
+you in the finals!!!{page}{fx 0D 21}{fx 49 00}I hope so!
+But...{page}{f8 11 02}!!!{page}{fx 49 80}{fx 0D 20}Huh? What's wrong, Yugi?{page}{fx 0D 21}{fx 49 00}Over there...
+It's Shadi...{page}{fx 49 80}{fx 0D 20}What!?{page}{fx 0D 80}{f8 0E 41 70}{fx 0F 00}We meet again, Yugi.{page}{fx 0F 21}{fx 4B 00}What're you doin' here?
+You lookin' for something?{page}{fx 4B 80}{fx 0F 20}I was summoned by Yugi's
+Millennium Item...{page}{fx 0F 21}{fx 49 00}The Millennium Puzzle?{page}{fx 49 80}{fx 0F 20}That is correct.{page}My own Millennium Item is reacting
+as if it wants to be here...
+Here and now.{page}I believe that every last
+Millennium Item is gathered
+here at the tournament.{page}My mission is to discover the
+secret of these Items.{page}That is what brought me here.{page}{fx 0F 21}{fx 49 00}Shadi...{page}I had a weird dream about
+the Millennium Puzzle.{page}There was another guy like
+me in the dream, locked in
+the puzzle... in another world.{page}It was a really strange dream!{page}{fx 49 80}{fx 0F 20}I see... That might have
+something to do with Yami
+Yugi... your doppelganger.{page}{fx 0F 21}{fx 49 00}My doppelganger...{page}{fx 49 80}{fx 0F 20}Yugi... Have you ever thought
+about meeting your dark twin? {page}{fx 0F 21}{fx 49 00}Me? Meet him?{page}{fx 49 80}{fx 4B 00}And how's he gonna do that?{page}{fx 4B 80}{fx 0F 20}We can use my Millennium Key
+to open your mind, Yugi.{page}By delving deep into your mind,
+you can probably meet the other
+you that lies within.{page}Yami Yugi was born from the
+power of the Millennium Puzzle.
+He emerges from within you.{page}The dream you had... maybe he is
+trying to tell you something...{page}I think this might be the time
+to meet him and talk...{page}{fx 0F 21}{fx 49 00}...
+I see what you're saying.{page}I'll go see him if you're
+willing to help me.{page}{fx 49 80}{fx 0F 20}{f8 11 01}Okay...
+Here, touch my Millennium Key.{page}{f8 15 A1}{fx 0F 82}{state 05 08 01}{f8 15 A0}{fx 4C 00}Now close your eyes...{page}Relax... Open your mind...{page}{fx 4C 80}{f8 15 91}{jump L575E}
+
+[0558]  {:L575E}
+{f8 0E 50 70}{state 05 07 00}{f8 15 90}{fx 49 00}This is... my mind...{page}{fx 49 80}{fx 0C 08}{fx 0C 21}{fx 49 00}And you... are me...{page}This is the first time I've
+met you... It's so...
+strange...{page}I can see inside your mind.{page}Don't need words...
+I can understand you...{page}...just by facing you...{page}...{page}...{page}You want to return...
+back to your own world...{page}...I want to help...
+What do I have to do...?{page}{fx 49 80}{f8 15 A1}{fx 0C 82}{state 05 09 01}{f8 15 A0}{fx 49 00}A... card...?{page}{f8 15 A1}{fx 0C 00}{state 05 07 00}{f8 15 A0}{fx 0C 21}The face...
+It's blank...{page}{fx 0C 81}Wait!
+What is this card!?{page}{fx 49 80}{f8 11 00}{f8 15 91}{jump L591B}
+
+[0559]  {:L591B}
+{f8 0E 40 70}{state 05 11 00}{f8 15 90}{fx 49 00}!!{page}{fx 49 80}{fx 0D 00}Yugi?
+Are you alright?{page}{fx 0D 21}{fx 49 00}Uh... yeah.{page}{fx 49 80}{fx 0D 80}{fx 0F 00}Did it work? Did you meet him?{page}{fx 0F 21}{fx 49 00}I met him...{page}But... we only spoke
+briefly...{page}He told me he was a prince
+trapped in the puzzle...
+a long time ago.{page}He said he had to get back
+to his own world...{page}He asked me to help
+him get back.{page}But I don't know how...{page}{fx 49 80}{fx 4B 00}Yugi? What's that you
+got in your hand?{page}{fx 4B 80}{fx 49 00}Huh?{page}{f8 15 A1}{fx 0F 82}{state 05 10 01}{f8 15 A0}This card...!
+He gave me this card in
+my mind's world!{page}He told me to use it to
+free him... to send him
+back to his own world!{page}{fx 49 80}{fx 4B 00}What is it, Shadi?{page}{fx 4B 80}{state 05 11 00}{fx 0F 00}I'm afraid I don't know...{page}But it probably has something
+to do with the Millennium Item.{page}{fx 0F 21}{fx 49 00}Six blank cards...
+I don't get it...{page}{fx 49 80}{fx 0F 80}{fx 0D 00}It's time to head back.{page}Why don't we think on this later.
+We got some duels to fight.{page}{fx 0D 80}{jump L5C34}
+
+[055A]  {:L5C34}
+{f8 15 A1}{f8 11 83}{f8 0E 70 70}{state 05 09 00}{f8 15 A0}{fx 54 00}Match #1 of the Finals!
+Yugi vs Shadi!{page}{fx 54 80}{fx 0F 00}Yugi... We were drawn to battle
+by our Millennium Items.{page}We were destined to duel!{page}{f8 11 00}{f8 0D 0D 7E 7F 00 E0 71}{end}
+
+[055B]
+{f8 19 0D}It seems I've lost...
+Hm?{page}{f8 15 A1}{fx 0F 82}{state 05 11 01}{f8 15 A0}{fx 4C 00}What the...?! My Millennium
+Key and Millennium Scales!!!{page}{fx 4C 80}{f8 10 2D 00}{f8 15 91}{state 05 12 01}{f8 15 90}{fx 4C 00}They've been drawn into the cards...{page}So this is why the Millennium
+Items were drawn to each
+other this day...{page}{fx 4C 80}{state 05 09 00}{fx 0F 00}Yugi, it seems your friend has
+summoned the Items together to
+absorb them into these cards.{page}{fx 0F 80}{f8 15 21}{state 0F 28 00}{f8 16}{end}
+
+[055C]
+What's wrong, Yugi?
+Is that the best you can do?{page}You can't lose! You're the Chosen
+One of the Millennium Puzzle!{end}
+
+[0570]
+I hear you're doing great!
+Keep it up!{page}What do you want to do?{end}
+
+[055D]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 70 70}{state 05 09 00}{fx 54 00}Match #2 of the Finals!
+Yugi vs Bakura!{page}{fx 54 80}{fx 14 00}It's odd... I had no
+intention of joining
+in this tournament...{page}But my Millennium Ring...
+It called me to battle...{page}...{page}{state 0F 14 00}{fx 14 41}Good to see you, Yugi!{page}It's high time we
+proved who the real
+Game Master is!!!{page}{f8 11 00}{f8 0D 0E 80 81 00 E0 71}{end}
+
+[055E]
+{f8 19 0E}Guess I won't be claiming
+the Game Master title...{page}{f8 15 A1}{fx 14 82}{state 05 13 01}{f8 15 A0}{fx 55 00}What in the...!?{page}{f8 10 2D 00}{f8 15 91}{state 05 14 01}{f8 15 90}My Millennium Ring! It's
+being sucked into a card!{page}{fx 55 80}{state 05 09 00}{fx 14 00}The ring... it..
+used... me...{page}Thanks, Yugi...
+I'm now free of the
+Millennium Ring.{page}{fx 14 80}{f8 15 A1}{state 0F 28 00}{f8 16}{end}
+
+[055F]
+That's it! Game Over!{page}You just haven't got what
+it takes to win!{end}
+
+[0571]
+Keep focused, Yugi...
+Think... WINNER!{page}Now, what do you want to do?{end}
+
+[0560]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 70 70}{state 05 09 00}{fx 54 00}Quarterfinal Match!
+Yugi vs Pegasus!{page}{fx 54 80}{fx 15 00}Well, well... Yugi Boy.
+You've come a long way.
+But now it's time to lose.{page}{f8 11 00}{f8 0D 0F 82 83 00 E0 71}{end}
+
+[0561]
+{f8 19 0F}Defeat can be bitter...{page}{f8 15 A1}{fx 3A 82}{state 05 15 01}{f8 15 A0}{fx 56 00}Oh dear!{page}{f8 10 2D 00}{f8 15 91}{state 05 16 01}{f8 15 90}I don't believe it!
+My Millennium Eye...{page}{fx 56 80}{f8 15 21}{state 0F 28 00}{f8 16}{end}
+
+[0562]
+Yugi Boy...
+Victory is so sweet!{page}You were foolish to
+challenge me...{end}
+
+[0572]
+One more duel, Yugi! And
+then it's the final battle!{page}What do you want to do?{end}
+
+[0563]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 70 70}{state 05 09 00}{fx 54 00}Semifinal Match
+Yugi vs Isis!{page}{fx 54 80}{fx 2F 00}It's my pleasure to face
+you in battle, Yugi.{page}But only one will walk away
+victorious... ME!!!{page}{f8 11 00}{f8 0D 10 84 85 00 E0 71}{end}
+
+[0564]
+{f8 19 10}How...
+How could I lose...{page}{f8 15 A1}{fx 40 82}{state 05 17 01}{f8 15 A0}{fx 57 00}!!!{page}{f8 10 2D 00}{f8 15 91}{state 05 18 01}{f8 15 90}What...? My Millennium Necklace...
+It's being drawn into a card!?{page}{fx 57 80}{f8 15 21}{state 0F 28 00}{f8 16}{end}
+
+[0565]
+Oh my!
+I believe I won...
+Didn't I?{page}I heard you were strong...
+But not strong enough!!!{end}
+
+[0573]
+You made it to the final!
+I'm rooting for you!!!{page}What do you want to do?{end}
+
+[0566]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 80 70}{state 05 09 00}{fx 54 00}Well, this is it!!!{page}Our finalists are the
+amazing Kaiba...{page}...and the undefeated Yugi!!!{page}{fx 54 80}{fx 0E 00}I thought I might be
+facing you, Yugi...{page}My Millennium Rod is the
+final item...{page}But the Rod whispers to me
+that I must defeat you.{page}Yugi!
+Prepare to lose!!!{page}{f8 11 00}{f8 0D 11 86 87 00 F0 71}{end}
+
+[0567]
+{f8 19 11}This cannot be...
+Me...? Defeated...?{page}{fx 49 00}...{page}{fx 49 80}{f8 15 A1}{fx 34 82}{state 05 19 01}{f8 15 A0}{fx 58 00}What the...!?
+Light...! So bright...!{page}{f8 10 2D 00}{f8 15 91}{state 05 20 01}{f8 15 90}My Millenium Item... drawn
+into... into a card!?{page}{fx 58 80}{jump L672B}
+
+[0568]
+HAHAHAHAHAHAHA!!!
+Yugi!!!
+I've waited for this day!!!{page}This is a day I will never
+forget!!!{page}HAHAHAHAHAHAHA!!!{end}
+
+[0569]  {:L672B}
+{f8 11 00}{state 05 21 01}{fx 49 00}I now have all the cards
+with the Millennium Items...{page}{fx 49 80}{f8 15 91}{state 05 07 82 60 00 00}{f8 15 90}{f8 10 02 80 1E 00}{state 0B 8C 00 00 00 04 01}{state 0A}{call L125A}...{page}Is this what you wanted...?{page}{f8 15 A1}{f8 16}{end}
+
+[056A]
+{fx 01 08}{call L125A}... You've done it!{page}Now you can go back
+to your own world.{page}You have that boy to thank
+for this...{page}Yugi... If I may be so bold,
+I believe the boy represents
+what you are to be.{page}Now, with the Millennium Items
+pulling at each other over time...{page}The portal to our world
+can be opened.{page}{f8 15 A1}{fx 01 82}{state 05 22 01}{f8 15 A0}{fx 41 00}Heishin now has six of the
+Millennium Items and rules
+over an expansive realm.{page}Using his items, he has
+managed to unleash a portion
+of the powers of darkness.{page}He has placed each item in temples
+located at each conquered area
+to protect his holdings.{page}Prince {call L125A}...
+You must retrieve
+all the Millennium Items...{page}And seal them away once and
+for all.{page}The locations of the temples
+containing the Millennium Items
+can be found in the ruins...{page}{fx 41 80}{f8 15 A1}{fx 01 00}{state 05 07 00}{f8 15 A0}My time has come...{page}I have done all that
+I can do.{page}My flesh is no more...
+These will be my last words
+to you, {call L125A}.{page}The rest is up to you.{page}May success be yours...{page}{f8 11 01}{fx 01 81}{set 4047}{f8 15 91}{f8 16}{state 0F 50 00}{end}
+
+[05F7]
+What do you want to do?{end}
+
+[057B]
+Made it back...{page}This looks like the ruins of
+a temple.{page}There's nobody here...{end}
+
+[057C]
+Looks like the ruins of a temple...{end}
+
+[057D]
+There's nobody here...{page}{choice 02}«Enter»
+«Don't enter»
+{choose 80 L6C18 L6E7A}
+
+{:L6C18}
+{state 05 14 00}{if 0031 L6D6C}Everything's been destroyed...{page}{fx 18 00}Who are you!?
+No one's allowed here!
+Out! Get out!{page}{choice 02}«Duel»
+«Pass»
+{choose 80 L6C8C L6D4F}
+
+{:L6C8C}
+You dare to resist me!{page}I'll teach you a lesson
+you'll never forget!{page}{f8 11 00}{f8 0D 12 88 89 00 10 72}{end}
+
+[057E]
+{f8 19 12}You know your cards
+well, boy...{page}I underestimated you...{page}{fx 18 81}{jump L6D6C}
+
+[057F]
+Fool!{page}You didn't stand a chance
+against me, boy!{end}
+
+{:L6D4F}
+Now...
+Get out of here!!!{page}{f8 16}{end}
+
+{:L6D6C}
+This room... it used to be
+Simon's room...{page}{if 0051 L6DA4}{if 0050 L6DC3}{jump L6DA4}
+
+[0580]  {:L6DA4}
+Everything's been destroyed...{end}
+
+[0581]  {:L6DC3}
+{choice 02}«Search»
+«Don't search»
+{choose 80 L6DE3 L6E62}
+
+{:L6DE3}
+!{page}{state 05 24 01}{call L125A} discovers
+an ancient papyrus!{page}It's a map to the Forbidden Ruins.{page}This map should lead to
+the Forbidden Ruins...{page}{set 4051}{f8 16}{end}
+
+{:L6E62}
+I think I'll go back...{end}
+
+{:L6E7A}
+{f8 16}{end}
+
+[0582]
+Everything's destroyed...{page}There's nobody around...{end}
+
+[0583]
+Nobody's here...
+It looks abandoned...{page}{fx 42 00}Hey!
+{call L125A}!{page}{fx 42 80}{set 405A}{fx 02 00}Wow!
+You're alive!!!{page}I never dreamed that I'd see
+you again, {call L125A}!{page}I still can't believe it!{page}Y'know, I was really surprised
+when I first learned that you
+were actually a prince!{page}It's good to see you!
+I never dreamed that you'd
+manage to get away!!!{page}{call L125A}... This place has
+changed since you disappeared.{page}It's a sad situation, but the
+duels still go on... at a
+secret location nearby.{page}C'mon, I'll take you there.{page}Let's go!{page}{fx 02 80}{jump L783E}
+
+[0574 0584]
+Nobody's here...
+It looks abandoned...{end}
+
+[0575 0585]
+{if 0053 L776F}{if 0051 L7664}{if 0052 L7510}{fx 17 00}Who's that!?{page}None may enter the Valley
+of the Kings! Leave!{page}{fx 17 41}!?{page}My... my prince!
+You're alive!!!{page}{fx 17 40}I am Sadin! For generations, my
+family has guarded this valley!{page}Please rest assured that I've
+kept Heishin out of this
+valley, my prince.{page}I'm sorry about what happened to
+the Pharaoh and the Queen...{page}The vile ones have taken over
+this land.{page}But, now...
+Now that you're alive...{page}...there is hope once again
+for everybody.{page}{jump L7473}
+
+{:L7276}
+The remains of the Pharaoh and
+Queen are not here...{page}I'm sorry to say that Heishin
+wouldn't allow it.{page}Is there anything else you want?{page}{jump L7473}
+
+{:L734A}
+{set 4050}The Forbidden Ruins?{page}Simon Muran said it was
+here?{page}I'm sorry, but I've never seen
+such a place...{page}There are so many tombs for
+royalty, nobody knows which
+tunnel leads to where...{page}If there's a Forbidden Tomb,
+I don't know where it is...{page}My apologies, good prince...{page}Anything else, my prince?{page}{jump L7473}
+
+{:L7473}
+{choice 03}«Go to parents' tomb»
+«Go to Forbidden Ruins»
+«Leave this place»
+{choose 80 L7276 L734A L74D1}
+
+{:L74D1}
+If you require my services,
+you can always find me here.{page}{set 4052}{f8 16}{end}
+
+[0576 0586]  {:L7510}
+{fx 17 00}How can I be of help, my prince?{page}{choice 02}«Go to Forbidden Ruins»
+«Leave this place»
+{choose 80 L7567 L7622}
+
+{:L7567}
+{set 4050}My apologies, good prince.
+I know not where the Forbidden
+Room is located.{page}Perhaps if you had some sort of
+clue from Master Simon...{page}{choice 02}«Go to Forbidden Ruins»
+«Leave this place»
+{choose 80 L7567 L7622}
+
+{:L7622}
+I see...
+If you require my services,
+you can always find me here.{end}
+
+[0577 0587]  {:L7664}
+{fx 17 00}Can I be of service?{page}{choice 02}«Give Map»
+«Leave this place»
+{choose 80 L76A2 L7736}
+
+{:L76A2}
+So Master Simon did leave
+behind a clue to the whereabouts
+of the ruins...{page}Let me see...{page}Right! I know where this is.
+Please, follow me...{page}{fx 17 80}{f8 11 00}{jump L9932}
+
+{:L7736}
+If you require my services,
+you can always find me here.{end}
+
+[0578 0588]  {:L776F}
+{fx 17 00}Is something wrong, my prince?{page}{choice 02}«Go to Forbidden Ruins»
+«Return»
+{choose 80 L77BA L7736}
+
+{:L77BA}
+I see...
+Be careful, my prince.{page}{fx 17 80}{f8 15 A1}{f8 11 83}{f8 0E 90 71}{jump LA302}
+
+[0579 057A 0589]  {:L783E}
+{f8 15 A1}{f8 11 83}{f8 0E F0 70}{state 05 19 00}{f8 15 A0}{fx 02 00}Here ya go... This is where we
+set up our new dueling grounds.{page}{call L125A}, the mages spent
+days trying to find out where
+you might've run off to.{page}When we said we had no idea,
+they destroyed our old
+dueling grounds...{page}That's why me and the Card Shop
+owner moved the dueling grounds
+down here.{page}{fx 02 21}{fx 43 00}{call L125A}!
+You're alive!{page}{fx 43 80}{fx 03 01}{fx 03 21}{fx 02 20}What'd ya expect!?
+{call L125A} isn't dumb
+enough to be caught!{page}{fx 02 21}{fx 03 20}You know, it's a miracle that
+you managed to elude them.{page}{fx 03 21}{fx 02 20}Yeah. Those guys've taken over
+the entire kingdom. They do as
+they please... control everything...{page}They wield some kinda
+strange magic...{page}Nobody can stand up to 'em!{page}The way things're going, we'll
+have to live down here for the
+rest of our lives...{page}{call L125A}...{page}Feel like dueling?{page}It beats moping around
+just worrying about things...{page}{choice 03}«Duel with Jono»
+«Duel with Teana»
+«Decline»
+{choose 80 L7B8B L7B8E L7BBC}
+
+[05C0]  {:L7B8B}
+{jump L911C}
+
+[05C1]  {:L7B8E}
+{fx 02 21}{fx 03 20}I think I may surprise you!{page}{f8 11 00}{f8 0D 14 B3 B4 00 00 72}{end}
+
+[05C2]  {:L7BBC}
+{fx 03 21}{fx 02 20}Okay...
+Maybe next time.{page}The old man runs his Card
+Shop down here. Drop in
+when you got the chance.{page}{fx 02 21}{fx 03 20}See you around!{end}
+
+[05D8]
+{if 005E L7CA9}Haven't seen you awhile...{page}As you can see, I'm still
+around...{page}{set 405E}{choice 02}«Card Shop»
+«Dueling Grounds»
+{choose 80 LBA07 L7CE6}
+
+{:L7CA9}
+What can I do for you?{page}{choice 02}«Card Shop»
+«Dueling Grounds»
+{choose 80 LBA07 L7CE6}
+
+{:L7CE6}
+{f8 15 A1}{fx 08 80}{state 05 19 00}{f8 15 A0}{jump L7D14}
+
+[05F9]
+Hello. What can I do for you?{end}
+
+[05DA]  {:L7D14}
+{fx 02 00}{if 005D L813E}{if 005C L7FBD}{jump L7D24}
+
+{:L7D24}
+{if 0035 L7D40}{if 0037 L7D57}{if 0039 L7D69}{if 003B L7D76}{if 003D L7DFC}{jump L7D97}
+
+{:L7D40}
+{if 0037 L7ECC}{if 0039 L7ECC}{if 003B L7ECC}{if 003D L7ECC}{jump L7DFC}
+
+{:L7D57}
+{if 0039 L7ECC}{if 003B L7ECC}{if 003D L7ECC}{jump L7DFC}
+
+{:L7D69}
+{if 003B L7ECC}{if 003D L7ECC}{jump L7DFC}
+
+{:L7D76}
+{if 003D L7ECC}{jump L7DFC}
+
+{:L7D97}
+Hiya, {call L125A}.
+You're looking good...{page}{jump L7DBB}
+
+{:L7DBB}
+Wanna duel?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L911C L8261 L9118}
+
+{:L7DFC}
+{if 005B L7D97}{set 405B}Hey! I heard all about it!
+You beat a high mage!?{page}You've got the mages
+and their soldiers in a
+state of shock!{page}That's really cool...
+{call L125A}!{page}{choice 03}«Duel with Jono»
+«Talk to someone else»
+«Go outside»
+{choose 80 L911C L8261 L9118}
+
+{:L7ECC}
+{set 405B}{call L125A}!
+We got some trouble!{page}Seto and the mages came here
+while I was gone... They took
+off with Teana!{page}They want you, {call L125A}...
+They figure they can drag you
+out with Teana as bait!!!{page}C'mon, {call L125A}.
+Let's go to the Shrine and
+rescue Teana!{page}{fx 02 80}{set 405C}{jump LA46D}
+
+{:L7FBD}
+{if 005F L8067}{set 405F}Man, that was rough!{page}Well, at least we've got
+Teana back...{page}Y'know, those guys were
+acting really strange...{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L911C L8261 L9118}
+
+{:L8067}
+{if 8035 L8083}{if 8037 L809A}{if 8039 L80AC}{if 803B L80B9}{if 803D L80C1}{jump L813E}
+
+{:L8083}
+{if 8037 L7D97}{if 8039 L7D97}{if 803B L7D97}{if 803D L7D97}{jump L80C1}
+
+{:L809A}
+{if 8039 L7D97}{if 803B L7D97}{if 803D L7D97}{jump L80C1}
+
+{:L80AC}
+{if 803B L7D97}{if 803D L7D97}{jump L80C1}
+
+{:L80B9}
+{if 803D L7D97}{jump L80C1}
+
+{:L80C1}
+One more high mage to go, eh?{page}{call L125A},
+Be careful...
+We're depending on you.{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L911C L8261 L9118}
+
+{:L813E}
+You did it!!!{page}You beat every last one of 'em!
+Now all you gotta do is defeat
+Heishin and Seto, right?{page}I knew you could do it!{page}When you become king, {call L125A}...
+and things're back to normal,
+I hope you don't forget
+we're friends...{page}...real good friends.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8261 L9118}
+
+[05DB]  {:L8261}
+{fx 02 80}{fx 30 80}{fx 03 00}{if 005D L84DC}{if 005C L8378}{if 0035 L82E6}{if 0037 L82E6}{if 0039 L82E6}{if 003B L82E6}{if 003D L82E6}{jump L8290}
+
+{:L8290}
+What's up, {call L125A}?{page}Feel like a duel?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9148 L8592 L9118}
+
+{:L82E6}
+{if 0061 L8290}{set 4061}I was told you beat a high mage...
+You've got the other mages scared!{page}Well done, {call L125A}!{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9148 L8592 L9118}
+
+{:L8378}
+{if 0062 L83FB}Thanks for helping me...{page}{call L125A}... I just knew
+you'd come and rescue me.
+{set 4062}{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9148 L8592 L9118}
+
+{:L83FB}
+{if 8035 L8417}{if 8037 L842E}{if 8039 L8440}{if 803B L844D}{if 803D L8455}{jump L84DC}
+
+{:L8417}
+{if 8037 L8290}{if 8039 L8290}{if 803B L8290}{if 803D L8290}{jump L8455}
+
+{:L842E}
+{if 8039 L8290}{if 803B L8290}{if 803D L8290}{jump L8455}
+
+{:L8440}
+{if 803B L8290}{if 803D L8290}{jump L8455}
+
+{:L844D}
+{if 803D L8290}{jump L8455}
+
+{:L8455}
+Beat one more high mage, and
+you'll be facing Heishin next.{page}Luck be with you, {call L125A}!{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9148 L8592 L9118}
+
+{:L84DC}
+Now, all that's left is Heishin...{page}I hear Heishin is a very
+powerful duelist...
+Be careful.{page}{call L125A}...
+I'm betting you come out
+a real winner!{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8592 L9118}
+
+[05DC]  {:L8592}
+{fx 03 80}{fx 31 80}{fx 2B 00}{if 8063 L85C1}{if 005D L8909}{if 0035 L8771}{if 0037 L8771}{if 0039 L8771}{if 003B L8771}{if 003D L8771}{jump L8721}
+
+{:L85C1}
+{call L125A}... Nice to see you're
+still alive.{page}Prince {call L125A}...
+so you're royalty, eh?{page}Feels real strange, after all
+we've been through...{page}Everything seems so unreal...{page}That's why we keep dueling.
+It's all we've got to keep us sane.{page}Hope you don't mind if we
+treat you like we did before.{page}C'mon, let's play!
+{set 4063}{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L916B L8A30 L9118}
+
+{:L8721}
+Hey, {call L125A}!
+How 'bout a game?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L916B L8A30 L9118}
+
+{:L8771}
+{if 0064 L8819}{set 4064}Have you noticed that the
+mages've been down, lately?...{page}It's all because of you,
+{call L125A}...
+C'mon, let's play!{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L916B L8A30 L9118}
+
+{:L8819}
+{if 8035 L8835}{if 8037 L884C}{if 8039 L885E}{if 803B L886B}{if 803D L8873}{jump L8909}
+
+{:L8835}
+{if 8037 L8721}{if 8039 L8721}{if 803B L8721}{if 803D L8721}{jump L8873}
+
+{:L884C}
+{if 8039 L8721}{if 803B L8721}{if 803D L8721}{jump L8873}
+
+{:L885E}
+{if 803B L8721}{if 803D L8721}{jump L8873}
+
+{:L886B}
+{if 803D L8721}{jump L8873}
+
+{:L8873}
+Hah! You whipped those high
+mages! Fantastic!{page}I hear you got one more to
+go... Luck be with you!{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L916B L8A30 L9118}
+
+{:L8909}
+Awright!!!{page}I heard you beat every last one
+of those high mages!!!{page}Great news!!!{page}Oops! I guess once you put all
+of 'em away, I'll have to be calling
+you King {call L125A}.{page}Best I watch my tongue, eh?{page}I just hope you'll never forget us
+once you're the Pharaoh...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8A30 L9118}
+
+[05DD]  {:L8A30}
+{fx 2B 80}{fx 3C 80}{fx 2C 00}{if 8065 L8A5F}{if 005D L8CED}{if 0035 L8B43}{if 0037 L8B43}{if 0039 L8B43}{if 003B L8B43}{if 003D L8B43}{jump L8AF4}
+
+{:L8A5F}
+{set 4065}It's very difficult to get rare
+cards these days...
+Really tough.{page}Well, do you want to play?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9198 L8D6D L9118}
+
+{:L8AF4}
+You want to duel with me?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9198 L8D6D L9118}
+
+{:L8B43}
+{if 0066 L8C1A}{set 4066}You beat a high mage!?{page}Maybe things'll go back to normal
+around here! When it does, maybe
+I can collect rare cards like
+I used to!!!
+Do you want to duel?{page}{choice 03}«Duel»
+«Talk to someone else»
+«Go outside»
+{choose 80 L9198 L8D6D L9118}
+
+{:L8C1A}
+{if 8035 L8C36}{if 8037 L8C4D}{if 8039 L8C5F}{if 803B L8C6C}{if 803D L8C74}{jump L8CED}
+
+{:L8C36}
+{if 8037 L8AF4}{if 8039 L8AF4}{if 803B L8AF4}{if 803D L8AF4}{jump L8C74}
+
+{:L8C4D}
+{if 8039 L8AF4}{if 803B L8AF4}{if 803D L8AF4}{jump L8C74}
+
+{:L8C5F}
+{if 803B L8AF4}{if 803D L8AF4}{jump L8C74}
+
+{:L8C6C}
+{if 803D L8AF4}{jump L8C74}
+
+{:L8C74}
+You really did it!!!{page}Keep it up and maybe things
+will turn back to normal...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8D6D L9118}
+
+{:L8CED}
+You did it!{page}You showed those mages!
+When you become Pharaoh,
+don't forget us, okay?{page}{choice 02}«Talk to someone else»
+«To outside»
+{choose 80 L8D6D L9118}
+
+[05DE]  {:L8D6D}
+{fx 2C 80}{fx 3D 80}{fx 2D 00}{if 8067 L8D9C}{if 005D L904C}{if 0035 L8EF7}{if 0037 L8EF7}{if 0039 L8EF7}{if 003B L8EF7}{if 003D L8EF7}{jump L8E9D}
+
+{:L8D9C}
+{set 4067}It's been a while, boy...
+I've been here everyday.
+I've got nowhere else to go.{page}Things've changed around here...{page}Y'know, I've lost my interest
+in dueling these days...{page}All I do now is come here to
+trade cards.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L9106 L9118}
+
+{:L8E9D}
+How about it? Wanna
+trade cards with me,
+boy?{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L9106 L9118}
+
+{:L8EF7}
+{if 0068 L8F60}{set 4068}Not bad, {call L125A}...{page}How's about giving me
+that rare card?{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L9106 L9118}
+
+{:L8F60}
+{if 8035 L8F7C}{if 8037 L8F93}{if 8039 L8FA5}{if 803B L8FB2}{if 803D L8FBA}{jump L904C}
+
+{:L8F7C}
+{if 8037 L8E9D}{if 8039 L8E9D}{if 803B L8E9D}{if 803D L8E9D}{jump L8FBA}
+
+{:L8F93}
+{if 8039 L8E9D}{if 803B L8E9D}{if 803D L8E9D}{jump L8FBA}
+
+{:L8FA5}
+{if 803B L8E9D}{if 803D L8E9D}{jump L8FBA}
+
+{:L8FB2}
+{if 803D L8E9D}{jump L8FBA}
+
+{:L8FBA}
+Y'know... I think dueling isn't
+just winning and losing...{page}...collecting 'em can be just
+as much fun.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L9106 L9118}
+
+{:L904C}
+Looks like there might be a
+chance for some peace again...{page}Y'know, if things go back to
+normal, I think I'm gonna miss
+my life underground...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L910F L9118}
+
+{:L9106}
+{fx 2D 80}{fx 02 00}{jump L7DBB}
+
+{:L910F}
+{fx 2D 80}{fx 02 00}{jump L813E}
+
+{:L9118}
+{f8 14 0F}{end}
+
+[05DF]  {:L911C}
+I got a feeling today's my day!{page}{f8 11 00}{f8 0D 13 B1 B2 00 00 72}{end}
+
+[05E0]  {:L9148}
+Be warned! I'm good...{page}{f8 11 00}{f8 0D 14 B3 B4 00 00 72}{end}
+
+[05E1]  {:L916B}
+Win or lose... no hard feelings.{page}{f8 11 00}{f8 0D 04 B5 B6 00 00 72}{end}
+
+[05E2]  {:L9198}
+Don't hold back... You'll be
+sorry if you do.{page}{f8 11 00}{f8 0D 05 B7 B8 00 00 72}{end}
+
+[05E3]
+{if 0035 L92C8}{if 0037 L92C8}{if 0039 L92C8}{if 003B L92C8}{if 003D L92C8}{jump L920A}
+
+[05E4]
+{if 0035 L936B}{if 0037 L936B}{if 0039 L936B}{if 003B L936B}{if 003D L936B}{jump L929C}
+
+{:L920A}
+Man! I was so sure that I was
+gonna win this time!{page}Looks like I'm just gonna
+have to try harder...{page}{f8 19 13}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8261 L9118}
+
+{:L929C}
+Geez... I won.{page}You must be getting
+rusty...{end}
+
+{:L92C8}
+Whew! You're just too good!
+I just can't win!{page}I promise you it won't be
+so easy to beat me the
+next time we play...{page}{f8 19 13}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8261 L9118}
+
+{:L936B}
+What's wrong, {call L125A}?
+You can do better than that!{page}If you play like that against the
+mages, they'll beat you silly!{page}Keep your mind on the game!{end}
+
+[05E5]
+{if 0035 L94ED}{if 0037 L94ED}{if 0039 L94ED}{if 003B L94ED}{if 003D L94ED}{jump L942F}
+
+[05E6]
+{if 0035 L9584}{if 0037 L9584}{if 0039 L9584}{if 003B L9584}{if 003D L9584}{jump L94A5}
+
+{:L942F}
+{f8 19 14}Darn! I lost...{page}I know I played better than
+I've ever played before...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8592 L9118}
+
+{:L94A5}
+Yessss!
+I win! I win!{page}Not bad, right?
+I'll bet you're really
+surprised!{end}
+
+{:L94ED}
+{f8 19 14}Ouch! I lost...{page}Oh well... But then if I did beat
+the great {call L125A}, that's
+when I should be really worried.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8592 L9118}
+
+{:L9584}
+Wow!!!
+I won!!!{page}{call L125A}...
+You'll have to do better than that
+to beat the high mage...{end}
+
+[05E7]
+{if 0035 L96B9}{if 0037 L96B9}{if 0039 L96B9}{if 003B L96B9}{if 003D L96B9}{jump L960E}
+
+[05E8]
+{if 0035 L972F}{if 0037 L972F}{if 0039 L972F}{if 003B L972F}{if 003D L972F}{jump L9663}
+
+{:L960E}
+Whew...
+I just can't win against you.{page}{f8 19 04}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8A30 L9118}
+
+{:L9663}
+Finally!
+I finally beat you fair and
+square, {call L125A}!{page}Looks like all my practice
+paid off!{end}
+
+{:L96B9}
+Whew...
+I just can't win against you.{page}{f8 19 04}Well, thanks for the practice...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8A30 L9118}
+
+{:L972F}
+Well, well, well...
+I really did it... I beat you,
+{call L125A}!{page}But if that's the case, who's
+going to save the world?{end}
+
+[05E9]
+{if 0035 L9885}{if 0037 L9885}{if 0039 L9885}{if 003B L9885}{if 003D L9885}{jump L97D5}
+
+[05EA]
+{if 0035 L98F9}{if 0037 L98F9}{if 0039 L98F9}{if 003B L98F9}{if 003D L98F9}{jump L9840}
+
+{:L97D5}
+{f8 19 05}I lose...{page}Looks like I'm going to
+need some stronger cards.{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8D6D L9118}
+
+{:L9840}
+I won! I won!{page}I can't believe it!
+I actually won with
+these cards!!!{end}
+
+{:L9885}
+{f8 19 05}I guess I lost...{page}With these cards of mine,
+I'm not too surprised...{page}{choice 02}«Talk to someone else»
+«Go outside»
+{choose 80 L8D6D L9118}
+
+{:L98F9}
+Whoa! I won!!!{page}I'll bet you're not too happy
+about that!{end}
+
+[058A]  {:L9932}
+{set 4053}{f8 15 A1}{state 05 00 00}{f8 15 A0}{fx 4D 00}Further on... You'll find the
+room marked on the map.{page}{f8 0E 90 71}Oh my...{page}{fx 4D 80}{f8 15 A1}{state 05 18 00}{f8 15 A0}{fx 4D 00}I've heard stories about
+this place before...{page}The ancient sorcerers... they
+hid the secrets of their magic
+within the Royal Tomb...{page}It's rumored that some of
+the secrets were passed on
+to their descendents.{page}So this is the place...{page}{fx 4D 80}{fx 17 00}There's a drawing on this wall
+depicting the past...{page}And over there...
+...some kind of map...{page}{choice 02}«Look at Map»
+«Look at Drawing»
+{choose 80 L9B08 LA0AC}
+
+{:L9B08}
+{if 0054 LA145}{set 4054}{fx 17 80}{state 05 25 01}{fx 4D 00}This map...{page}There's some kind of mark...{page}{fx 4D 80}{fx 44 00}That drawing on the wall marks the
+location of the Millennium Items.{page}And now, it reveals the spots in
+the temple where Heishin has hidden
+his Millennium Items.{page}The mages will remain powerful
+as long as the Millennium Items
+remain in the temple...{page}...providing them with a source
+for their magic.{page}{f8 11 02}{fx 44 80}{fx 4D 00}You!{page}{fx 4D 80}{state 05 18 00}{f8 0E 80 71}{fx 04 00}I followed you here.
+I've been searching for the
+Forbidden Ruins myself.{page}I also believe that Heishin's
+found this place as well.{page}With that drawing on the wall
+to guide him, he discovered
+the Millennium Items.{page}He may be a mage, but he comes
+from a line of sorcerers.{page}He plans to find all the Millennium
+Items so that he may rule over the
+world one day...{page}{fx 04 21}{fx 4D 00}And why would Heishin's lackey
+tell us all this!?{page}{fx 4D 80}{fx 04 20}Why?{page}You'll find out soon enough...{page}But first, let's see what Prince
+{call L125A} is capable of.{page}You now know where to find
+the high mages...{page}If you're half the card master that
+you think you are, use your
+Millennium item and defeat them!{page}{fx 04 21}{fx 4D 00}We don't have to listen to you...{page}{fx 4D 80}{fx 04 20}I'm not talking to you, tomb keeper!
+I speak to your prince!{page}Farewell!{page}{fx 04 80}{fx 4D 00}{f8 11 02}Hold it!{page}{f8 0E 90 71}{fx 4D 80}{fx 17 00}I smell a rat...{page}Seto... He's Heishin's right-hand
+man. Why in the world would he
+want to help you?{page}My prince, I advise caution.
+There is more to this than
+meets the eye.{page}{jump LA079}
+
+{:LA051}
+{choice 02}«Look at Map»
+«Look at Drawing»
+{choose 80 L9B08 LA0AC}
+
+{:LA079}
+{choice 03}«Look at Map»
+«Look at Drawing»
+«Return»
+{choose 80 L9B08 LA0AC LA20A}
+
+{:LA0AC}
+{if 0060 LA1B9}{f8 15 A1}{fx 17 80}{state 05 00 82 00 C0 00}{f8 15 A0}{fx 4D 00}It looks like a drawing of
+some sort of spell...{page}Could this be describing one
+of the Forbidden items?{page}{fx 4D 80}{set 4060}{f8 15 A1}{fx 17 00}{state 05 18 00}{f8 15 A0}{if 0054 LA079}{jump LA051}
+
+{:LA145}
+{f8 15 A1}{fx 17 82}{state 05 25 01}{f8 15 A0}The map marks the locations of the
+Shrines where the Millennium Items
+are hidden.{page}{f8 15 A1}{fx 17 00}{state 05 18 00}{f8 15 A0}{if 0054 LA079}{jump LA051}
+
+{:LA1B9}
+{f8 15 A1}{fx 17 82}{state 05 00 82 00 C0 00}{f8 15 A0}Looks like a drawing of
+an ancient spell...{page}{f8 15 A1}{fx 17 00}{state 05 18 00}{f8 15 A0}{if 0054 LA079}{jump LA051}
+
+{:LA20A}
+Let us return...{page}{fx 17 80}{f8 11 00}{state 05 17 00}{f8 0E 00 71}{fx 17 00}I sense there may be more secrets
+hidden within that chamber...{page}My prince... Be wary of the
+vile designs of Heishin and
+his minions.{page}I will always be here for you.
+If you need me, all you have
+to do is call on me.{end}
+
+[058B]  {:LA302}
+{state 05 18 00}{choice 03}«Look at Map»
+«Look at Drawing»
+«Return»
+{choose 80 LA339 LA393 LA3CE}
+
+{:LA339}
+{state 05 25 01}The map marks the locations
+of the temple where the
+Millennium Items can be found.{page}{jump LA302}
+
+{:LA393}
+{state 05 00 82 00 C0 00}It looks like the drawing of
+an ancient spell...{page}{jump LA302}
+
+{:LA3CE}
+{f8 15 A1}{f8 11 83}{f8 0E 00 71}{state 05 17 00}{fx 17 00}I shall be here if you
+need me, my prince.{end}
+
+[05D9]
+{if 005D LB68C}{fx 18 00}Boy, this is a sacred temple
+of Lord Heishin...{page}It is not for the likes of you!
+Begone!{end}
+
+[05EB]
+{end}
+
+[05EC]  {:LA46D}
+{f8 15 A1}{f8 11 83}{f8 0E 60 71}{state 05 21 00}{f8 15 A0}{fx 42 00}This is it...
+This place gives me the creeps...{page}To be honest, I don't really
+like being here.{page}Seein' how there's no mage
+around to stop us, we can
+assume they're waiting for us.{page}C'mon, let's go...{page}{fx 42 80}{jump LA54C}
+
+[05ED]  {:LA54C}
+{jump LA54F}
+
+[05F1]  {:LA54F}
+{f8 15 A1}{if 006C LA782}{if 006B LA709}{if 006A LA676}{if 0069 LA5EF}{state 05 38 00}{fx 2E 00}{f8 15 A0}It gives me great pleasure to
+welcome you fools
+to your own funeral!{page}{fx 2E 21}{fx 42 00}Scram!
+We got bigger fish to fry!{page}{fx 42 80}{fx 2E 20}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LA5EF}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Welcome...
+I hope you're prepared
+to meet your ancestors!{page}{fx 2E 21}{fx 42 00}Not you guys again!?
+{call L125A}! Show 'em who's boss!{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LA676}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Welcome...
+I hope you're prepared
+to meet your ancestors!{page}{fx 2E 21}{fx 42 00}They just don't give up!
+We'll just have to take him out!{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LA709}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Welcome...
+I hope you're prepared
+to meet your ancestors!{page}{fx 2E 21}{fx 42 00}Y'know... I think we're lost...{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LA782}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Welcome...
+I hope you're prepared
+to meet your ancestors!{page}{fx 2E 21}{fx 42 00}Not again!
+C'mon, let's take care of him!{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+[05F2]
+{if 006C LAA7E}{if 006B LA9EC}{if 006A LA959}{if 0069 LA8DA}{set 4069}You cannot hope to survive
+this labyrinth...{page}{f8 19 1F}{fx 3F 81}{fx 42 00}Look, ignore this guy....
+Let's move on!{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LAB0B LA54F}
+
+[05F3]
+Seto and Heishin...
+My masters will be pleased!
+Hahahahaha...!{end}
+
+{:LA8DA}
+{set 406A}You cannot hope to survive
+this labyrinth...{page}{fx 3F 81}{fx 42 00}C'mon, let's go!
+Teana's waiting for us!{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LAB0B LA54F}
+
+{:LA959}
+{set 406B}You cannot hope to survive
+this labyrinth...{page}{fx 3F 81}{fx 42 00}Why do I get this feeling
+of deja vu...?{page}Which way do we go?{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LAB0B LA54F}
+
+{:LA9EC}
+{set 406C}You cannot hope to survive
+this labyrinth...{page}{fx 3F 81}{fx 42 00}Man! These guys are
+everywhere!!!{page}C'mon, let's keep moving!{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LAB0B LA54F}
+
+{:LAA7E}
+You cannot hope to survive
+this labyrinth...{page}{fx 3F 81}{fx 42 00}Look, let's try to pick a route
+that gets us somewhere...{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LAB0B LA54F}
+
+{:LAB0B}
+{state 05 38 00}{fx 42 00}I can't take much more of this...{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LAB54 LA54F}
+
+{:LAB54}
+{state 05 38 00}{fx 42 00}Which way now?{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LA54F LAB8A}
+
+{:LAB8A}
+{state 05 38 00}{fx 42 00}Everyplace looks the same!
+Where are we anyway!?{page}{fx 42 80}{choice 02}«Go right»
+«Go left»
+{choose 80 LABE2 LA54F}
+
+{:LABE2}
+{state 05 39 00}{fx 42 00}I think we've finally made it...{page}Let's go...{page}{fx 42 80}{jump LAC1C}
+
+[05EE]  {:LAC1C}
+{if 006D LB2CC}{state 05 40 01}{fx 44 00}So you've come at last...{page}{fx 44 80}{fx 42 00}We're here for Teana!{page}{fx 42 80}{fx 46 00}Hmmm. I never dreamed the
+prince would be alive...{page}There is much to be said of the
+Millennium Puzzle's power...{page}Actually, I should thank my
+lucky stars that the Puzzle
+still exists for me to take.{page}Seto... Destroy the prince.{page}Defeat him and I will make you
+guardian of the Puzzle.{page}{fx 46 80}{fx 44 00}I thank you, my lord.
+Leave his life in my hands...{page}{fx 44 80}{fx 46 00}That I shall...
+He is all yours!{page}I will meet you back at
+the Dark Shrine.{page}{fx 46 80}{f8 15 A1}{state 05 41 01}{f8 15 A0}{fx 44 00}My, my... I am surprised that
+you passed the trials
+of the labyrinth...{page}{fx 44 80}{fx 42 00}Are you kidding!
+We coulda done it with both
+hands tied behind our backs!{page}Is that the best you can do?!{page}{fx 42 80}{f8 15 A1}{fx 04 00}{state 05 22 00}{f8 15 A0}Ah, the hostage...
+You can have her back.{page}{if 006E LAF50}{call L125A}...
+I've been waiting for this chance
+to face you once again!!!{page}{jump LAF91}
+
+{:LAF50}
+{call L125A}...
+You don't know how I've looked
+forward to facing you...{page}{jump LAF91}
+
+{:LAF91}
+There is no joy in simply trading
+the hostage for your item...{page}The joy is in the battle, {call L125A}!{page}{f8 11 00}{f8 0D 20 BB BC 00 40 72}{end}
+
+[05EF]
+{end}
+
+[05F4]
+{f8 19 20}Not bad... Not bad at all.{page}At this rate, I doubt that the
+mages will be able to stop you...{page}You win...
+Take the card and the girl.{page}Till we meet again...{page}{fx 04 80}{jump LB130}
+
+[05F5]
+Very disappointing...{page}You haven't a chance against the
+mages if this is the best
+you can do.{page}Your Millennium Item...
+It is mine to keep!
+Hahaha...{end}
+
+[05F0]  {:LB130}
+{fx 02 00}Teana...
+Are you okay?{page}{fx 02 21}{fx 43 00}Uh, yeah...
+Thanks, {call L125A}...
+You too, Jono.{page}{fx 43 80}{fx 02 20}Look. I've had enough of this place.
+Let's get outta here.{page}{fx 02 80}{f8 11 00}{state 05 19 00}{f8 0E F0 70}{fx 02 00}Y'know, there's something strange
+about that Seto guy...{page}{fx 02 21}{fx 43 00}I know...
+It's like he didn't really want to
+beat {call L125A} at all.{page}It's like he's got a different
+agenda...{page}{fx 43 80}{fx 02 20}I know what you mean...{page}Listen, {call L125A}...
+You be careful around that guy.{page}He's dangerous.{end}
+
+{:LB2CC}
+{state 05 41 01}{f8 15 A0}{fx 42 00}We've come for Teana!{page}{fx 42 80}{fx 44 00}My, my... I am surprised that
+you passed the trials
+of the labyrinth...{page}{fx 44 80}{fx 42 00}Are you kidding!
+We coulda done it with both
+hands tied behind our backs!{page}Is that the best you can do?!{page}{fx 42 80}{f8 15 A1}{fx 04 00}{state 05 22 00}{f8 15 A0}Ah, the hostage...
+You can have her back.{page}I didn't use her as bait
+to take your precious
+item...{page}I did it so I could guide you
+to Heishin's chambers.{page}You'll find him in the temple ahead.
+Face him! Defeat him!{page}{fx 04 21}{fx 42 00}Don't listen to him, {call L125A}!
+It's a trap!!!{page}{fx 42 80}{fx 04 20}Don't be a fool...{page}I'm giving you an opportunity to
+defeat Heishin... Can you afford
+to ignore such a chance?{page}{choice 02}«Go on ahead»
+«Ignore the chance»
+{choose 80 LB555 LB629}
+
+{:LB555}
+You've made a wise choice,
+dear prince.{page}{fx 04 21}{fx 42 00}You wanna go on, {call L125A}?{page}If that's what you wanna do,
+I won't stop you...{page}But be careful, willya?
+We'll be waiting for you!{page}{fx 42 80}{fx 43 00}Yes. We'll wait for you...{page}{fx 43 80}{jump LB6FA}
+
+{:LB629}
+If you don't go now, you'll never
+have another chance...{page}{choice 02}«Go on ahead»
+«Ignore the chance»
+{choose 80 LB555 LB629}
+
+[05F6]  {:LB68C}
+{choice 02}«Go on ahead»
+«Ignore the chance»
+{choose 80 LB6B6 LBA07}
+
+{:LB6B6}
+{state 05 22 00}{fx 04 00}Here...
+This is a secret passage...{page}I'll open it for you.{page}{jump LB6FA}
+
+{:LB6FA}
+{f8 15 A1}{f8 10 00 80 00 00}{fx 04 82}{state 05 26 01}{f8 15 A0}{fx 44 00}Heishin's Dark Shrine lies
+just up ahead...{page}Along the way, you'll find mages
+that have sworn to protect him.{page}It is wise to be cautious...{page}{fx 44 80}{f8 15 A1}{jump LCF17}
+
+[058C]
+{if 0034 LB92C}{if 0037 LB843}{if 0039 LB843}{if 003B LB843}{if 003D LB843}You! Who are...?{page}Wait! You... you're...
+Prince {call L125A}...!{page}How did you get here!?{page}It matters not...
+You won't be leaving alive!{page}{f8 11 00}{f8 0D 15 8A 8B 05 10 72}{end}
+
+{:LB843}
+You're finally here!{page}I'm afraid I can't let you enter
+the Sea Shrine.{page}It is our duty to protect the
+Millennium Items -- the source
+of our mystic power.{page}This Sea Shrine will be your
+place of eternal rest!{page}Prepare to lose!{page}{f8 11 00}{f8 0D 15 8A 8B 05 10 72}{end}
+
+[058E]  {:LB92C}
+You're back!?{page}You won't get away this time!{page}{f8 11 00}{f8 0D 15 8A 8B 05 10 72}{end}
+
+[058F]
+You were a fool to hope
+to defeat us...{page}Hahahaha...!{end}
+
+[0590]
+No...{page}It cannot be...
+You weren't meant to win...{page}Secmeton...
+Forgive me...{page}{f8 19 15}{fx 19 81}{choice 02}«Proceed»
+«Return»
+{choose 80 LBA0A LBA07}
+
+[0591]
+{end}
+
+[0592]  {:LBA07}
+{f8 16}{end}
+
+[0593]  {:LBA0A}
+{f8 15 A1}{state 05 24 00}{fx 1A 00}{f8 15 A0}I am the High Mage
+Secmeton...{page}Since time immemorial, it has
+been our duty to protect
+the Millennium Items...{page}And we shall never allow them
+to fall into your hands!{page}Prepare to face my Sea Deck!
+Prepare to meet your doom!{page}You shall pay dearly for
+your folly!{page}{f8 11 00}{f8 0D 16 8C 8D 05 20 72}{end}
+
+[0594]
+I trust you've learned your lesson!{page}Too bad it comes too late!{end}
+
+[0595]
+{f8 19 16}You... are... powerful...{page}But you don't stand a chance against
+the power of Master Heishin!{page}{fx 1A 81}{f8 15 A1}{f8 0E 60 73}{state 05 17 01}{f8 15 A0}{call L125A} gets the
+Millennium Necklace.
+{state 0F 1E 00}{page}{if 8035 LCE4B}{if 8039 LCE4B}{if 803B LCE4B}{if 803D LCE4B}{if 8037 LCE4B}{if 805C LCF11}{state 05 24 00}{jump LCE4E}
+
+[058D]
+There's nobody at this shrine...{end}
+
+[0596]
+{if 0036 LBD83}{if 0035 LBCD2}{if 0039 LBCD2}{if 003B LBCD2}{if 003D LBCD2}Who!?{page}You...!?
+Prince {call L125A}!{page}It's a wonder you've made it
+this far!{page}Too bad...
+You'll never leave here alive!!!{page}{f8 11 00}{f8 0D 17 8E 8F 01 10 72}{end}
+
+{:LBCD2}
+Welcome to the Forest Shrine...{page}Unfortunately, you will be going
+no further than this.{page}That's right...
+This is your final resting place...{page}I'll make sure of that!!!{page}{f8 11 00}{f8 0D 17 8E 8F 01 10 72}{end}
+
+[0598]  {:LBD83}
+You!
+You won't be getting your hands
+on the Millennium item this day...{page}I'll make sure of that!!!{page}{f8 11 00}{f8 0D 17 8E 8F 01 10 72}{end}
+
+[0599]
+My Forest Deck is powerful indeed!
+How do you like the taste of
+defeat!?{page}Hahaha...!!!{end}
+
+[059A]
+I am defeated...{page}But you won't find our High Mage
+to be such easy prey...{page}{f8 19 17}{fx 1B 81}{choice 02}«Proceed»
+«Return»
+{choose 80 LBEB6 LBEB3}
+
+[059B]
+{end}
+
+[059C]  {:LBEB3}
+{f8 16}{end}
+
+[059D]  {:LBEB6}
+{f8 15 A1}{state 05 26 00}{fx 1C 00}{f8 15 A0}I am the ruler of the forest...
+I am High Mage Anubisius!{page}Here I stand to protect the
+Millennium Item entrusted to
+me by Lord Heishin...{page}This is where the Millennium
+Item belongs. And this is
+where it will remain!!!{page}It is our destiny to protect the
+item that powers our magic!{page}Prepare to face my Forest
+Deck! Prepare to battle!{page}And prepare to lose!!!{page}{f8 11 00}{f8 0D 18 90 91 01 20 72}{end}
+
+[059E]
+Foolish child...{page}You gravely erred when
+you chose to face me!!!{end}
+
+[059F]
+{f8 19 18}No... It cannot be...{page}Master Heishin shall
+avenge me...!{page}I'll... see... you... in... in...{page}{fx 1C 81}{f8 15 A1}{f8 0E 60 73}{state 05 27 01}{f8 15 A0}{call L125A} gets
+the Millennium Key!!!{page}{if 8035 LCE4B}{if 8039 LCE4B}{if 803B LCE4B}{if 803D LCE4B}{if 8037 LCE4B}{if 805C LCF11}{state 05 26 00}{jump LCE4E}
+
+[0597]
+There's nobody at this shrine...{end}
+
+[05A0]
+{if 0038 LC294}{if 0037 LC1D0}{if 0035 LC1D0}{if 003B LC1D0}{if 003D LC1D0}Who!?{page}You...!?
+Prince {call L125A}!{page}I'm amazed you've made it this far!{page}Too bad...
+You'll never leave here alive!!!{page}{f8 11 00}{f8 0D 19 92 93 03 10 72}{end}
+
+{:LC1D0}
+I congratulate you...{page}But you'll regret that you made
+it here to the Mountain Shrine!{page}Ahead lies the resting place for
+a sacred Millennium Item.{page}I am sworn to protect it
+with my life!{page}{f8 11 00}{f8 0D 19 92 93 03 10 72}{end}
+
+[05A2]  {:LC294}
+You are a fool to return
+here and face me...{page}Prepare to lose!!!{page}{f8 11 00}{f8 0D 19 92 93 03 10 72}{end}
+
+[05A3]
+Idiot!{page}Did you think to defeat
+a mage of the mountains?{end}
+
+[05A4]
+What!?
+It cannot be...{page}I don't believe it...{page}{f8 19 19}{fx 1D 81}{choice 02}«Proceed»
+«Return»
+{choose 80 LC36A LC367}
+
+[05A5]
+{end}
+
+[05A6]  {:LC367}
+{f8 16}{end}
+
+[05A7]  {:LC36A}
+{f8 15 A1}{state 05 28 00}{fx 1E 00}{f8 15 A0}I am the protector
+of the mountains...
+High Mage Atenza...{page}The Millennium Item you seek is
+under my protection.{page}If you wish to have it, you must
+face the wrath of my mighty
+Mountain Deck!{page}Prepare for battle!!!{page}{f8 11 00}{f8 0D 1A 94 95 03 20 72}{end}
+
+[05A8]
+I told you once before...
+You couldn't win.{page}You are a mere groundling...
+...destined to wander the earth.
+And to be buried below it!!!{end}
+
+[05A9]
+{f8 19 1A}How could this be...?{page}Me...?
+Defeated...?{page}{fx 1E 81}{f8 15 A1}{f8 0E 60 73}{state 05 13 01}{f8 15 A0}{call L125A} gets
+the Millennium Ring!!!{page}{if 8035 LCE4B}{if 8039 LCE4B}{if 803B LCE4B}{if 803D LCE4B}{if 8037 LCE4B}{if 805C LCF11}{state 05 28 00}{jump LCE4E}
+
+[05A1]
+There is nobody at this shrine...{end}
+
+[05AA]
+{if 003B LC94C}{if 003A LC6EA}{if 0037 LC614}{if 0039 LC614}{if 0035 LC614}{if 003D LC614}Who!?{page}You...!?
+Prince {call L125A}!{page}I'm amazed you've made it this far!{page}Too bad...
+You'll never leave here alive!!!{page}{f8 11 00}{f8 0D 1B 96 97 02 10 72}{end}
+
+{:LC614}
+You've kept me waiting
+long enough...{page}The Millennium items are the
+source of our mystic power...
+and will remain so!{page}They shall never be yours!!!{page}This Desert Shrine shall be
+your final resting place!!!{page}{f8 11 00}{f8 0D 1B 96 97 02 10 72}{end}
+
+[05AC]  {:LC6EA}
+So you've returned...
+You'll wish you hadn't.{page}I'll show you why!!!{page}{f8 11 00}{f8 0D 1B 96 97 02 10 72}{end}
+
+[05AD]
+Too bad Master Heishin
+isn't here to see your
+demise...{page}Too bad...{end}
+
+[05AE]
+No...
+I cannot... lose...{page}Not like this...{page}{f8 19 1B}{fx 1F 81}{choice 02}«Proceed»
+«Return»
+{choose 80 LC7CC LC7C9}
+
+[05AF]
+{end}
+
+[05B0]  {:LC7C9}
+{f8 16}{end}
+
+[05B1]  {:LC7CC}
+{f8 15 A1}{state 05 30 00}{fx 20 00}{f8 15 A0}I am High Mage Martis...
+Lord of the Desert.{page}I am forsworn to protect
+the Millennium Item.{page}It is my destiny to eliminate you!!!{page}Let the desert be your grave...{page}Defend yourself!!!{page}{f8 11 00}{f8 0D 1C 98 99 02 20 72}{end}
+
+[05B2]
+This is your destiny...{page}The desert embraces your remains...{end}
+
+[05B3]
+{f8 19 1C}The desert claims me this day...{page}{fx 20 81}{f8 15 A1}{f8 0E 60 73}{state 05 28 01}{f8 15 A0}{call L125A} gets
+the Millenium Scales!{page}{if 8035 LCE4B}{if 8039 LCE4B}{if 803B LCE4B}{if 803D LCE4B}{if 8037 LCE4B}{if 805C LCF11}{state 05 30 00}{jump LCE4E}
+
+[05AB]  {:LC94C}
+There's nobody at this shrine...{end}
+
+[05B4]
+{if 003C LCAB1}{if 0037 LCA01}{if 0039 LCA01}{if 003B LCA01}{if 0035 LCA01}Who!?{page}You...!?
+Prince {call L125A}!{page}I'm amazed that you've made it
+this far!{page}Too bad...
+You'll never leave here alive!!!{page}{f8 11 00}{f8 0D 1D 9A 9B 04 10 72}{end}
+
+{:LCA01}
+Congratulations are in order
+for making it this far...{page}But this is as far as you get.
+High Mage Kepura will not
+be bothered by the likes of you!{page}Prepare to lose!!!{page}{f8 11 00}{f8 0D 1D 9A 9B 04 10 72}{end}
+
+[05B6]  {:LCAB1}
+{call L125A}...?{page}You won't win this time!{page}{f8 11 00}{f8 0D 1D 9A 9B 04 10 72}{end}
+
+[05B7]
+Hah!
+This is where it all ends
+for you!{page}Hahaha...{end}
+
+[05B8]
+{call L125A}...
+You'll regret this victory...{page}For you'll be facing the power
+of High Mage Kepura...{page}{f8 19 1D}{fx 21 81}{choice 02}«Proceed»
+«Return»
+{choose 80 LCB8E LCB8B}
+
+[05B9]
+{end}
+
+[05BA]  {:LCB8B}
+{f8 16}{end}
+
+[05BB]  {:LCB8E}
+{f8 15 A1}{state 05 32 00}{fx 22 00}{f8 15 A0}I am the guardian of the plains...
+I am the High Mage Kepura.{page}You are the protector of light...
+The owner of the Millennium Puzzle.{page}Our Millennium Item is not
+for the likes of you...
+It must never be yours!{page}The Millennium Item is
+Master Heishin's and our
+key to world domination.{page}First, I will defeat you...
+Then, I will take your Millennium
+Puzzle and offer it to
+Master Heishin.
+Prepare to defend yourself!!!{page}{f8 11 00}{f8 0D 1E 9C 9D 04 20 72}{end}
+
+[05BC]
+You actually hoped to face
+Master Heishin...?{page}Foolish child...{end}
+
+[05BD]
+{f8 19 1E}So... this... is the power
+of light...{page}Heishin... my lord...
+I have failed you...{page}{fx 22 81}{f8 15 A1}{f8 0E 60 73}{state 05 15 01}{f8 15 A0}{call L125A} gets
+the Millennium Eye!!!{page}{if 8035 LCE4B}{if 8039 LCE4B}{if 803B LCE4B}{if 803D LCE4B}{if 8037 LCE4B}{if 805C LCF11}{state 05 32 00}{jump LCE4E}
+
+[05B5]
+There's nobody at this shrine...{end}
+
+[05BE]  {:LCE4B}
+{f8 16}{end}
+
+[05BF]  {:LCE4E}
+{f8 11 00}{f8 0E 80 71}{fx 04 00}{call L125A}...
+You actually defeated
+the High Mages...{page}All that remains is Heishin's
+Shrine of Darkness. But you
+can't go there directly.{page}You must return...
+Go back to the Vast Shrine.{page}{fx 04 80}{set 405D}{f8 16}{end}
+
+{:LCF11}
+{set 406D}{f8 16}{end}
+
+[05C3]  {:LCF17}
+{f8 15 A1}{f8 11 83}{f8 0E 70 71}{state 05 33 00}{fx 23 00}Halt!!!{page}{fx 24 01}{fx 23 21}You are forbidden to
+proceed any further!{page}{fx 24 21}{fx 23 20}So speaketh the Royal Mages
+Sebek the Powerful and...{page}{fx 23 21}{fx 24 20}Neku the Skillful!
+This is where it all ends...{page}{fx 24 80}{fx 23 20}Prepare to lose!!!{page}{f8 11 00}{f8 0D 21 9E 9F 06 20 72}{end}
+
+[05C4]
+Hahaha!
+We are the chosen duelists...
+The ultimate players...{page}You didn't stand a chance...
+Hahaha!!!{end}
+
+[05C5]
+{f8 19 21}Curse you, {call L125A}...
+You've won for now...{page}But Neku...
+He shall defeat you!!!{page}{fx 23 81}{fx 24 01}I never thought I'd see
+Sebek defeated...{page}Let's see what you've got!!!{page}{f8 11 00}{f8 0D 22 A0 A1 06 20 72}{end}
+
+[05C6]
+Hmph!
+You met your match this day!{page}And you thought to face
+Master Heishin... HAH!!!{end}
+
+[05C7]
+{f8 19 22}So this...
+This is... your power...{page}I underestimated you...{page}{fx 24 81}{f8 15 A1}{f8 11 83}{state 0F 28 00}{f8 16}{end}
+
+[05C8]
+It's been some time since
+last we met, boy!{page}I salute you for making it
+this far...{page}But it all ends here.{page}I haven't come this far to
+be beaten by a child!!!{page}{f8 11 00}{f8 0D 23 A2 A3 06 30 72}{end}
+
+[05C9]
+Now you know, boy...{page}Now you know true power!!!{end}
+
+[05CA]
+Ridiculous...
+Me... Defeated by this...
+This child!!!{page}No...
+I won't let it end this way...{page}{fx 33 81}{f8 19 23}{f8 11 00}{fx 44 00}Well done...{page}{state 05 08 82 00 00 00}Now all the items have been
+gathered as one...{page}{fx 44 80}{f8 15 A1}{state 05 34 00}{fx 04 00}{f8 15 A0}Let us head for the
+Forbidden Ruins...{page}{f8 15 A1}{fx 04 82}{f8 11 00}{f8 16}{end}
+
+[05CB]
+{fx 04 00}{f8 0E 80 71}{call L125A}...
+It's time to end this farce.{page}I will now defeat you once
+and for all.
+And all the items will be mine!{page}Don't look so surprised...
+I only helped you because
+I needed you for my plans.{page}I served Heishin as his right-hand
+man in the hopes of stealing the
+Millennium Items one day.{page}And then you came along. You
+found the temple, and you won
+each of the precious items...{page}...saving me the trouble of doing
+it myself!!!{page}In short, you were nothing more
+than a pawn in my designs!{page}I could never allow lowly humans
+such as you or Heishin to
+take those items...{page}They belong to the highborn...
+They can only be held by a noble...
+One such as myself.{page}{f8 15 A1}{fx 04 82}{state 05 32 01}{f8 15 A0}{fx 44 00}This place is home to
+my forefathers...{page}The royal tomb of those who
+prospered wielding the dark power...{page}Do you know why this place is
+called the Forbidden Ruins?{page}It is because of... THIS!!!{page}{fx 44 80}{f8 15 A1}{f8 10 2E 00}{state 0F 28 00}{state 05 09 82 60 00 00}{f8 15 A0}{state 0B 00 00 FB FF B4 00}{state 0A}{fx 44 00}The Millennium Items represent
+a pact... an agreement for
+tapping the powers of darkness.{page}The ancient kings and sorcerers
+gained supreme power from
+the Dark Lord...{page}And now I intend to summon him...
+Here, to these very chambers...{page}I will renew that pact, and regain
+the power to rule over all!!!{page}{fx 44 80}{f8 15 A1}{state 05 35 00}{fx 04 00}{f8 15 A0}And now... the final battle!{page}I will eliminate you once and
+for all. The items shall be mine!!!{page}{f8 11 00}{f8 0D 24 A4 A5 00 40 72}{end}
+
+[05CC]
+Hahahahahahaha!!!{page}Finally...
+I have them all.
+Power shall be mine this day!!!{page}{call L125A}... You have my thanks!{end}
+
+[05CD]
+{f8 19 24}Not like this...{page}To come this close...
+And lose to you...{page}Please... Not like this...{page}{fx 32 81}{f8 16}{end}
+
+[05CE]
+{choice 02}«Destroy Items»
+«Don't destroy»
+{choose 80 LD978 LD978}
+
+[05CF]  {:LD978}
+{fx 46 00}Hold it right there!!!{page}{fx 46 80}{state 05 33 01}{f8 0E B0 71}If you wish to let Seto live,
+hand over the Millennium Items.{page}{fx 46 00}Did you think me foolish enough
+to fall for this cretin's ploy?{page}I've known he descended from the
+Dark Household for some time now.{page}I closed my eyes to his treachery,
+and staged my defeat so I could
+discover his true intentions!{page}Perhaps you thought me senile?
+Blind to your pitiful plans?{page}Thanks to you, I now stand in the
+Forbidden Chamber that can only
+be opened by one of the Dark.{page}Come... Hand over the items and
+I'll spare this fool.{page}{jump LDB97}
+
+[05D0]  {:LDB97}
+{choice 02}«Hand over the items»
+«Refuse»
+{choose 80 LDBE5 LDBBE}
+
+[05D1]  {:LDBBE}
+My dear boy...
+You try my patience!{page}{jump LDB97}
+
+[05D2]  {:LDBE5}
+{fx 46 80}{fx 44 00}No...{page}{fx 44 80}{f8 15 A1}{state 05 35 00}{fx 07 00}{f8 15 A0}Hahah!!!
+I did it! They're mine at last!!!{page}Now I can summon the
+DarkNite!!!{page}You princes of a lost dynasty...
+You are privileged to see the
+birth of a new king! A new age!{page}Come to me, Darkness!!!
+Grant me the power!!!
+Grant me the world!!!{page}{f8 15 A1}{f8 11 82}{fx 07 82}{state 05 34 01}{f8 15 A0}{state 0F 14 00}{f8 10 01 80 78 00}{f8 15 91}{state 0F 8C 00}{f8 0E C0 71}{fx 25 00}{state 05 35 00}{state 0F 23 00}{f8 15 90}{fx 25 21}{fx 46 00}I welcome you dark one...
+Bound by your ancient pact...
+I command you to obey!!!{page}{fx 46 80}{fx 25 20}Heheheh... I return after thousands
+of years, and what do I find...?{page}You command me to what?{page}{fx 25 21}{fx 46 00}Obey! You must obey...
+It's in the ancient pact!{page}{fx 46 80}{fx 25 20}I've made no pact with
+the likes of you...{page}Why should I be compelled
+to obey you...?{page}{fx 25 21}{fx 46 00}The Items... The Millennium Items!
+I have them all!!!{page}{fx 46 80}{fx 25 20}The Millennium Items?
+I see no items...{page}{fx 25 21}{fx 46 00}Of course you don't!
+I used them... I used them to
+summon you!{page}And now you must honor the
+pact! You must obey me!!!{page}{fx 46 80}{fx 25 20}I weary of this conversation...{page}{fx 25 21}{fx 46 00}No... No!!!
+Don't! Doooooon't!!!{page}{fx 46 80}{f8 15 91}{f8 10 2C 00}{fx 25 82}{state 05 35 01}{f8 15 90}{fx 59 00}That's better...
+You look better as a card.{page}{fx 59 80}{fx 46 00}Help!
+Help meeeeeeee!!!{page}{fx 46 80}{fx 59 00}This is the noisiest card
+I've ever created...{page}...not to mention, the
+ugliest one, too.{page}Frankly, it doesn't deserve
+a place in my deck...{page}{fx 59 80}{f8 10 28 00}{state 05 29 01}{fx 46 00}Nooooooooooooooooo!!!{page}{fx 46 80}{fx 59 00}Oops...{page}{fx 59 80}{f8 15 A1}{state 05 35 00}{fx 25 00}{f8 15 A0}Long have I shared my power
+through the cards I've created...{page}It is now time that I collected
+the price for my power.{page}And the best place to start is
+with this miserable planet...
+these miserable creatures...{page}{fx 25 21}{fx 44 00}{call L125A}!!!
+Your deck! It still contains the
+Millennium Card...{page}The card you used to return
+to this world...{page}Use them! Use the cards
+to send that thing back...{page}{fx 44 80}{fx 25 20}Heheheh... I think the two
+of you will be great additions
+to my personal deck...{page}{f8 15 A1}{fx 25 82}{state 05 36 01}{f8 15 A0}{fx 59 00}What!?{page}{fx 59 80}{fx 44 00}We still hold one card that
+represents our pact with you.{page}{fx 44 80}{f8 15 A1}{fx 25 00}{state 05 35 00}{f8 15 A0}I see that you do. But I don't
+intend to go back empty-handed
+after coming all this way...{page}I'll tell you what...
+I'll give you one chance.{page}It's only fair that the course of
+our pact be decided with the
+cards.{page}Beat me in a duel, and I will
+go home... quietly.{page}Now, come on...
+Let's play...{page}{f8 11 00}{f8 0D 25 A6 A7 00 50 72}{end}
+
+[05D3]
+Pathetic!!!{page}I should have known you were far
+too inferior to provide a challenge!{page}Well, you know the rules...{page}I won...
+And the world is mine!
+Heheh...{page}{fx 25 41}Heheheheheheheheheheh!!!
+Heheheheheheheheheheh!!!
+Heheheheheheheheheheh!!!{page}Heheheheheheheheheheh!!!
+Heheheheheheheheheheh!!!
+Heheheheheheheheheheh...{end}
+
+[05D4]
+{f8 19 25}Th...this is not fair!
+Me...!? ME!? I cannot lose!!!
+I created the cards!!!{page}No...
+No...{page}I CANNOT LOSE!!!{page}{f8 15 91}{fx 25 80}{fx 26 00}{f8 15 90}COME, BOY!!!
+ONE MORE TIME!!!
+ONE MORE GAME!!!{page}{f8 11 00}{f8 0D 26 A8 A9 00 60 72}{end}
+
+[05D5]
+AND THE WINNER IIIIIS...
+ME!!!{page}YESSSSSS!!!
+THIS WORLD IS MINE!!!{page}ALL MINE!!!{end}
+
+[05D6]
+{f8 19 26}NO!
+NOT AGAIN!!!{page}{f8 10 2B 00}NOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO{page}OOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO{page}{f8 15 91}{fx 26 81}{state 0F 3C 00}{f8 15 90}{state 0F 3C 00}......{page}{f8 15 A1}{state 05 01 82 60 00 00}{f8 15 A0}{state 0B 00 00 0F 00 04 01}{state 0A}{page}{jump LE715}
+
+[05D7]  {:LE715}
+{state 05 00 00}{f8 0E 20 73}That day, Seto left the ruins...
+Never to be seen again.{page}{state 05 06 82 60 00 00}{f8 15 A0}{state 0B 00 00 00 00 30 02}Egypt was unified once again
+under the rule of {call L125A}.
+To protect mankind, he ordered...{page}...the Forbidden Ruins to be buried.{page}{call L125A} became the
+greatest of pharaohs, bringing
+prosperity to all he ruled.{page}The vile mages were no more.
+This was the tale of {call L125A},
+he whom we call...{page}"Yu-Gi-Oh"{page}{state 0A}{f8 16}{end}
+
+
+@bank descriptions
+
+[D100 D3D3 D3D4 D3D5 D3D6 D3D7 D3D8 D3D9 D3DA D3DB D3DC D3DD D3DE D3DF D3E0 D3E1 D3E2 D3E3 D3E4 D3E5 D3E6 D3E7 D3E8 D3E9 D3EA D3EB D3EC D3ED D3EE D3EF D3F0 D3F1 D3F2 D3F3 D3F4 D3F5 D3F6 D3F7 D3F8 D3F9 D3FA D3FB D3FC D3FD D3FE D3FF]
+{end}
+
+[D101]
+An extremely rare
+card with
+unsurpassed attack
+and defense power.{end}
+
+[D102]
+A delicate elf that
+lacks in offense
+but has a terrific
+defense backed by
+mystical power.{end}
+
+[D103]
+A one-eyed behemoth
+with thick, powerful
+arms made for
+delivering punishing
+blows.{end}
+
+[D104]
+Much more than just
+a child, this dragon
+is gifted with
+untapped power.{end}
+
+[D105]
+A very elusive
+creature that looks
+like a harmless
+statue until it
+attacks.{end}
+
+[D106]
+A playful little imp
+that lurks in the
+dark, waiting to
+attack an unwary
+enemy.{end}
+
+[D107]
+A dragon commonly
+found guarding
+mountain fortresses.
+Its signature attack
+is a sweeping dive
+from out of the blue.{end}
+
+[D108]
+Found in moist areas,
+this monster
+launches poison
+spores against its
+enemies.{end}
+
+[D109]
+Ghostly beast that
+appears in the
+wasteland and is
+particularly
+troublesome when
+faced in large
+numbers.{end}
+
+[D10A]
+A dragon that dwells
+in the depths of
+darkness.
+Its defensive
+capability suffers
+from its poor
+eyesight.{end}
+
+[D10B]
+With a body covered
+in sword-like thorns,
+nothing dares stand
+in the way of this
+monster when it
+charges.{end}
+
+[D10C]
+This creature is
+armed with a spiked
+club that can
+destroy almost
+anything in its path.
+Rumored to have a
+brother that is just
+as destructive.{end}
+
+[D10D]
+Capable of firing
+cannonballs from its
+mouth for long-range
+attacks against
+enemies.{end}
+
+[D10E]
+A bull monster often
+found in the woods.
+Charges enemy
+monsters with a pair
+of razor-sharp horns.{end}
+
+[D10F]
+A fighter gifted with
+the power of fire.
+Attacks enemies with
+a sword that
+launches flames.{end}
+
+[D110]
+A sorcerer capable
+of bending time to
+his will. Though not
+powerful at first
+glance, appearances
+can be deceiving.{end}
+
+[D111]
+A forbidden limb
+sealed by magic.
+Whoever breaks
+this seal will know
+infinite power.
+Only one card of
+this type may be
+included in a deck.{end}
+
+[D112]
+A forbidden limb
+sealed by magic.
+Whoever breaks
+this seal will know
+infinite power.
+Only one card of
+this type may be
+included in a deck.{end}
+
+[D113]
+A forbidden limb
+sealed by magic.
+Whoever breaks
+this seal will know
+infinite power.
+Only one card of
+this type may be
+included in a deck.{end}
+
+[D114]
+A forbidden limb
+sealed by magic.
+Whoever breaks
+this seal will know
+infinite power.
+Only one card of
+this type may be
+included in a deck.{end}
+
+[D115]
+Once combined with
+arms and legs,
+this monster is freed
+from its magical
+chains.
+Only one card of
+this type may be
+included in a deck.{end}
+
+[D116]
+An entity with dark
+powers for confusing
+the enemy. Among the
+FIEND class of
+monsters, this is a
+pretty rare card.{end}
+
+[D117]
+A monster worm
+created by the
+powers of darkness.
+It suddenly appears
+from under the
+ground to attack its
+enemies.{end}
+
+[D118]
+A skeletal ghost
+that isn't strong
+but can mean trouble
+in large numbers.{end}
+
+[D119]
+A small imp that
+dwells in the dark.
+Its single horn
+makes it a formidable
+opponent.{end}
+
+[D11A]
+A monster with
+tremendous power.
+Destroys enemies
+with a swing of its
+axe.{end}
+
+[D11B]
+What this creature
+lacks in size,
+it makes up for in
+defense when battling
+in the meadow.{end}
+
+[D11C]
+Protected by a solid
+body of rock,
+this creature throws
+a bone-shattering
+punch.{end}
+
+[D11D]
+A solid warrior that
+can move swiftly
+over rough terrain.{end}
+
+[D11E]
+A deceptively
+fragile-looking
+skeleton warrior
+that is known for its
+swift and precise
+attacks.{end}
+
+[D11F]
+A vicious,
+fire-breathing
+dragon whose wicked
+flames corrupt the
+souls of its victims.{end}
+
+[D120]
+An unusual and
+rarely seen
+two-headed dragon.{end}
+
+[D121]
+For this
+club-wielding
+warrior,
+there is no other
+outcome to battle
+than victory or
+defeat.{end}
+
+[D122]
+This clown appears
+out of nowhere and
+executes some very
+strange moves to
+avoid enemy attacks.{end}
+
+[D123]
+The ultimate wizard
+in terms of attack
+and defense.{end}
+
+[D124]
+A monster with the
+head of a poisonus
+snake. One look will
+turn an unwary
+opponent to stone.{end}
+
+[D125]
+A warrior's prowess
+combines with a
+dragon's speed to
+create a powerful
+offensive force.{end}
+
+[D126]
+A knight mounted on
+a horse that travels
+faster than the wind.
+His battle charge is
+a force to be
+reckoned with.{end}
+
+[D127]
+A wicked dragon that
+taps dark forces to
+execute a powerful
+attack.{end}
+
+[D128]
+A jar carved with
+strange patterns. It
+has a particularly
+high defense factor.{end}
+
+[D129]
+An elf, who learned
+to wield a sword,
+baffles enemies with
+lightning-swift
+attacks.{end}
+
+[D12A]
+Manipulates enemy
+attacks with the
+power of illusion.
+A very rare card.{end}
+
+[D12B]
+A very
+average-looking
+fighter with an
+unusually high
+attack factor.{end}
+
+[D12C]
+A unique doll gifted
+with mystical power.
+Particularly
+powerful when
+attacking against
+dark forces.{end}
+
+[D12D]
+Attacks its enemies
+with thunder.{end}
+
+[D12E]
+This creature's tough
+hide deflects just
+about any attack.{end}
+
+[D12F]
+Not as tough as it
+looks in terms of
+defense.
+This monster's sharp
+horn gives it an
+edge when attacking.{end}
+
+[D130]
+A compact,
+three-eyed monster
+that is dangerous
+when faced in the
+dark.{end}
+
+[D131]
+A giant ant that
+dwells in the jungle.
+Powerful in terms of
+both ATK and DEF
+factors.{end}
+
+[D132]
+Usually found
+travelling in swarms,
+this creature's
+ideal environment is
+the forest.{end}
+
+[D133]
+A lizard with a very
+tough hide and a
+very vicious bite.{end}
+
+[D134]
+A massive beetle with
+a tough hide and a
+dangerous horn.{end}
+
+[D135]
+A huge bee with
+exceptional
+strength.
+Particularly
+dangerous when a
+swarm is
+encountered.{end}
+
+[D136]
+A large, spherical
+roach that attacks
+its enemies by
+rolling over them.
+Its tough defense
+makes it a formidable
+foe.{end}
+
+[D137]
+A giant
+blood-sucking flea
+that's devastating
+when attacking.{end}
+
+[D138]
+Not much in its
+larval form,
+this creature is a
+force to be reckoned
+with when it grows
+to become a colossal
+moth.{end}
+
+[D139]
+A powerful creature
+of the forest,
+this huge moth
+attacks its enemies
+by spreading poison
+dust with its wings.{end}
+
+[D13A]
+By itself, this small
+creature may not
+seem like much.
+But in the dark, it
+attacks in numbers
+as a formidable
+force.{end}
+
+[D13B]
+A mammoth that
+protects the
+gravesite of its
+pack.
+It's absolutely
+merciless when
+facing graverobbers.{end}
+
+[D13C]
+A giant white shark
+with razor-sharp
+teeth.{end}
+
+[D13D]
+A rarely seen wolf
+with a powerful nose
+for catching the
+scent of an enemy.{end}
+
+[D13E]
+A human-shaped
+animal with wings.
+Beautiful to watch,
+but lethal when
+engaged in battle.{end}
+
+[D13F]
+Three fierce sisters
+who relentlessly
+attack as a team.{end}
+
+[D140]
+A fast and powerful
+axe-wielding beast
+warrior.{end}
+
+[D141]
+A snow wolf that's
+beautiful to the eye
+but absolutely
+vicious in battle.{end}
+
+[D142]
+A man-hunter with
+powerful arms that
+can crush boulders.{end}
+
+[D143]
+The final incarnation
+of the ultimate
+insect,
+the Great Moth!{end}
+
+[D144]
+An axe-swinging
+beast warrior with
+the head of a dragon.{end}
+
+[D145]
+A dragon that has
+grown and developed
+over a thousand
+years.{end}
+
+[D146]
+A massive squid that
+suddenly appears
+from the depths of
+the sea to attack
+unwary enemies.{end}
+
+[D147]
+An almost invisible,
+semi-transparent
+jellyfish that drifts
+in the sea.{end}
+
+[D148]
+This creature is
+capable of instantly
+evolving larvae into
+adults.{end}
+
+[D149]
+A sea dragon that's
+referred to as the
+"King of the Ocean".
+It attacks its
+enemies with huge
+tidal waves.{end}
+
+[D14A]
+A giant warrior made
+of stone.
+A punch from this
+creature has
+earth-shaking
+results.{end}
+
+[D14B]
+A meat-eating plant
+that is attractive
+to the eye but
+dangerous when
+approached.{end}
+
+[D14C]
+A vicious crocodile
+with intelligence.
+Hard scales form
+a natural armor for
+this creature.{end}
+
+[D14D]
+A devious snake with
+a thick body that
+wraps around an
+enemy monster and
+squeezes the life
+out of it.{end}
+
+[D14E]
+An axe-wielding
+monster of
+tremendous strength
+and agility.{end}
+
+[D14F]
+Nothing stands in
+the way of this
+spike-covered
+dinosaur.{end}
+
+[D150]
+Fast on its feet,
+this dinosaur rips
+enemies to shreds
+with its sharp claws.{end}
+
+[D151]
+A powerful dragon
+with teeth that can
+grind almost
+anything to dust.{end}
+
+[D152]
+A very rare card
+with a high-level
+ATK factor.{end}
+
+[D153]
+A creature that can
+generate darkness to
+envelop all that
+exists around it.{end}
+
+[D154]
+This monster boasts
+a strong defense and
+a massive scythe
+that cuts through
+almost anything.{end}
+
+[D155]
+Wields the power of
+darkness to destroy
+its enemies.{end}
+
+[D156]
+This creature flies
+through the dark,
+attacking its
+enemies with its
+long, hairy arms.{end}
+
+[D157]
+A fire-breathing
+monster that dwells
+in the netherworld.{end}
+
+[D158]
+A fiend guarding
+the treasures of the
+netherworld.
+Its defense is
+particularly high in
+a dark environment.{end}
+
+[D159]
+Well-protected by
+its shell,
+this monster flings
+projectiles from
+its catapult.{end}
+
+[D15A]
+Uses her mystical
+power to protect
+the weak and provide
+spiritual support.{end}
+
+[D15B]
+Half man and half
+horse, this monster
+is known for its
+extreme speed.{end}
+
+[D15C]
+A powerful
+and unstoppable
+combination of
+bull and horse.{end}
+
+[D15D]
+Prefers to face
+enemies one-on-one.
+His swiftly drawn
+blade delivers a
+quick and immediate
+finish.{end}
+
+[D15E]
+A weakened dragon
+that can no longer
+fly, but is still a
+formidable force to
+be reckoned with.{end}
+
+[D15F]
+A performer
+in the Dark Circus,
+this clown drains
+the strength of
+its enemies with
+strange dances.{end}
+
+[D160]
+A warrior raised from
+the beyond.
+Blindly swings a
+sharp blade with
+devastating force.{end}
+
+[D161]
+A dragon revived by
+sorcery. Its breath
+is highly corrosive.{end}
+
+[D162]
+A clown revived by
+the powers of
+darkness.
+Its strange dance
+has sent many
+monsters to their
+ends.{end}
+
+[D163]
+This pumpkin king
+strikes at its
+enemies with its
+long tentacles.{end}
+
+[D164]
+A warrior that fights
+with his bare hands.{end}
+
+[D165]
+Soaring over its
+enemies on wings of
+crimson fire,
+this monster attacks
+by blasting flames
+from its body.{end}
+
+[D166]
+A shadow mask
+created by the hands
+of a dark mage.{end}
+
+[D167]
+An indestructible,
+wicked mirror that
+blocks enemy attacks.{end}
+
+[D168]
+A curtain woven by
+the hands of a
+sorcerer. It is said
+to enhance the power
+of magic-users.{end}
+
+[D169]
+A deceivingly small
+creature that is so
+vicious it attacks
+both friend and foe
+without discretion.{end}
+
+[D16A]
+A spirit of the wind
+that freely sails
+the skies. Known to
+generate storms when
+it's in a bad mood.{end}
+
+[D16B]
+Uses both its
+physical and shadow
+forms to attack,
+making it a difficult
+creature to
+overcome.{end}
+
+[D16C]
+A final resting
+place that enhances
+the power of the
+doomed and drains
+that of the living.{end}
+
+[D16D]
+A goddess with an
+all-seeing eye that
+reveals all.{end}
+
+[D16E]
+A samurai from the
+Far East armed with
+a razor-sharp sword.{end}
+
+[D16F]
+This angel rules over
+the doomed and
+administers it when
+necessary.{end}
+
+[D170]
+A vile monster that
+fuels its power by
+draining the essence
+of life from its
+opponents.{end}
+
+[D171]
+Entirely gray,
+this beast has
+rarely been seen by
+mortal eyes.{end}
+
+[D172]
+A gentleman thief
+that eludes the law
+despite the fact that
+he sticks out like a
+sore thumb with his
+silk hat and white
+cape.{end}
+
+[D173]
+A magic-user that
+controls chaos
+and wields a mighty
+sickle.{end}
+
+[D174]
+A very toxic
+creature that
+induces nightmares
+and attacks its
+victims with four
+poison-tipped
+stingers.{end}
+
+[D175]
+A spirit of the books
+with infinite
+knowledge and an
+endless variety of
+attack strategies.{end}
+
+[D176]
+A cute elf that
+assists against
+enemies while
+remaining hidden
+from sight.{end}
+
+[D177]
+Passes judgment on
+enemies that are
+locked in coffins.{end}
+
+[D178]
+The mysterious dance
+of this creature
+draws its enemies
+into eternal slumber.{end}
+
+[D179]
+Frequently
+found sleeping,
+this monster is very
+dangerous when
+awakened.{end}
+
+[D17A]
+This dragon is
+conjured from
+a picture scroll
+to attack enemies.
+It has a pretty
+low defense factor.{end}
+
+[D17B]
+A vicious flower
+raised from polluted
+soil and fertilized
+by dark forces.{end}
+
+[D17C]
+An engine
+of destruction
+discovered in the
+ruins of an ancient
+civilization.{end}
+
+[D17D]
+A bird with a very
+long tail that
+attacks with a light
+that emanates from
+its entire being.{end}
+
+[D17E]
+A mysterious
+creature known as
+the king of warriors,
+but nobody has lived
+long enough to tell
+how it earned its
+reputation.{end}
+
+[D17F]
+A silent and swift
+warrior specializing
+in sneak attack.{end}
+
+[D180]
+A sorcerer who lives
+on the moon and
+attacks opponents
+with the power
+of lunar light.{end}
+
+[D181]
+A child-like creature
+that controls a
+sleep spirit to
+beckon enemies into
+eternal slumber.{end}
+
+[D182]
+This monster is
+capable of
+manipulating the
+weather. This power
+is the reason behind
+the changing climate
+of mountains.{end}
+
+[D183]
+A strange creature
+with the head of a
+fish and the
+tentacles of an
+octopus that attacks
+its enemies with
+spears.{end}
+
+[D184]
+A zombie that
+suddenly appeared
+from plot
+#13 - supposedly
+an empty grave.{end}
+
+[D185]
+A warrior protected
+by a shell that can
+even deflect the heat
+of burning flames.{end}
+
+[D186]
+A mystical chain that
+is believed capable
+of binding its
+enemies and
+preventing their
+attacks.{end}
+
+[D187]
+Long arms reach out
+from the Swamp
+of Chaos to drag
+in enemy creatures.{end}
+
+[D188]
+Dressed in a
+night-black tuxedo,
+this creature
+presides over the
+doomed.{end}
+
+[D189]
+Twisting the fabric
+of reality, arms
+stretch out from
+another dimension
+to attack opponents.{end}
+
+[D18A]
+A granite warrior
+with a dragon's soul
+wields a powerful
+sword against
+all enemies.{end}
+
+[D18B]
+A creature rumored
+to turn enemies
+into zombies with
+a strange ray that
+emanates from its
+eyes.{end}
+
+[D18C]
+Thousands of years
+old, this frog wizard
+attacks enemies with
+an army of tadpoles.{end}
+
+[D18D]
+Evolving from the
+powers of darkness,
+this snail has arms
+and legs that allow
+swift attacks
+against its enemies.{end}
+
+[D18E]
+Attacks enemies with
+fire-related spells,
+such as the
+"Sea of Flames"
+and the
+"Wall of Fire".{end}
+
+[D18F]
+The first in a line
+of golems that
+appears almost
+anywhere from within
+a dimensional ring.{end}
+
+[D190]
+Controls the air
+currents to create
+violent winds and
+tornadoes to blow
+away its enemies.{end}
+
+[D191]
+A flashy, black-caped
+thief who wields a
+magic cane.{end}
+
+[D192]
+A weird temple
+of skulls and bones
+that sucks the living
+essence of all those
+who dare approach it.{end}
+
+[D193]
+A warrior hidden
+within an egg that
+attacks enemies by
+flinging eggshells.{end}
+
+[D194]
+A living shadow that
+dwells in the realm
+of darkness.
+It paralyzes its
+enemies to prevent
+attacks.{end}
+
+[D195]
+A giant that appears
+from a mystic lamp
+and follows the
+orders of the lamp's
+owner.{end}
+
+[D196]
+A mysterious
+creature that dwells
+below the sea.{end}
+
+[D197]
+A warrior armed with
+the Sword of Crimson
+Flames.
+Uses fire to bind the
+movement of its
+enemies.{end}
+
+[D198]
+A creature that
+melts into the earth,
+melds with an
+opponent's shadow,
+and attacks from
+below.{end}
+
+[D199]
+A living spirit that
+preys on the living
+essence of enemies.{end}
+
+[D19A]
+A creature that
+deals out punishment
+with its flaming
+arrows.{end}
+
+[D19B]
+A fast-moving,
+bird-like creature
+that strangles an
+opposing monster
+with its long,
+thin arms.{end}
+
+[D19C]
+A living suit of
+armor that attacks
+enemies with a
+bone-jarring tackle.{end}
+
+[D19D]
+A fire-breathing
+plant found growing
+near volcanoes.{end}
+
+[D19E]
+Man-eating plant with
+poison feelers for
+attacking enemies.{end}
+
+[D19F]
+Coiling its
+serpent-like body,
+this creature spins
+and attacks with
+its snapping beak.{end}
+
+[D1A0]
+Specializing in
+combination attacks,
+this warrior uses
+magnetism to block
+an enemy's escape.{end}
+
+[D1A1]
+Specializing in
+combination attacks,
+this warrior is
+equipped with a
+tough, magnetically
+coated armor.{end}
+
+[D1A2]
+A parasite brain
+that preys
+on the knowledge
+and intelligence
+of its opponents.{end}
+
+[D1A3]
+An unusual creature
+with sapphire eyes
+that creates visions
+to confuse the enemy.{end}
+
+[D1A4]
+A vile entity that
+deceives enemies
+into walking a path
+of destruction.{end}
+
+[D1A5]
+The hand of final
+judgment is capable
+of intense attacks
+against the enemy.{end}
+
+[D1A6]
+A puppet master that
+manipulates enemies
+during battle.{end}
+
+[D1A7]
+A fragile jar from
+the past containing
+a mysterious
+creature.{end}
+
+[D1A8]
+Scorching flames that
+wipe out enemies in
+the blink of an eye.{end}
+
+[D1A9]
+King of the
+netherworld.
+It's said that he
+once had the power
+to rule over
+the Dark.{end}
+
+[D1AA]
+A spirit that
+soothes the soul
+with the music of
+its glorious harp.{end}
+
+[D1AB]
+This creature is
+covered with
+hypnotic eyes for
+mesmerizing its
+enemies.{end}
+
+[D1AC]
+A strange warrior
+who manipulates
+three fearsome
+blades with both
+hands and its tail.{end}
+
+[D1AD]
+This creature
+manipulates light to
+eliminate all traces
+of its appearance.{end}
+
+[D1AE]
+A twister that runs
+rampant in the
+wastelands,
+cutting its enemies
+with blades of wind.{end}
+
+[D1AF]
+Exiled from reality,
+this creature is
+adept at fighting
+in the dark.{end}
+
+[D1B0]
+A winged eye
+enveloped in flames
+that attacks enemies
+with fire.{end}
+
+[D1B1]
+A vicious turtle
+with a spiked shell.{end}
+
+[D1B2]
+Stretching arms and
+razor-sharp claws
+make this monster a
+formidable opponent.{end}
+
+[D1B3]
+A wizard that freezes
+an enemy's movement
+with a single curse.{end}
+
+[D1B4]
+A maiden in the
+flower blossoms
+spreads poisonous
+pollen against
+opponents.{end}
+
+[D1B5]
+Emits a dazzling
+light from its
+crystal to blind its
+enemies.{end}
+
+[D1B6]
+A dancing warrior
+that makes mincemeat
+out of opponents
+with a sharp scythe.{end}
+
+[D1B7]
+A thin and reedy
+creature protected
+by sacred power.{end}
+
+[D1B8]
+Uses amazing
+sleight-of-hand
+to fool and destroy
+its enemies.{end}
+
+[D1B9]
+This warrior confuses
+and destroys enemies
+by adopting their
+images.{end}
+
+[D1BA]
+A bird-beast
+that summons
+reinforcements
+with a hand mirror.{end}
+
+[D1BB]
+A creature with
+an abdominal portal
+used for summoning
+monsters from the
+netherworld.{end}
+
+[D1BC]
+An ugly creature
+with two heads and
+a mouth for blasting
+laser beams.{end}
+
+[D1BD]
+A monstrous cat with
+wings and a long,
+striking tail.{end}
+
+[D1BE]
+A wizard
+whose incantations
+numb the senses of
+opposing monsters.{end}
+
+[D1BF]
+Protected by
+thunder,
+this dangerous cloud
+attacks its enemies
+with acid rain.{end}
+
+[D1C0]
+A small angel whose
+cuteness melts the
+hearts of its
+enemies.{end}
+
+[D1C1]
+A tiger encased in a
+protective shell that
+attacks its enemies
+with its razor-sharp
+fangs.{end}
+
+[D1C2]
+Know as a dweller
+of the swamps,
+this creature is a
+minion of the Dark
+forces.{end}
+
+[D1C3]
+An unpredictable
+creature that splits
+into two and attacks
+an enemy from
+opposite directions.{end}
+
+[D1C4]
+An ammonite warrior
+that has protected
+the seas from the
+dawn of time.{end}
+
+[D1C5]
+A creature of the
+night that attacks
+enemies with its
+rocket-powered arms.{end}
+
+[D1C6]
+A little angel
+that fires beams of
+happiness from the
+heart jewel on its
+forehead.{end}
+
+[D1C7]
+A penguin-like
+creature that slides
+on its belly to
+deliver a blow with
+its outstretched
+sword.{end}
+
+[D1C8]
+A very small dragon
+known for its vicious
+attacks.{end}
+
+[D1C9]
+A savage beast that
+carries a big bamboo
+stick for beating
+down its enemies.{end}
+
+[D1CA]
+A horned beaver with
+wings that throws
+high-velocity acorns
+from the sky with
+uncanny accuracy.{end}
+
+[D1CB]
+Malicious spirits
+that walk the world
+of the living,
+unable to find their
+final resting place.{end}
+
+[D1CC]
+A cannon-like
+monster that rapidly
+fires eyeballs at the
+enemy.{end}
+
+[D1CD]
+An ugly,
+melting creature
+that breathes out
+poison gas.{end}
+
+[D1CE]
+This creature swings
+its whip-like arms
+for mid-range
+attacks against
+enemies.{end}
+
+[D1CF]
+With a battle cry
+that curdles the
+blood of its
+opponent,
+this creature
+attacks with its
+massive beak.{end}
+
+[D1D0]
+A quick-moving and
+tiny angel that's
+very difficult to hit.{end}
+
+[D1D1]
+This creature
+attacks by swinging
+around its
+sickle-like arms.{end}
+
+[D1D2]
+An intensely hot
+flame creature that
+rams anything that
+stands in its way.{end}
+
+[D1D3]
+This creature stores
+lightning within its
+body to deliver
+electrifying attacks.{end}
+
+[D1D4]
+A huge monster with
+a single eye that
+fires an intence
+beam.{end}
+
+[D1D5]
+A wizard of the
+waters that conjures
+a liquid wall to
+crush any enemies
+that oppose him.{end}
+
+[D1D6]
+Serves as a double
+for the ruler of the
+Blue Flame. A master
+swordsman that
+wields a fine blade.{end}
+
+[D1D7]
+A fiery spirit
+that burns anything
+in its path.{end}
+
+[D1D8]
+A spirit of the
+forest protected by
+the surrounding
+plant life.{end}
+
+[D1D9]
+A very rare creature
+created from the
+fusion of an uncommon
+beast and a vicious
+dragon.{end}
+
+[D1DA]
+A dinosaur with two
+crushing jaws.
+Stores electricity in
+its horn and releases
+high voltage bolts
+from the mouth on its
+back.{end}
+
+[D1DB]
+A beast-warrior that
+swings a massive
+scythe that draws on
+the spirit of its
+enemies to deliver
+devastating blows.{end}
+
+[D1DC]
+A mysterious wizard
+whose face remains
+forever hidden behind
+a strange mask.{end}
+
+[D1DD]
+A massive,
+intelligent spider
+that traps its
+enemies with webbing.{end}
+
+[D1DE]
+A winged creature
+rumored to appear
+at midnight.{end}
+
+[D1DF]
+A massive sea
+serpent that creates
+tidal waves to wipe
+out its enemies.{end}
+
+[D1E0]
+A warrior that
+excels in laying
+traps such as a
+bottomless pit,
+for eternally
+ensnaring opponents.{end}
+
+[D1E1]
+Few have escaped
+the curse of this
+creature. Those that
+have done so have
+gained untold power.{end}
+
+[D1E2]
+Swift and vicious,
+this monster grabs
+its victim with its
+pincers and attacks
+the captive with its
+poison stinger.{end}
+
+[D1E3]
+A vicious starfish
+that spits acid to
+melt away its
+enemies.{end}
+
+[D1E4]
+A zombie that rose
+from the remains of
+the woodland ruler.{end}
+
+[D1E5]
+A creature
+that allows power
+to be gained at
+the cost of life.{end}
+
+[D1E6]
+An unusual and
+ferocious fish with
+the head of a beast.{end}
+
+[D1E7]
+An unpleasantly
+smiling creature
+that wields a scythe
+to avoid enemy blows.{end}
+
+[D1E8]
+A living weapon that
+fires projectiles
+from its mouth.{end}
+
+[D1E9]
+A spirit said to
+dwell in the world of
+dreams.
+Attacks enemies in
+their sleep.{end}
+
+[D1EA]
+A lovely swordmaster
+with some very agile
+moves.{end}
+
+[D1EB]
+A warrior that has
+long resided in the
+forest and enjoys
+the protection
+of Mother Nature.{end}
+
+[D1EC]
+A warrior that
+guards the entrance
+to the netherworld.{end}
+
+[D1ED]
+An earthen doll that
+protects the
+treasure in the
+tombs of ancient
+kings.{end}
+
+[D1EE]
+A palm tree with a
+will of its own that
+attacks enemies by
+flinging coconuts.{end}
+
+[D1EF]
+A woman warrior that
+serves the forces of
+darkness.{end}
+
+[D1F0]
+An eyeball creature
+with legs for jumping
+high and delivering
+finishing blows with
+its sharp claws.{end}
+
+[D1F1]
+Armed with Psycho
+Sword, this sinister
+cutthroat rules the
+outer land.{end}
+
+[D1F2]
+An opponent's fate
+is decided when the
+flames of each finger
+are extinguished.{end}
+
+[D1F3]
+A water spirit that
+envelops its
+opponent in a thick
+fog to cover its
+attack.{end}
+
+[D1F4]
+A monster borne from
+the lava pits.
+Generates intensive
+heat that can melt
+away its enemies.{end}
+
+[D1F5]
+An eyeball fiend
+created by a servant
+of darkness.
+Uses "Dark Spheres"
+to blow away its
+enemies.{end}
+
+[D1F6]
+A creature with a
+sword that gains its
+power from the life
+forces of its victims.{end}
+
+[D1F7]
+An amphibian capable
+of calling up a
+massive tidal wave
+from the dark seas
+to wipe out enemy
+monsters.{end}
+
+[D1F8]
+A fearsome duo
+consisting of a beast
+master and its loyal
+servant.{end}
+
+[D1F9]
+Transforms the water
+overflowing from a
+jar into attacking
+dragons.{end}
+
+[D1FA]
+An ice warrior whose
+slightest touch
+freezes an opponent.{end}
+
+[D1FB]
+A beautiful mermaid
+that lures voyagers
+to a watery grave.{end}
+
+[D1FC]
+A cat creature that
+looks cute to the
+eye but delivers
+scratching blows
+with its sharp claws.{end}
+
+[D1FD]
+A creature that
+chose the path of
+sorcery to become
+a witch.{end}
+
+[D1FE]
+A repulsive monster
+with a gaping belly
+that swallows almost
+anything.{end}
+
+[D1FF]
+This monster is
+shielded by a hide
+covered in thick
+hair.{end}
+
+[D200]
+A monster capable of
+creating dimensional
+rifts to trap its
+enemies.{end}
+
+[D201]
+With a body armored
+by rock-hard fur,
+this monster
+features excellent
+defense capabilities.{end}
+
+[D202]
+This creature
+changes the ground
+at its feet into
+quicksand to ensnare
+its enemies.{end}
+
+[D203]
+A master fighter
+that uses various
+staffs to render
+enemies unconscious.{end}
+
+[D204]
+A lovely moon goddess
+that can throw up
+a lunar curtain to
+block enemy attacks.{end}
+
+[D205]
+A malevolent mirror
+that hypnotizes
+a beholder and
+renders the victim
+susceptible
+to attacks.{end}
+
+[D206]
+An elf warrior
+mounted on a huge
+lizard.{end}
+
+[D207]
+A stone golem that
+turns opponents into
+rocks and crushes
+them to dust.{end}
+
+[D208]
+Hiding within its
+eggshell,
+this creature blocks
+enemy attacks with
+its massive wings.{end}
+
+[D209]
+Grand King of the
+Seven Seas.
+Able to summon
+massive tidal waves
+to drown the enemy.{end}
+
+[D20A]
+A queen of swords
+that is virtually
+unequalled in her
+mastery of every
+blade imaginable
+to man.{end}
+
+[D20B]
+The speed of this
+warrior creates
+an intense vacuum
+that can actually
+slice through
+a monster's hide.{end}
+
+[D20C]
+A sorcerer that
+worships the dark
+forces and can
+summon a massive
+hand to drag away
+opponents into the
+netherworld.{end}
+
+[D20D]
+A lord of destruction
+born from the heart
+of darkness,
+this creature can
+summon storms to
+destroy opponents.{end}
+
+[D20E]
+A rain spirit that
+can summon typhoons
+to blow away its
+enemies.{end}
+
+[D20F]
+This creature's
+ominous eyes can
+unleash piercing rays
+against its enemies.{end}
+
+[D210]
+Related to the
+phoenix,
+this creature dwells
+in the mountains.
+Its fiery breath is
+extremely scorching.{end}
+
+[D211]
+Armed with a wealth
+of knowledge,
+this monster is able
+to block just about
+any attack.{end}
+
+[D212]
+This youthful king
+of the forests lives
+in a green world,
+abundant with trees
+and wildlife.{end}
+
+[D213]
+A land-based armored
+robot that is said
+to once have marine
+attack capabilities.{end}
+
+[D214]
+The Sun and the
+North Wind join
+hands to deliver
+a devastating
+combination of heat
+and gale-force winds.{end}
+
+[D215]
+A gorgon's egg with
+eyes said to create
+whatever creature
+crosses its view.{end}
+
+[D216]
+Nobody has any idea
+what creature may
+spawn from this
+mysterious larva.{end}
+
+[D217]
+A spectre that
+dwells in a blinding
+curtain of smoke.{end}
+
+[D218]
+A creature that
+protects the king's
+throne from usurpers.{end}
+
+[D219]
+Nothing can stop the
+mad attack of this
+powerful creature.{end}
+
+[D21A]
+A monstrous sheep
+with a long tail for
+hypnotizing enemies
+to render them
+powerless.{end}
+
+[D21B]
+A monster machine
+that generates
+images to confuse its
+enemies, making them
+prone to attacks.{end}
+
+[D21C]
+A magic-user that
+corrodes the yin
+and yang to create
+a twisted power
+to attack enemies.{end}
+
+[D21D]
+A snake with a single
+eye that blows an icy
+breath to freeze its
+opponents.{end}
+
+[D21E]
+An indestructible
+machine built to
+protect key
+entrances.{end}
+
+[D21F]
+An ogre possessed
+by the powers of the
+dark.
+Few can withstand
+its rapid charge.{end}
+
+[D220]
+A demented artist
+that creates objets
+d'art to crush
+enemies.{end}
+
+[D221]
+A shape-shifting
+slime that is capable
+of adopting the form
+of other creatures.{end}
+
+[D222]
+A servant of the
+moon goddess,
+this warrior wields a
+pike with
+a spectacular
+crescent-shaped
+blade.{end}
+
+[D223]
+A malevolent
+creature wrapped in
+flames that attacks
+enemies with intense
+fire.{end}
+
+[D224]
+An amphibian with
+extrasensory powers
+for blocking attacks.{end}
+
+[D225]
+Legendary
+swordmaster and a
+veteran of over 100
+battles.{end}
+
+[D226]
+A warrior equipped
+with equipment
+fashioned from dragon
+scales.{end}
+
+[D227]
+A monstrous creature
+born from a failed
+lab experiment.{end}
+
+[D228]
+This dragon wears a
+shield not only for
+its own protection
+but also for ramming
+its enemies.{end}
+
+[D229]
+An unstoppable
+mechanical soldier
+powered by dark
+forces.{end}
+
+[D22A]
+A two-headed dragon
+with a pair of
+vicious jaws for
+crushing its enemies.{end}
+
+[D22B]
+A maiden that uses
+sound to her
+advantage.
+She wields a scythe
+that's shaped like a
+musical note.{end}
+
+[D22C]
+A vicious bird that
+attacks from the
+skies with its
+whip-like tail.{end}
+
+[D22D]
+A sword that brings
+out the best in
+warriors. It cannot
+be used by servants
+of the dark.{end}
+
+[D22E]
+Dark forces
+increase the power
+of Warriors!{end}
+
+[D22F]
+Dark forces increase
+the power of Fiends
+and other monsters
+of the Dark!{end}
+
+[D230]
+Fiends and
+Beast-Warriors can
+constantly use their
+maximum strength!{end}
+
+[D231]
+Arms Insects with
+a powerful laser!{end}
+
+[D232]
+Allows Insects to
+fire an intense
+blast of fire!{end}
+
+[D233]
+Increases the power
+of elves with
+mystical light!{end}
+
+[D234]
+Increases the power
+of Beasts and other
+fanged monsters!{end}
+
+[D235]
+Boosts the power of
+shelled monsters!
+Said to have no
+effect on those
+without shells.{end}
+
+[D236]
+Vile microbes boost
+the power of Plants
+in the woods!{end}
+
+[D237]
+This pendant grants
+extra power
+to Dark sorcerers!{end}
+
+[D238]
+Silver bow and arrow
+enhances the power
+of Fairies.{end}
+
+[D239]
+Increases the power
+of horned creatures!
+Has no effect
+on Dark monsters.{end}
+
+[D23A]
+Increases the power
+of Dark monsters
+with horns!{end}
+
+[D23B]
+A legendary treasure
+that increases the
+power of dragons.{end}
+
+[D23C]
+A whip for paralyzing
+enemies.
+Increases power when
+equipped with female
+creatures.{end}
+
+[D23D]
+Increases the power
+of female monsters
+by changing their
+attitudes.{end}
+
+[D23E]
+Creates two
+doppelgangers of
+Harpy Lady for
+three-pronged
+attacks!{end}
+
+[D23F]
+Moonlight increases
+the power of Beasts!{end}
+
+[D240]
+Forces an opponent's
+monster card
+positioned for
+defense into the
+attack position.{end}
+
+[D241]
+Diabolic forces act
+to increase the
+power of female and
+Dark monsters!{end}
+
+[D242]
+Mystic forces from
+the crystal increase
+the power of Zombies.{end}
+
+[D243]
+A magic book for
+increasing the power
+of magic-users.
+It cannot be used
+by bad-hearted
+sorcerers.{end}
+
+[D244]
+Increases the power
+of Thunder, Rock,
+and Pyro monsters.{end}
+
+[D245]
+A manufacturing
+facility that tunes
+up all Machine
+monsters.{end}
+
+[D246]
+Absorbs the sun's
+energy to increase
+the power of
+Dinosaurs!{end}
+
+[D247]
+The winds provide
+support to increase
+the power of Winged
+Beasts and other
+flying monsters!{end}
+
+[D248]
+Poseidon's Strength
+is shared to boost
+the power of Aqua,
+Fish, and Sea Serpent
+monsters!{end}
+
+[D249]
+Destroys all
+opponent Dragon
+monsters on the
+playfield!{end}
+
+[D24A]
+Changes the field
+in favor of
+Beast-Warrior,
+Insect, Plant, and
+Beast monsters!{end}
+
+[D24B]
+Changes the field
+in favor of Zombie,
+Dinosaur and Rock
+monsters!{end}
+
+[D24C]
+Changes the field
+in favor of Dragon,
+Winged Beast, and
+Thunder monsters!{end}
+
+[D24D]
+Changes the field
+to meadow land
+in favor of Warrior
+and Beast-Warrior
+monsters!{end}
+
+[D24E]
+Changes the field
+in favor of Aqua and
+Thunder monsters,
+but unfavorable to
+Machine and Pyro
+monsters!{end}
+
+[D24F]
+Changes the field
+in favor of
+Magic-User and
+Fiend monsters,
+but unfavorable
+to Fairy monsters!{end}
+
+[D250]
+Sucks up every card
+in play on the field!{end}
+
+[D251]
+Destroys every
+opposing monster
+with a stroke
+of lightning!{end}
+
+[D252]
+A delicious
+beef curry increases
+Life Points by 200!{end}
+
+[D253]
+A magic potion
+that increases
+Life Points by 500!{end}
+
+[D254]
+A goblin's herb
+that increases
+Life Points by 1000!{end}
+
+[D255]
+A fairy potion
+that increases
+Life Points by 2000!{end}
+
+[D256]
+A mystical power
+that increases
+Life Points by 5000!{end}
+
+[D257]
+A shower of sparks
+inflicts 50 points
+of damage
+to your opponent's
+Life Points!!{end}
+
+[D258]
+A fireball inflicts
+100 points of damage
+to your opponent's
+Life Points!!{end}
+
+[D259]
+Flames inflict
+200 points of damage
+to your opponent's
+Life Points!!{end}
+
+[D25A]
+Flames inflict
+500 points of damage
+to your opponent's
+Life Points!{end}
+
+[D25B]
+An inferno inflicts
+1000 points of
+damage to your
+opponent's
+Life Points!{end}
+
+[D25C]
+Enemy monsters
+are revealed and
+your opponent
+cannot attack
+for three turns.{end}
+
+[D25D]
+A curse reduces the
+power of all enemy
+monsters!{end}
+
+[D25E]
+A dazzling light
+reveals all monsters
+on the playing field.{end}
+
+[D25F]
+A monster that
+attacks anybody
+who attempts
+to open its lid.{end}
+
+[D260]
+A lady swordsman
+that floats like a
+butterfly and stings
+like a bee.{end}
+
+[D261]
+A finned creature
+distantly related
+to sea Dragons.{end}
+
+[D262]
+A deceptively cute
+stuffed animal that
+bites.{end}
+
+[D263]
+A cryptic doomsday
+machine that comes
+from the edge of
+the universe.{end}
+
+[D264]
+A very vicious lion
+with sharp and long
+claws.{end}
+
+[D265]
+A three-headed,
+fire-breathing
+monster.{end}
+
+[D266]
+A sacred dragon
+that burns away
+wickedness with its
+mystical flames.{end}
+
+[D267]
+Bony and Tubby,
+a friendly pair
+of skeletons.{end}
+
+[D268]
+A huge,
+brutal monster that
+attacks with
+razor-sharp claws.{end}
+
+[D269]
+A rare penguin that
+flies with the wings
+on its head.{end}
+
+[D26A]
+A Millennium Item
+candidate that is
+said to block any
+powerful attack.{end}
+
+[D26B]
+Flies around
+spreading happiness
+to all.{end}
+
+[D26C]
+A powerful warrior
+with the same
+capabilities as the
+legendary Blue-eyes
+White Dragon.{end}
+
+[D26D]
+An arcane glass
+that draws
+its enemies into
+the mirror world.{end}
+
+[D26E]
+Walls appear
+on the field to form
+a labyrinth with
+no exit.{end}
+
+[D26F]
+A monster spider
+that dwells under
+the earth.{end}
+
+[D270]
+A dangerous zombie
+that crawls
+in the dark.{end}
+
+[D271]
+An unusually fast
+monster that sweeps
+across walls to
+attack its enemies.{end}
+
+[D272]
+A tank that races
+around a labyrinth
+hunting down
+its enemies.{end}
+
+[D273]
+A golem that uses
+lightning attacks
+similar to the
+Labyrinth Brothers.{end}
+
+[D274]
+A golem that
+controls the winds
+like the Labyrinth
+Brothers.{end}
+
+[D275]
+A golem that uses
+water attacks like
+the Labyrinth
+Brothers.{end}
+
+[D276]
+Sanga, Kazejin, and
+Suijin join to
+form a single,
+powerful monster.{end}
+
+[D277]
+Hidden under the
+floors of a labyrinth,
+it swallows any who
+pass above.{end}
+
+[D278]
+A master of monsters
+that exercises
+control over several
+creatures.{end}
+
+[D279]
+Ryu-kishin enhanced
+by the powers of
+darkness. Very sharp
+talons make it
+a worthy opponent.{end}
+
+[D27A]
+A monster formed by
+the vengeful souls
+of those who passed
+away in battle.{end}
+
+[D27B]
+A genie of the lamp
+that's at the beck
+and call of its
+master.{end}
+
+[D27C]
+The ultimate dragon
+formed by the fusion
+of three Blue-eyes
+White Dragons.{end}
+
+[D27D]
+An alligator monster
+straight from the
+cartoons.{end}
+
+[D27E]
+With an axe in each
+hand, this monster
+delivers heavy
+damage.{end}
+
+[D27F]
+A dragon from the
+cartoons that's more
+dangerous than it
+appears to be.{end}
+
+[D280]
+A cartoon rabbit
+that quickly leaps
+all over the place,
+making it a difficult
+target.{end}
+
+[D281]
+A jack-in-the-box
+that excels
+in surprise attacks.{end}
+
+[D282]
+A favorite pet for
+harpies, but a very
+dangerous dragon.{end}
+
+[D283]
+A lamp used by
+wizards to mix
+potions.{end}
+
+[D284]
+A horrible torture
+machine with a large
+pendulum blade.{end}
+
+[D285]
+Armed with a
+soul-searing spear,
+this creature favors
+magic attacks.{end}
+
+[D286]
+A spider machine
+that launches
+explosive rockets
+against its enemies.{end}
+
+[D287]
+A monster whose full
+potential can be
+achieved when
+transformed into its
+metal form.{end}
+
+[D288]
+A metallic Zoa
+capable of intensive
+attacks.{end}
+
+[D289]
+A sea creature that
+swallows enemies and
+slowly digests them.{end}
+
+[D28A]
+An iron-tailed
+monster equipped
+with very sharp
+scissors.{end}
+
+[D28B]
+An elf that dances
+across the sky with
+wings of razor-sharp
+blades.{end}
+
+[D28C]
+Frightening in
+appearance,
+this creature uses
+its large eyes and
+ears to keep track
+of any movement.{end}
+
+[D28D]
+Not a very powerful
+monster despite its
+large fangs and
+spikes.{end}
+
+[D28E]
+A monstrous bullfrog
+with poison spikes.{end}
+
+[D28F]
+An eastern warrior
+armed with a cursed
+sword.{end}
+
+[D290]
+A fire-breathing
+reptilian monster.{end}
+
+[D291]
+A bull monster
+resurrected by the
+dark arts that
+appears from inside
+a jar.{end}
+
+[D292]
+A servant that
+maintains a close
+watch on anything
+and everything.
+It throws up
+a smokescreen
+when discovered.{end}
+
+[D293]
+Huge monster
+with a lion's mane
+similar to the
+"King of Beasts".{end}
+
+[D294]
+A fast-moving sea
+monster that has the
+bodies of a horse
+and a fish.{end}
+
+[D295]
+A rampaging machine
+that wields
+a massive sword.{end}
+
+[D296]
+A machine with
+several blades
+hidden within its
+square body.{end}
+
+[D297]
+Armored with super
+alloy, this robot
+attacks with blasts
+of fire launched from
+both arms.{end}
+
+[D298]
+This monster swings
+an earth-shaking axe
+that can eliminate
+enemies with a single
+blow.{end}
+
+[D299]
+A golden,
+fire-breathing dragon
+that burns any
+opponent in its path.{end}
+
+[D29A]
+A spider-shaped,
+mechanized monster
+with sickles at
+the end of its legs.{end}
+
+[D29B]
+A mechanized bat
+that attacks by
+dropping explosion
+orbs.{end}
+
+[D29C]
+A wolf made entirely
+of iron. Its steel
+jaws can bite
+through anything.{end}
+
+[D29D]
+Round-shaped
+soldiers that roll
+around and act as
+guardians to the
+Machine King.{end}
+
+[D29E]
+Armed with a pair of
+shovels,
+this creature is a
+walking engine
+of destruction.{end}
+
+[D29F]
+A hunter that
+relentlessly pursues
+its target by order
+of the Machine King.{end}
+
+[D2A0]
+Each separate part
+of this creature is
+an individual weapon
+capable of
+devastating attacks.{end}
+
+[D2A1]
+A walking time device
+that loves to blow
+enemies away.{end}
+
+[D2A2]
+A massive iron golem
+that appears from
+a dimensional rift.{end}
+
+[D2A3]
+This creature swings
+around a huge spiked
+ball to destroy its
+enemies.{end}
+
+[D2A4]
+Created in a
+basement lab,
+this infernal machine
+launches rockets
+from within its
+mouth.{end}
+
+[D2A5]
+A strike force
+equipped with radar
+detectors and
+sensors.{end}
+
+[D2A6]
+Created in an
+underground lab,
+this artificial being
+occasionally goes
+berserk.{end}
+
+[D2A7]
+An armadillo-like
+creature that forms
+a die whenever it
+rolls up its body.{end}
+
+[D2A8]
+A bird-like dragon
+with four bladed
+wings.{end}
+
+[D2A9]
+A dragon that
+summons thunder and
+lightning to attack
+its opponents.{end}
+
+[D2AA]
+With a body
+consisting entirely
+of rocks, this dragon
+flings boulders at
+its enemies.{end}
+
+[D2AB]
+A very proud and
+powerful dragon
+emperor.{end}
+
+[D2AC]
+Despite its weak
+strength,
+this creature is
+capable of casting
+spells to eliminate
+darkness.{end}
+
+[D2AD]
+A shy goddess that
+seems to spend the
+majority of her time
+sleeping.{end}
+
+[D2AE]
+This creature
+surrounds opponents
+with water and
+envelops them in a
+sweeping attack.{end}
+
+[D2AF]
+A very aggressive
+mermaid with spikes
+for attacking
+enemies.{end}
+
+[D2B0]
+A fairy that wanders
+the seas.
+Rumored to have the
+capabilities for
+summoning sea
+dragons.{end}
+
+[D2B1]
+This elf is rumored
+to have lived for
+thousands of years.
+He leads an army of
+spirits against his
+enemies.{end}
+
+[D2B2]
+A rare female
+magic-user armed
+with a vicious whip.{end}
+
+[D2B3]
+A beautiful creature
+that flings icy
+arrows.{end}
+
+[D2B4]
+A white,
+horned dolphin that
+attacks by calling up
+tidal waves.{end}
+
+[D2B5]
+A violent shark that
+attacks anything
+in the sea.{end}
+
+[D2B6]
+A steel fish armed
+with a sharp dorsal
+fin.{end}
+
+[D2B7]
+A beautiful swimmer
+with a very nasty
+temperament.{end}
+
+[D2B8]
+A rare rainbow fish
+that is almost
+impossible to catch.{end}
+
+[D2B9]
+This creature
+carries a plasma
+cannon on its back.{end}
+
+[D2BA]
+A dragon that dwells
+in the sea. It is
+capable of spitting
+high-pressure blasts
+of water.{end}
+
+[D2BB]
+The king of the seas,
+this creature is
+protected by a solid
+shell and spits
+poisonous bubbles at
+its enemies.{end}
+
+[D2BC]
+A strange, one-eyed
+monster armed with
+a dangerous spear.{end}
+
+[D2BD]
+A merman warrior
+that attacks anyone
+who dares to pollute
+the sea.{end}
+
+[D2BE]
+A creature that
+drowns its opponents
+by mesmerizing them
+with the ball on the
+end of its tail.{end}
+
+[D2BF]
+A sea serpent that
+bites anything that
+passes nearby.{end}
+
+[D2C0]
+Using the spikes
+sprouting from its
+body, this creature
+stabs its opponents
+and floods them with
+electricity.{end}
+
+[D2C1]
+A massive and
+well-protected
+giant turtle that
+has lived over 30000
+years.{end}
+
+[D2C2]
+An amphibian sworn
+to avenge the death
+of its brothers.{end}
+
+[D2C3]
+A crab monster with
+two massive scissors
+for cutting up
+enemies.{end}
+
+[D2C4]
+A newly evolved
+crayfish with sharp
+scissors for clipping
+the enemy.{end}
+
+[D2C5]
+A golem that has
+protected treasure
+for nearly
+a millennium.{end}
+
+[D2C6]
+A golem with a
+massive right hand
+for crushing its
+victims.{end}
+
+[D2C7]
+A monster that
+charges into enemies
+firing a pair of
+cannons mounted on
+its shoulders.{end}
+
+[D2C8]
+A rock warrior that
+wields a very heavy
+sword carved from
+stone.{end}
+
+[D2C9]
+A creature that
+erupts with anger,
+resulting in a
+crushing rain of
+boulders.{end}
+
+[D2CA]
+A monster that
+judges wrong-doers
+and punishes them
+appropriately.{end}
+
+[D2CB]
+This creature
+attacks enemies
+with electromagnetic
+waves.{end}
+
+[D2CC]
+This creature spits
+a gooey substance
+that robs enemies of
+mobility and then
+stuns them with
+electric shocks.{end}
+
+[D2CD]
+A monster with a pair
+of electric whips
+instead of arms.{end}
+
+[D2CE]
+A creature that
+attacks enemies
+with thunderbolts.{end}
+
+[D2CF]
+A serpent with
+a tail for
+storing electricity.{end}
+
+[D2D0]
+A hunter of the
+skies that has never
+missed a target.{end}
+
+[D2D1]
+A judge of the skies
+that delivers
+a sentence with
+its punishing
+silver-white claws.{end}
+
+[D2D2]
+This monster swoops
+down and attacks
+with a rain of knives
+stored in its wings.{end}
+
+[D2D3]
+A monster burning
+with crimson flames
+and capable of
+delivering a rain of
+sparks by flapping
+its wings.{end}
+
+[D2D4]
+A creature that
+attacks its enemies
+with its large beak.{end}
+
+[D2D5]
+A blue ninja that
+attacks with a large
+sickle and spiked
+feet.{end}
+
+[D2D6]
+This creature casts
+a spell of terror and
+confusion just before
+attacking its
+enemies.{end}
+
+[D2D7]
+This clown feeds the
+life force of its
+enemies to
+a monstrous lizard.{end}
+
+[D2D8]
+A monster that
+suffocates its enemy
+by feeding on the
+surrounding air
+supply.{end}
+
+[D2D9]
+A fiery warrior
+creature that
+unleashes intense
+heat from its body.{end}
+
+[D2DA]
+A cruel monster that
+slices up enemies
+with its sharp claws.{end}
+
+[D2DB]
+A flying poison snake
+that is not very
+good at maneuvering
+on the ground.{end}
+
+[D2DC]
+A spider armed with
+scissors to attack
+anything that
+it traps in its web.{end}
+
+[D2DD]
+A stag beetle
+monster with
+saw-toothed horn
+and arms.{end}
+
+[D2DE]
+Insect soldiers that
+attack in swarms.{end}
+
+[D2DF]
+A cockroach warrior
+that hides in small
+spaces and emerges
+to attack enemies.{end}
+
+[D2E0]
+A violent stag beetle
+with a razor-like
+cutter.{end}
+
+[D2E1]
+A clever mouse with a
+sharpened left claw.{end}
+
+[D2E2]
+A very dangerous
+monster with spikes
+on its head and tail.{end}
+
+[D2E3]
+A malevolent
+creature that
+resembles a winged
+lion.{end}
+
+[D2E4]
+A monster that
+envelops an enemy
+and slowly digests
+it.{end}
+
+[D2E5]
+This creature rolls
+massive objects
+to crush its enemies.{end}
+
+[D2E6]
+A book wizard with
+page after page of
+potent spells.{end}
+
+[D2E7]
+A beast covered in
+flowers from head to
+toe.{end}
+
+[D2E8]
+A flower creature
+with rainbow-colored
+blossoms that lure
+an enemy into its
+waiting jaws.{end}
+
+[D2E9]
+A dangerous flower
+that fires pollen
+projectiles.{end}
+
+[D2EA]
+A ball covered in
+sharp needles.
+Usually rains down on
+enemies in a group.{end}
+
+[D2EB]
+A beautiful peacock-
+like creature that
+fires its feathers at
+opponents.{end}
+
+[D2EC]
+Trailed by
+a beautiful tail,
+this shooting star
+inflicts damage when
+it hits an enemy.{end}
+
+[D2ED]
+A wizard dressed in
+blue who is usually
+found meditating.{end}
+
+[D2EE]
+An unusual mermaid
+that appears
+whenever a rainbow
+bridges the sky.{end}
+
+[D2EF]
+A fantastic guitar
+player that attacks
+enemies with
+ultrasonic emissions.{end}
+
+[D2F0]
+A ferocious rabbit
+with sharp claws.{end}
+
+[D2F1]
+A hermit crab with
+the head of a dragon.{end}
+
+[D2F2]
+A strange fiend
+with long arms and
+razor-sharp talons.{end}
+
+[D2F3]
+Attacks by blowing
+webs at its enemies.
+Nobody knows what
+the final form of this
+insect might be.{end}
+
+[D2F4]
+A fearsome monster
+sent from the
+netherworld
+to destroy dragons.{end}
+
+[D2F5]
+A creature that
+slices and dices with
+its scissors and
+feeds off its victims.{end}
+
+[D2F6]
+Gifted with the power
+of dragons,
+this warrior wields a
+sword created from a
+dragon's fang.{end}
+
+[D2F7]
+A fox-like creature
+with a protective
+shell.{end}
+
+[D2F8]
+A monster that leaks
+acid from its pores
+to melt anything that
+touches its skin.{end}
+
+[D2F9]
+A clear crystal that
+focuses light to
+create a powerful
+laser beam.{end}
+
+[D2FA]
+A huge moth that
+generates a
+whirlwind containing
+poison dust.{end}
+
+[D2FB]
+A flying fish with
+a sharp head for
+piercing targets.{end}
+
+[D2FC]
+A mechanical dinosaur
+equipped with a beam
+cannon.{end}
+
+[D2FD]
+A colossal dinosaur
+that stomps on
+anything that
+wanders into its
+path.{end}
+
+[D2FE]
+A laughing flower
+whose chuckles can
+drive an enemy mad.{end}
+
+[D2FF]
+A plant warrior that
+attacks with a
+combination of
+sword-swings and pea
+projectiles.{end}
+
+[D300]
+A highly destructive
+machine armed with a
+powerful cannon.{end}
+
+[D301]
+A sentry robot armed
+with homing rockets
+for guarding throne
+rooms from intruders.{end}
+
+[D302]
+A creature capable
+of manipulating
+several scissors
+with definite results.{end}
+
+[D303]
+A massive stone idol
+from Easter Island
+that fires laser
+rings from its mouth.{end}
+
+[D304]
+A monster that
+angers an opponent
+to the point that
+the enemy goes
+berserk.{end}
+
+[D305]
+Appears from
+underground and
+attacks with long,
+snake-like tentacles.{end}
+
+[D306]
+A stone turtle with
+a very high defense
+factor.{end}
+
+[D307]
+A fiery squid that
+can maintain its
+flames underwater.{end}
+
+[D308]
+A rare flying turtle
+that inhabits the
+sea.{end}
+
+[D309]
+The breath from this
+bird robs creatures
+of their life force.{end}
+
+[D30A]
+A huge bird known
+for its sharp dive
+attacks.{end}
+
+[D30B]
+Defeated enemies
+serve as ingredients
+for this gourmet
+monster.{end}
+
+[D30C]
+An extraterrestrial
+life form that loves
+living in water.{end}
+
+[D30D]
+Music from this
+creature's flute can
+drain an enemy's
+willpower.{end}
+
+[D30E]
+Armed with a huge
+sickle, this monster
+can fire beams from
+its large eyes.{end}
+
+[D30F]
+Often mistaken as a
+cute pet,
+this creature is a
+very dangerous
+beast.{end}
+
+[D310]
+A very fast monster
+that rolls up and
+rams its enemies.{end}
+
+[D311]
+A flaming beast that
+is lethal to the
+touch.{end}
+
+[D312]
+Uses a wand to cast
+various spells
+against an enemy.{end}
+
+[D313]
+Turns enemies to
+stone and crushes
+them to dust.{end}
+
+[D314]
+Elf twins that attack
+an enemy from
+opposite sides.{end}
+
+[D315]
+An insect monster
+with the jaws of
+a stag beetle and
+the horn of a beetle.{end}
+
+[D316]
+A monster with four
+highly dexterous
+arms for executing
+separate attacks.{end}
+
+[D317]
+A man-shaped mantis
+with two razor-sharp
+scythes.{end}
+
+[D318]
+A chameleon-like
+monster that can
+hide anywhere by
+changing colors.{end}
+
+[D319]
+Rolls along the
+ground releasing
+bolts of electricity
+to attack its
+enemies.{end}
+
+[D31A]
+Swallows enemies
+whole and uses their
+essence as energy.{end}
+
+[D31B]
+A zombie shark that
+wanders the ocean
+depths, cursing any
+that dare cross its
+path.{end}
+
+[D31C]
+A phantom fairy that
+fires countless
+arrows at anything
+that harbors an urge
+to attack.{end}
+
+[D31D]
+This creature blocks
+enemy movement with
+gale-force winds
+and attacks with
+a massive battle axe.{end}
+
+[D31E]
+A rocket-launching
+fish protected
+by thorny spikes.{end}
+
+[D31F]
+This creature is
+powered by the life
+force of the fishes
+it captures with its
+long tongue.{end}
+
+[D320]
+A highly accurate
+mechanical monster
+covered with large-
+caliber cannons.{end}
+
+[D321]
+A skeletal zombie
+dragon that is
+capable of flying
+across the skies.{end}
+
+[D322]
+A massive beast of a
+fish with arms, legs,
+and razor-sharp
+teeth.{end}
+
+[D323]
+This monster spins
+about its enemy
+launching blinding
+leaves and painful
+seeds.{end}
+
+[D324]
+A zombie rat that
+hunts felines.{end}
+
+[D325]
+A slime creature with
+a frog's head that
+croaks as it attacks.{end}
+
+[D326]
+A strange sea
+serpent with a
+massive mouth lined
+with huge fangs.{end}
+
+[D327]
+A wicked elf that
+just loves to engage
+in battle.{end}
+
+[D328]
+Creates powerful
+tornadoes with its
+huge wings.{end}
+
+[D329]
+A fully grown
+Mushroom Man with an
+increased attack
+factor.{end}
+
+[D32A]
+This brother of
+Swamp Battleguard
+may not be powerful,
+but is pretty good
+on defense.{end}
+
+[D32B]
+A crimson dragon
+that spits fireballs
+at its enemies.{end}
+
+[D32C]
+A monster that
+aimlessly wanders
+in search of enemies.{end}
+
+[D32D]
+A steel idol
+worshipped in the
+Land of Machines.{end}
+
+[D32E]
+A not very reliable
+sorcerer's servant.{end}
+
+[D32F]
+A strange warrior
+from another
+dimension.{end}
+
+[D330]
+A creature that came
+from another galaxy.{end}
+
+[D331]
+A low-class,
+minor dragon
+incapable of
+breathing fire.{end}
+
+[D332]
+A larva with steel
+spikes to attack the
+unwary.{end}
+
+[D333]
+A harmless creature
+usually found in the
+attic of any home.{end}
+
+[D334]
+A very unusual
+skeletal zombie
+elephant with glowing
+gold bones.{end}
+
+[D335]
+A black shark that
+can detect almost
+any scent in the
+water.{end}
+
+[D336]
+A very long snake
+that often appears
+in legends and myths.{end}
+
+[D337]
+A thorny plant found
+in the darklands that
+wraps itself around
+any unwary traveler.{end}
+
+[D338]
+Man-like dinosaur
+lacking in strength,
+but with a high I.Q.{end}
+
+[D339]
+A blood-sucking
+snake in human form
+that attacks any
+living being that
+passes nearby.{end}
+
+[D33A]
+A tiger-striped
+dragon that is often
+seen racing across
+the wasteland with
+tremendous speed.{end}
+
+[D33B]
+A jet-black dragon
+that inhabits the
+jungles and feeds on
+trees.{end}
+
+[D33C]
+Empress of the
+Golden Kingdom. None
+may refuse her will.{end}
+
+[D33D]
+A very ferocious
+monster spawned from
+a T-Rex.{end}
+
+[D33E]
+This forest-dwelling
+witch can see all
+with the eye on her
+forehead.{end}
+
+[D33F]
+A white goat that
+has inhabited the
+forest for ages.
+The creature is
+actually an elder of
+the woods.{end}
+
+[D340]
+A rare scarlet
+scorpion that can be
+found in the tundra
+-- not in the desert.{end}
+
+[D341]
+A very wise,
+long-nosed goblin
+with supernatural
+powers.{end}
+
+[D342]
+A wizard with a black
+cape that is actually
+a talking lion
+disguised as a man.{end}
+
+[D343]
+A rare flower
+that blooms in a
+pitch-dark abyss.{end}
+
+[D344]
+A cutting-edge robot
+that eliminates
+intruders upon
+detection.{end}
+
+[D345]
+This bird is a
+precursor to
+disaster!!{end}
+
+[D346]
+A popular creature in
+mythology that
+delivers judgement
+with a sharp spear.{end}
+
+[D347]
+This creature is
+known to predict the
+weather with very
+little accuracy.{end}
+
+[D348]
+This creature
+corners its enemies
+and seals away their
+power.{end}
+
+[D349]
+A mechanically
+enhanced snail that
+is no faster than it
+used to be.{end}
+
+[D34A]
+A creature that
+transforms into the
+image of its enemy
+and copies every
+offensive move.{end}
+
+[D34B]
+A highly evolved
+Larvas that is even
+more powerful than
+before.{end}
+
+[D34C]
+A living vase that
+blinds enemies with
+pollen and attacks
+with its sharp teeth.{end}
+
+[D34D]
+Attacks a nearby
+opponent by reaching
+out with its blue
+vines.{end}
+
+[D34E]
+Wraps its coils
+around opponents and
+pecks them with its
+huge beak.{end}
+
+[D34F]
+A large jar that
+attacks nearby
+enemies by unleashing
+the monster it
+contains inside.{end}
+
+[D350]
+A fairy of the arts
+and an excellent
+harp player.{end}
+
+[D351]
+A monster turtle
+with a crimson shell.
+It feeds on fire.{end}
+
+[D352]
+A red rose possessed
+by a vile spirit that
+feeds on the life
+force of others to
+provide the flower
+with nourishment.{end}
+
+[D353]
+Drags enemies into a
+mirror world.{end}
+
+[D354]
+A monster that can
+eat all it wants but
+is never fulfilled.{end}
+
+[D355]
+With skin tinged a
+bluish white,
+this strange
+creature is a
+fearsome sight to
+behold.{end}
+
+[D356]
+A monster created
+from an experimental
+attempt to graft
+wings on beasts.{end}
+
+[D357]
+A monster capable of
+bringing on sudden
+rain showers.{end}
+
+[D358]
+Seals away the good
+in a soul to create a
+wicked being.{end}
+
+[D359]
+A cute fairy
+dedicated to bringing
+about eternal love.{end}
+
+[D35A]
+A low-class penguin
+soldier that attacks
+in a group.{end}
+
+[D35B]
+A beautiful and
+powerful dragon
+fairy.{end}
+
+[D35C]
+An ill-mannered field
+mouse that chews on
+anything.{end}
+
+[D35D]
+A liquid life form
+that moves freely in
+water.{end}
+
+[D35E]
+An undersea creature
+that attacks with
+two whip-like tails.{end}
+
+[D35F]
+A monster with a
+massive maw that
+allows it to swallow
+an enemy whole.{end}
+
+[D360]
+The peacemaker among
+monsters.{end}
+
+[D361]
+A monster fly that
+swoops down with
+sharp sword-like
+arms extended out
+front.{end}
+
+[D362]
+A lizard that
+discharges
+electricity stored in
+its body.{end}
+
+[D363]
+A servant of fiends
+used primarily for
+scouting an area.{end}
+
+[D364]
+Soothes the souls of
+others by chanting a
+mysterious spell.{end}
+
+[D365]
+A two-headed
+Thunder Dragon
+capable of powerful
+electric attacks.{end}
+
+[D366]
+A hunter that uses
+its spider web to
+entrap its enemies.{end}
+
+[D367]
+A bluish starfish
+with a solid hide
+capable of fending
+off attacks.{end}
+
+[D368]
+A fairy that controls
+the feelings of
+others,
+instilling them with
+bravery.{end}
+
+[D369]
+A sea creature with
+sharp teeth that
+won't release a
+victim once they're
+locked on.{end}
+
+[D36A]
+A lady warrior
+drenched in the
+essence from a
+thousand
+battlefields.{end}
+
+[D36B]
+A clay idol
+representing a rock
+spirit. The creature
+has significant
+attack and defense
+factors.{end}
+
+[D36C]
+A creature made up
+of several snakes
+that attack
+separately in battle.{end}
+
+[D36D]
+A vile warrior wizard
+adept at casting
+doom-dealing spells.{end}
+
+[D36E]
+Controls air
+currents and can
+generate a sudden
+gust of wind to blow
+away an opponent.{end}
+
+[D36F]
+The appearance of
+this creature is
+preceded by the
+ground melting under
+an opponent's feet.{end}
+
+[D370]
+An amphibian warrior
+that can easily
+navigate beneath the
+waters.{end}
+
+[D371]
+A fairy dedicated to
+protecting fountains
+from pollution.{end}
+
+[D372]
+A mermaid sentry
+serving the Sea King
+and his kingdom.{end}
+
+[D373]
+This fast creature
+can easily elude
+enemy attacks and
+counter them with
+its vicious claws.{end}
+
+[D374]
+An inexperienced
+witch who just
+started learning the
+mystic arts.{end}
+
+[D375]
+A rat that is
+protected by
+armor-like fur.{end}
+
+[D376]
+A powerful,
+prehistoric lizard
+warrior.{end}
+
+[D377]
+A lunar sorcerer
+that uses mystical
+spells to induce
+hallucinations.{end}
+
+[D378]
+A rock giant
+consisting of massive
+boulders.{end}
+
+[D379]
+A messenger of
+newborn life.{end}
+
+[D37A]
+A green-scaled lizard
+warrior dedicated to
+protecting the sea.{end}
+
+[D37B]
+Not very useful
+double of a queen.{end}
+
+[D37C]
+A bird that glows
+with blue flames and
+has a head of hair
+shaped like a crown.{end}
+
+[D37D]
+A protector of the
+forest, this massive
+tree continues to
+grow.{end}
+
+[D37E]
+Queen of the
+Tree Spirit who is
+embraced by brilliant
+autumn leaves.{end}
+
+[D37F]
+A Bugroth unit
+modified for
+underwater warfare.{end}
+
+[D380]
+A gigantic
+caterpillar that
+spits acid capable of
+melting almost
+anything.{end}
+
+[D381]
+A scheming queen who
+covets the king's
+throne during his
+absence.{end}
+
+[D382]
+A black-haired sheep
+that is capable of
+sorcery.{end}
+
+[D383]
+A creature that
+hides in a saucer and
+appears only to
+attack enemies.{end}
+
+[D384]
+A very swift,
+fire-breathing viper.{end}
+
+[D385]
+Mechanical soldier
+with a mind of its
+own.
+Originally created to
+protect members of
+the royal family.{end}
+
+[D386]
+Looks like any other
+slime, but definitely
+much more powerful!{end}
+
+[D387]
+This amphibian
+creature boasts a
+high attack factor,
+but not much of one
+for defense.{end}
+
+[D388]
+A machine designed to
+blitz its enemies.{end}
+
+[D389]
+Confuses enemy
+monsters with noise
+that is harsh to the
+ears.{end}
+
+[D38A]
+Attacks from the
+skies with a
+whip-like tail.{end}
+
+[D38B]
+A boomerang
+featuring the effects
+of two cards:
+the Legendary Sword
+and the Sword of
+Dark Destruction.{end}
+
+[D38C]
+A card for boosting
+the power of the
+Labyrinth Wall.{end}
+
+[D38D]
+Destroys all
+opponent Warrior
+cards played on the
+field.{end}
+
+[D38E]
+Increases the
+strength of those
+who control the
+power of Salamandra.{end}
+
+[D38F]
+Cancels the magic
+over all
+level-reduced
+monsters and sets
+them at level 0.{end}
+
+[D390]
+Eliminates all Zombie
+creatures.{end}
+
+[D391]
+A card that
+increases the power
+of any selected
+monster by 2 levels.{end}
+
+[D392]
+A card that changes
+any selected monster
+to a Machine monster.{end}
+
+[D393]
+A horn that
+increases the power
+of Fairy creatures.{end}
+
+[D394]
+Acid rain destroys
+an opponent's Machine
+monsters.{end}
+
+[D395]
+Opponent monsters
+in play with attack
+factors of 1500 or
+more are eliminated.{end}
+
+[D396]
+An insecticide for
+wiping out an
+opponent's Insect
+monsters that are
+currently in play.{end}
+
+[D397]
+A magic wind that
+reduces to rubble an
+opponent's Rock
+monsters that are
+currently in play.{end}
+
+[D398]
+A blast of heat dries
+up and eliminates an
+opponent's Fish
+monsters that are
+currently in play.{end}
+
+[D399]
+Sacrifices the
+monster with the
+highest defense
+rating and summons
+Shield.{end}
+
+[D39A]
+Sacrifices
+Beast-Warrior,
+Dragon, and Pyro
+monsters to summon
+Yamadron.{end}
+
+[D39B]
+Sacrifices Kazejin,
+Suijin, and Sanga of
+the Thunder to
+summon Gate Guardian.{end}
+
+[D39C]
+A glaring light that
+increases the power
+of all monsters.{end}
+
+[D39D]
+Decreases an
+opponent's in-play
+monsters by two
+levels.{end}
+
+[D39E]
+Ceremony conducted
+to summon
+Black Luster Soldier.
+Sacrifice required.{end}
+
+[D39F]
+Ceremony conducted
+to summon Zera.
+Sacrifice required.{end}
+
+[D3A0]
+Destroys all
+opponent Magic cards
+that are in play.{end}
+
+[D3A1]
+Ceremony conducted
+to summon War Lion.
+Sacrifice required.{end}
+
+[D3A2]
+Ceremony conducted
+to summon
+Fiend's Mirror.
+Sacrifice required.{end}
+
+[D3A3]
+Sacrifice three
+Blue-eyes to summon
+Ultimate Dragon.{end}
+
+[D3A4]
+Sacrifice Dancer and
+Warrior to summon
+Performance of Sword.{end}
+
+[D3A5]
+A card with the
+ingredients for
+making a delicious
+hamburger.{end}
+
+[D3A6]
+Sacrifice
+Beast-Warrior and
+Golem to summon
+Sengenjin.{end}
+
+[D3A7]
+Sacrifice Warrior and
+Scythe Wielder to
+summon
+Skull Guardian.{end}
+
+[D3A8]
+Sacrifice a horned
+monster to summon
+Tri-Horned Dragon.{end}
+
+[D3A9]
+Monsters with Attack
+Factors of 500 or
+lower are eliminated
+from the play field.{end}
+
+[D3AA]
+Monsters with Attack
+Factors of 1000 or
+lower are eliminated
+from the play field.{end}
+
+[D3AB]
+When an opposing
+monster's Attack
+Factor is 1500 or
+lower, it is
+eliminated from the
+play field.{end}
+
+[D3AC]
+When an opposing
+monster's Attack
+Factor is 2000 or
+lower, it is
+eliminated from the
+play field.{end}
+
+[D3AD]
+When an opposing
+monster's Attack
+Factor is 3000 or
+lower, it is
+eliminated from the
+play field.{end}
+
+[D3AE]
+When an opponent's
+monster attacks, it
+is blown to
+smithereens and
+eliminated from the
+play field.{end}
+
+[D3AF]
+Reflects the damage
+of direct attack
+cards like Fire
+Sparks and Inferno
+back to your
+opponent.{end}
+
+[D3B0]
+A card that reverses
+the effects of
+recovery cards and
+transforms the
+points to damage.{end}
+
+[D3B1]
+A card that reverses
+the effects of
+power-up cards and
+transforms the
+effects to power
+reduction.{end}
+
+[D3B2]
+A trap card for
+tricking your
+opponent.
+Nothing happens when
+it is attacked.{end}
+
+[D3B3]
+Select a specific
+monster for
+sacrifice and summon
+Serpent Night Dragon.{end}
+
+[D3B4]
+Sacrifice crab and
+turtle to summon
+Crab Turtle.{end}
+
+[D3B5]
+Sacrifice a masked
+one to summon a new
+mask.{end}
+
+[D3B6]
+Sacrifice 3 Fiend
+monsters to conduct
+the ritual for the
+Resurrection of
+Chakra.{end}
+
+[D3B7]
+Sacrifice Puppeteer
+and Machine monsters
+to summon the Puppet.{end}
+
+[D3B8]
+Sacrifice the stag
+beetle and beetle
+to summon
+Javelin Beetle.{end}
+
+[D3B9]
+Sacrifice the
+Ashura's Arm
+and Sword-wielder
+to summon.{end}
+
+[D3BA]
+Sacrifice a normal
+Queen to summon
+Cosmo Queen.{end}
+
+[D3BB]
+Sacrifice Temple and
+Cockroach to summon
+Dokurorider.{end}
+
+[D3BC]
+Sacrifice Horn and
+Machine Fish to
+summon Sea Fortress.{end}
+
+[D3BD]
+A warrior dancer with
+fancy dance steps.{end}
+
+[D3BE]
+Attracts hungry
+enemies with tasty
+aromas and eats them
+when they get close
+enough.{end}
+
+[D3BF]
+A headstrong,
+primitive man
+equipped with
+a Millennium Item.{end}
+
+[D3C0]
+A guardian of the law
+that doesn't forgive
+cheating.
+Attacks enemies with
+its sword-like arms.{end}
+
+[D3C1]
+A wicked dragon with
+three horns
+protruding from its
+head.{end}
+
+[D3C2]
+A dragon created
+from the soul of a
+wicked knight.{end}
+
+[D3C3]
+A monk who has
+conducted several
+rituals in the
+netherworld, and who
+is capable of using
+both weapons and
+magic.{end}
+
+[D3C4]
+A queen who rules
+over all the stars in
+the universe.{end}
+
+[D3C5]
+A twisting shape
+that attacks with
+tentacle-like arms.{end}
+
+[D3C6]
+A creature with a
+turtle shell and
+crab scissors to
+provide high attack
+and defense factors.{end}
+
+[D3C7]
+A dragon warrior
+armed with a
+crescent-shaped
+sword. Rumored to be
+from the moon.{end}
+
+[D3C8]
+A dragon that
+arrived on earth by
+means of a comet
+that fell from the
+far reaches of space.{end}
+
+[D3C9]
+With the burning hide
+of a meteorite,
+this creature
+vaporizes all that it
+touches.{end}
+
+[D3CA]
+A heavenly stallion
+that flies across the
+skies on scarlet
+wings.{end}
+
+[D3CB]
+A mysterious doll
+with a strange dance
+that robs the power
+of opposing monsters.{end}
+
+[D3CC]
+A skilled warrior
+that wields six
+swords against
+opposing monsters.{end}
+
+[D3CD]
+A creature with
+lethal scissors that
+cut through almost
+anything.{end}
+
+[D3CE]
+A sea monster with a
+cannon mounted on
+its back to blow its
+enemies out of the
+water.{end}
+
+[D3CF]
+A lonely rider that
+races across the
+wasteland,
+raising thick clouds
+of dust.{end}
+
+[D3D0]
+A creature that
+twists the fabric of
+light and darkness
+to generate images
+to confuse opponents.{end}
+
+[D3D1]
+Ceremony for
+summoning the
+Magician of
+Black Chaos.
+Sacrifice required.{end}
+
+[D3D2]
+The ultimate
+magic-user,
+who wields the power
+of chaos borne from
+the fusion of
+Dark and Light.{end}
+
+
+@bank names
+
+[8000 82D3 82D4 82D5 82D6 82D7 82D8 82D9 82DA 82DB 82DC 82DD 82DE 82DF 82E0 82E1 82E2 82E3 82E4 82E5 82E6 82E7 82E8 82E9 82EA 82EB 82EC 82ED 82EE 82EF 82F0 82F1 82F2 82F3 82F4 82F5 82F6 82F7 82F8 82F9 82FA 82FB 82FC 82FD 82FE 82FF]
+{end}
+
+[8001]
+Blue-eyes White Dragon{end}
+
+[8002]
+Mystical Elf{end}
+
+[8003]
+Hitotsu-me Giant{end}
+
+[8004]
+Baby Dragon{end}
+
+[8005]
+Ryu-kishin{end}
+
+[8006]
+Feral Imp{end}
+
+[8007]
+Winged Dragon #1{end}
+
+[8008]
+Mushroom Man{end}
+
+[8009]
+Shadow Specter{end}
+
+[800A]
+Blackland Fire Dragon{end}
+
+[800B]
+Sword Arm of Dragon{end}
+
+[800C]
+Swamp Battleguard{end}
+
+[800D]
+Tyhone{end}
+
+[800E]
+Battle Steer{end}
+
+[800F]
+Flame Swordsman{end}
+
+[8010]
+Time Wizard{end}
+
+[8011]
+Right Leg of the Forbidden One{end}
+
+[8012]
+Left Leg of the Forbidden One{end}
+
+[8013]
+Right Arm of the Forbidden One{end}
+
+[8014]
+Left Arm of the Forbidden One{end}
+
+[8015]
+Exodia the Forbidden{end}
+
+[8016]
+Summoned Skull{end}
+
+[8017]
+The Wicked Worm Beast{end}
+
+[8018]
+Skull Servant{end}
+
+[8019]
+Horn Imp{end}
+
+[801A]
+Battle Ox{end}
+
+[801B]
+Beaver Warrior{end}
+
+[801C]
+Rock Ogre Grotto #1{end}
+
+[801D]
+Mountain Warrior{end}
+
+[801E]
+Zombie Warrior{end}
+
+[801F]
+Koumori Dragon{end}
+
+[8020]
+Two-headed King Rex{end}
+
+[8021]
+Judge Man{end}
+
+[8022]
+Saggi the Dark Clown{end}
+
+[8023]
+Dark Magician{end}
+
+[8024]
+The Snake Hair{end}
+
+[8025]
+Gaia the Dragon Champion{end}
+
+[8026]
+Gaia the Fierce Knight{end}
+
+[8027]
+Curse of Dragon{end}
+
+[8028]
+Dragon Piper{end}
+
+[8029]
+Celtic Guardian{end}
+
+[802A]
+Illusionist Faceless Mage{end}
+
+[802B]
+Karbonala Warrior{end}
+
+[802C]
+Rogue Doll{end}
+
+[802D]
+Oscillo Hero #2{end}
+
+[802E]
+Griffore{end}
+
+[802F]
+Torike{end}
+
+[8030]
+Sangan{end}
+
+[8031]
+Big Insect{end}
+
+[8032]
+Basic Insect{end}
+
+[8033]
+Armored Lizard{end}
+
+[8034]
+Hercules Beetle{end}
+
+[8035]
+Killer Needle{end}
+
+[8036]
+Gokibore{end}
+
+[8037]
+Giant Flea{end}
+
+[8038]
+Larvae Moth{end}
+
+[8039]
+Great Moth{end}
+
+[803A]
+Kuriboh{end}
+
+[803B]
+Mammoth Graveyard{end}
+
+[803C]
+Great White{end}
+
+[803D]
+Wolf{end}
+
+[803E]
+Harpie Lady{end}
+
+[803F]
+Harpie Lady Sisters{end}
+
+[8040]
+Tiger Axe{end}
+
+[8041]
+Silver Fang{end}
+
+[8042]
+Kojikocy{end}
+
+[8043]
+Perfectly Ultimate Great Moth{end}
+
+[8044]
+Garoozis{end}
+
+[8045]
+Thousand Dragon{end}
+
+[8046]
+Fiend Kraken{end}
+
+[8047]
+Jellyfish{end}
+
+[8048]
+Cocoon of Evolution{end}
+
+[8049]
+Kairyu-shin{end}
+
+[804A]
+Giant Soldier of Stone{end}
+
+[804B]
+Man-eating Plant{end}
+
+[804C]
+Krokodilus{end}
+
+[804D]
+Grappler{end}
+
+[804E]
+Axe Raider{end}
+
+[804F]
+Megazowler{end}
+
+[8050]
+Uraby{end}
+
+[8051]
+Crawling Dragon #2{end}
+
+[8052]
+Red-eyes B. Dragon{end}
+
+[8053]
+Castle of Dark Illusions{end}
+
+[8054]
+Reaper of the Cards{end}
+
+[8055]
+King of Yamimakai{end}
+
+[8056]
+Barox{end}
+
+[8057]
+Dark Chimera{end}
+
+[8058]
+Metal Guardian{end}
+
+[8059]
+Catapult Turtle{end}
+
+[805A]
+Gyakutenno Megami{end}
+
+[805B]
+Mystic Horseman{end}
+
+[805C]
+Rabid Horseman{end}
+
+[805D]
+Zanki{end}
+
+[805E]
+Crawling Dragon{end}
+
+[805F]
+Crass Clown{end}
+
+[8060]
+Armored Zombie{end}
+
+[8061]
+Dragon Zombie{end}
+
+[8062]
+Clown Zombie{end}
+
+[8063]
+Pumpking the King of Ghosts{end}
+
+[8064]
+Battle Warrior{end}
+
+[8065]
+Wings of Wicked Flame{end}
+
+[8066]
+Mask of Darkness{end}
+
+[8067]
+Job-change Mirror{end}
+
+[8068]
+Curtain of the Dark Ones{end}
+
+[8069]
+Tomozaurus{end}
+
+[806A]
+Spirit of the Winds{end}
+
+[806B]
+Kageningen{end}
+
+[806C]
+Graveyard and the Hand of Invitation{end}
+
+[806D]
+Goddess with the Third Eye{end}
+
+[806E]
+Hero of the East{end}
+
+[806F]
+Doma The Angel of Silence{end}
+
+[8070]
+That Which Feeds on Life{end}
+
+[8071]
+Dark Gray{end}
+
+[8072]
+White Magical Hat{end}
+
+[8073]
+Kamion Wizard{end}
+
+[8074]
+Nightmare Scorpion{end}
+
+[8075]
+Spirit of the Books{end}
+
+[8076]
+Supporter in the Shadows{end}
+
+[8077]
+Trial of Nightmares{end}
+
+[8078]
+Dream Clown{end}
+
+[8079]
+Sleeping Lion{end}
+
+[807A]
+Yamatano Dragon Scroll{end}
+
+[807B]
+Dark Plant{end}
+
+[807C]
+Ancient Tool{end}
+
+[807D]
+Faith Bird{end}
+
+[807E]
+Orion the Battle King{end}
+
+[807F]
+Ansatsu{end}
+
+[8080]
+LaMoon{end}
+
+[8081]
+Nemuriko{end}
+
+[8082]
+Weather Control{end}
+
+[8083]
+Octoberser{end}
+
+[8084]
+The 13th Grave{end}
+
+[8085]
+Charubin the Fire Knight{end}
+
+[8086]
+Mystical Capture Chain{end}
+
+[8087]
+Fiend's Hand{end}
+
+[8088]
+Witty Phantom{end}
+
+[8089]
+Mystery Hand{end}
+
+[808A]
+Dragon Statue{end}
+
+[808B]
+Blue-eyed Silver Zombie{end}
+
+[808C]
+Toad Master{end}
+
+[808D]
+Spiked Snail{end}
+
+[808E]
+Flame Manipulator{end}
+
+[808F]
+Necrolancer the Timelord{end}
+
+[8090]
+Djinn the Watcher of the Wind{end}
+
+[8091]
+The Bewitching Phantom Thief{end}
+
+[8092]
+Temple of Skulls{end}
+
+[8093]
+Monster Egg{end}
+
+[8094]
+The Shadow Who Controls the Dark{end}
+
+[8095]
+Lord of the Lamp{end}
+
+[8096]
+Akihiron{end}
+
+[8097]
+Rhaimundos of the Red Sword{end}
+
+[8098]
+The Melting Red Shadow{end}
+
+[8099]
+Dokuroizo the Grim Reaper{end}
+
+[809A]
+Fire Reaper{end}
+
+[809B]
+Larvas{end}
+
+[809C]
+Hard Armor{end}
+
+[809D]
+Firegrass{end}
+
+[809E]
+Man Eater{end}
+
+[809F]
+Dig Beak{end}
+
+[80A0]
+M-warrior #1{end}
+
+[80A1]
+M-warrior #2{end}
+
+[80A2]
+Tainted Wisdom{end}
+
+[80A3]
+Lisark{end}
+
+[80A4]
+Lord of Zemia{end}
+
+[80A5]
+The Judgement Hand{end}
+
+[80A6]
+Mysterious Puppeteer{end}
+
+[80A7]
+Ancient Jar{end}
+
+[80A8]
+Darkfire Dragon{end}
+
+[80A9]
+Dark King of the Abyss{end}
+
+[80AA]
+Spirit of the Harp{end}
+
+[80AB]
+Big Eye{end}
+
+[80AC]
+Armaill{end}
+
+[80AD]
+Dark Prisoner{end}
+
+[80AE]
+Hurricail{end}
+
+[80AF]
+Ancient Brain{end}
+
+[80B0]
+Fire Eye{end}
+
+[80B1]
+Monsturtle{end}
+
+[80B2]
+Claw Reacher{end}
+
+[80B3]
+Phantom Dewan{end}
+
+[80B4]
+Arlownay{end}
+
+[80B5]
+Dark Shade{end}
+
+[80B6]
+Masked Clown{end}
+
+[80B7]
+Lucky Trinket{end}
+
+[80B8]
+Genin{end}
+
+[80B9]
+Eyearmor{end}
+
+[80BA]
+Fiend Refrection #2{end}
+
+[80BB]
+Gate Deeg{end}
+
+[80BC]
+Synchar{end}
+
+[80BD]
+Fusionist{end}
+
+[80BE]
+Akakieisu{end}
+
+[80BF]
+LaLa Li-oon{end}
+
+[80C0]
+Key Mace{end}
+
+[80C1]
+Turtle Tiger{end}
+
+[80C2]
+Terra the Terrible{end}
+
+[80C3]
+Doron{end}
+
+[80C4]
+Arma Knight{end}
+
+[80C5]
+Mech Mole Zombie{end}
+
+[80C6]
+Happy Lover{end}
+
+[80C7]
+Penguin Knight{end}
+
+[80C8]
+Petit Dragon{end}
+
+[80C9]
+Frenzied Panda{end}
+
+[80CA]
+Air Marmot of Nefariousness{end}
+
+[80CB]
+Phantom Ghost{end}
+
+[80CC]
+Mabarrel{end}
+
+[80CD]
+Dorover{end}
+
+[80CE]
+Twin Long Rods #1{end}
+
+[80CF]
+Droll Bird{end}
+
+[80D0]
+Petit Angel{end}
+
+[80D1]
+Winged Cleaver{end}
+
+[80D2]
+Hinotama Soul{end}
+
+[80D3]
+Kaminarikozou{end}
+
+[80D4]
+Meotoko{end}
+
+[80D5]
+Aqua Madoor{end}
+
+[80D6]
+Kagemusha of the Blue Flame{end}
+
+[80D7]
+Flame Ghost{end}
+
+[80D8]
+Dryad{end}
+
+[80D9]
+B. Skull Dragon{end}
+
+[80DA]
+Two-mouth Darkruler{end}
+
+[80DB]
+Solitude{end}
+
+[80DC]
+Masked Sorcerer{end}
+
+[80DD]
+Kumootoko{end}
+
+[80DE]
+Midnight Fiend{end}
+
+[80DF]
+Roaring Ocean Snake{end}
+
+[80E0]
+Trap Master{end}
+
+[80E1]
+Fiend Sword{end}
+
+[80E2]
+Skull Stalker{end}
+
+[80E3]
+Hitodenchak{end}
+
+[80E4]
+Wood Remains{end}
+
+[80E5]
+Hourglass of Life{end}
+
+[80E6]
+Rare Fish{end}
+
+[80E7]
+Wood Clown{end}
+
+[80E8]
+Madjinn Gunn{end}
+
+[80E9]
+Dark Titan of Terror{end}
+
+[80EA]
+Beautiful Headhuntress{end}
+
+[80EB]
+Wodan the Resident of the Forest{end}
+
+[80EC]
+Guardian of the Labyrinth{end}
+
+[80ED]
+Haniwa{end}
+
+[80EE]
+Yashinoki{end}
+
+[80EF]
+Vishwar Randi{end}
+
+[80F0]
+The Drdek{end}
+
+[80F1]
+Dark Assailant{end}
+
+[80F2]
+Candle of Fate{end}
+
+[80F3]
+Water Element{end}
+
+[80F4]
+Dissolverock{end}
+
+[80F5]
+Meda Bat{end}
+
+[80F6]
+One Who Hunts Souls{end}
+
+[80F7]
+Root Water{end}
+
+[80F8]
+Master & Expert{end}
+
+[80F9]
+Water Omotics{end}
+
+[80FA]
+Hyo{end}
+
+[80FB]
+Enchanting Mermaid{end}
+
+[80FC]
+Nekogal #1{end}
+
+[80FD]
+Angelwitch{end}
+
+[80FE]
+Embryonic Beast{end}
+
+[80FF]
+Prevent Rat{end}
+
+[8100]
+Dimensional Warrior{end}
+
+[8101]
+Stone Armadiller{end}
+
+[8102]
+Beastking of the Swamps{end}
+
+[8103]
+Ancient Sorcerer{end}
+
+[8104]
+Lunar Queen Elzaim{end}
+
+[8105]
+Wicked Mirror{end}
+
+[8106]
+The Little Swordsman of Aile{end}
+
+[8107]
+Rock Ogre Grotto #2{end}
+
+[8108]
+Wing Egg Elf{end}
+
+[8109]
+The Furious Sea King{end}
+
+[810A]
+Princess of Tsurugi{end}
+
+[810B]
+Unknown Warrior of Fiend{end}
+
+[810C]
+Sectarian of Secrets{end}
+
+[810D]
+Versago the Destroyer{end}
+
+[810E]
+Wetha{end}
+
+[810F]
+Megirus Light{end}
+
+[8110]
+Mavelus{end}
+
+[8111]
+Ancient Tree of Enlightenment{end}
+
+[8112]
+Green Phantom King{end}
+
+[8113]
+Ground Attacker Bugroth{end}
+
+[8114]
+Ray & Temperature{end}
+
+[8115]
+Gorgon Egg{end}
+
+[8116]
+Petit Moth{end}
+
+[8117]
+King Fog{end}
+
+[8118]
+Protector of the Throne{end}
+
+[8119]
+Mystic Clown{end}
+
+[811A]
+Mystical Sheep #2{end}
+
+[811B]
+Holograh{end}
+
+[811C]
+Tao the Chanter{end}
+
+[811D]
+Serpent Marauder{end}
+
+[811E]
+Gatekeeper{end}
+
+[811F]
+Ogre of the Black Shadow{end}
+
+[8120]
+Dark Artist{end}
+
+[8121]
+Change Slime{end}
+
+[8122]
+Moon Envoy{end}
+
+[8123]
+Fireyarou{end}
+
+[8124]
+Psychic Kappa{end}
+
+[8125]
+Masaki the Legendary Swordsman{end}
+
+[8126]
+Dragoness the Wicked Knight{end}
+
+[8127]
+Bio Plant{end}
+
+[8128]
+One-eyed Shield Dragon{end}
+
+[8129]
+Cyber Soldier of Darkworld{end}
+
+[812A]
+Wicked Dragon with the Ersatz Head{end}
+
+[812B]
+Sonic Maid{end}
+
+[812C]
+Kurama{end}
+
+[812D]
+Legendary Sword{end}
+
+[812E]
+Sword of Dark Destruction{end}
+
+[812F]
+Dark Energy{end}
+
+[8130]
+Axe of Despair{end}
+
+[8131]
+Laser Cannon Armor{end}
+
+[8132]
+Insect Armor with Laser Cannon{end}
+
+[8133]
+Elf's Light{end}
+
+[8134]
+Beast Fangs{end}
+
+[8135]
+Steel Shell{end}
+
+[8136]
+Vile Germs{end}
+
+[8137]
+Black Pendant{end}
+
+[8138]
+Silver Bow and Arrow{end}
+
+[8139]
+Horn of Light{end}
+
+[813A]
+Horn of the Unicorn{end}
+
+[813B]
+Dragon Treasure{end}
+
+[813C]
+Electro-whip{end}
+
+[813D]
+Cyber Shield{end}
+
+[813E]
+Elegant Egotist{end}
+
+[813F]
+Mystical Moon{end}
+
+[8140]
+Stop Defense{end}
+
+[8141]
+Malevolent Nuzzler{end}
+
+[8142]
+Violet Crystal{end}
+
+[8143]
+Book of Secret Arts{end}
+
+[8144]
+Invigoration{end}
+
+[8145]
+Machine Conversion Factory{end}
+
+[8146]
+Raise Body Heat{end}
+
+[8147]
+Follow Wind{end}
+
+[8148]
+Power of Kaishin{end}
+
+[8149]
+Dragon Capture Jar{end}
+
+[814A]
+Forest{end}
+
+[814B]
+Wasteland{end}
+
+[814C]
+Mountain{end}
+
+[814D]
+Sogen{end}
+
+[814E]
+Umi{end}
+
+[814F]
+Yami{end}
+
+[8150]
+Dark Hole{end}
+
+[8151]
+Raigeki{end}
+
+[8152]
+Mooyan Curry{end}
+
+[8153]
+Red Medicine{end}
+
+[8154]
+Goblin's Secret Remedy{end}
+
+[8155]
+Soul of the Pure{end}
+
+[8156]
+Dian Keto the Cure Master{end}
+
+[8157]
+Sparks{end}
+
+[8158]
+Hinotama{end}
+
+[8159]
+Final Flame{end}
+
+[815A]
+Ookazi{end}
+
+[815B]
+Tremendous Fire{end}
+
+[815C]
+Swords of Revealing Light{end}
+
+[815D]
+Spellbinding Circle{end}
+
+[815E]
+Dark-piercing Light{end}
+
+[815F]
+Yaranzo{end}
+
+[8160]
+Kanan the Swordmistress{end}
+
+[8161]
+Takriminos{end}
+
+[8162]
+Stuffed Animal{end}
+
+[8163]
+Megasonic Eye{end}
+
+[8164]
+Super War-lion{end}
+
+[8165]
+Yamadron{end}
+
+[8166]
+Seiyaryu{end}
+
+[8167]
+Three-legged Zombies{end}
+
+[8168]
+Zera The Mant{end}
+
+[8169]
+Flying Penguin{end}
+
+[816A]
+Millennium Shield{end}
+
+[816B]
+Fairy's Gift{end}
+
+[816C]
+Black Luster Soldier{end}
+
+[816D]
+Fiend's Mirror{end}
+
+[816E]
+Labyrinth Wall{end}
+
+[816F]
+Jirai Gumo{end}
+
+[8170]
+Shadow Ghoul{end}
+
+[8171]
+Wall Shadow{end}
+
+[8172]
+Labyrinth Tank{end}
+
+[8173]
+Sanga of the Thunder{end}
+
+[8174]
+Kazejin{end}
+
+[8175]
+Suijin{end}
+
+[8176]
+Gate Guardian{end}
+
+[8177]
+Dungeon Worm{end}
+
+[8178]
+Monster Tamer{end}
+
+[8179]
+Ryu-kishin Powered{end}
+
+[817A]
+Swordstalker{end}
+
+[817B]
+La Jinn the Mystical Genie{end}
+
+[817C]
+Blue-eyes Ultimate Dragon{end}
+
+[817D]
+Toon Alligator{end}
+
+[817E]
+Rude Kaiser{end}
+
+[817F]
+Parrot Dragon{end}
+
+[8180]
+Dark Rabbit{end}
+
+[8181]
+Bickuribox{end}
+
+[8182]
+Harpie's Pet Dragon{end}
+
+[8183]
+Mystic Lamp{end}
+
+[8184]
+Pendulum Machine{end}
+
+[8185]
+Giltia the D. Knight{end}
+
+[8186]
+Launcher Spider{end}
+
+[8187]
+Zoa{end}
+
+[8188]
+Metalzoa{end}
+
+[8189]
+Zone Eater{end}
+
+[818A]
+Steel Scorpion{end}
+
+[818B]
+Dancing Elf{end}
+
+[818C]
+Ocubeam{end}
+
+[818D]
+Leghul{end}
+
+[818E]
+Ooguchi{end}
+
+[818F]
+Swordsman from a Foreign Land{end}
+
+[8190]
+Emperor of the Land and Sea{end}
+
+[8191]
+Ushi Oni{end}
+
+[8192]
+Monster Eye{end}
+
+[8193]
+Leogun{end}
+
+[8194]
+Tatsunootoshigo{end}
+
+[8195]
+Saber Slasher{end}
+
+[8196]
+Yaiba Robo{end}
+
+[8197]
+Machine King{end}
+
+[8198]
+Giant Mech-soldier{end}
+
+[8199]
+Metal Dragon{end}
+
+[819A]
+Mechanical Spider{end}
+
+[819B]
+Bat{end}
+
+[819C]
+Giga-tech Wolf{end}
+
+[819D]
+Cyber Soldier{end}
+
+[819E]
+Shovel Crusher{end}
+
+[819F]
+Mechanicalchacer{end}
+
+[81A0]
+Blocker{end}
+
+[81A1]
+Blast Juggler{end}
+
+[81A2]
+Golgoil{end}
+
+[81A3]
+Giganto{end}
+
+[81A4]
+Cyber-Stein{end}
+
+[81A5]
+Cyber Commander{end}
+
+[81A6]
+Jinzo #7{end}
+
+[81A7]
+Dice Armadillo{end}
+
+[81A8]
+Sky Dragon{end}
+
+[81A9]
+Thunder Dragon{end}
+
+[81AA]
+Stone D.{end}
+
+[81AB]
+Kaiser Dragon{end}
+
+[81AC]
+Magician of Faith{end}
+
+[81AD]
+Goddess of Whim{end}
+
+[81AE]
+Water Magician{end}
+
+[81AF]
+Ice Water{end}
+
+[81B0]
+Waterdragon Fairy{end}
+
+[81B1]
+Ancient Elf{end}
+
+[81B2]
+Beautiful Beast Trainer{end}
+
+[81B3]
+Water Girl{end}
+
+[81B4]
+White Dolphin{end}
+
+[81B5]
+Deepsea Shark{end}
+
+[81B6]
+Metal Fish{end}
+
+[81B7]
+Bottom Dweller{end}
+
+[81B8]
+7 Colored Fish{end}
+
+[81B9]
+Mech Bass{end}
+
+[81BA]
+Aqua Dragon{end}
+
+[81BB]
+Sea King Dragon{end}
+
+[81BC]
+Turu-Purun{end}
+
+[81BD]
+Guardian of the Sea{end}
+
+[81BE]
+Aqua Snake{end}
+
+[81BF]
+Giant Red Seasnake{end}
+
+[81C0]
+Spike Seadra{end}
+
+[81C1]
+30,000-Year White Turtle{end}
+
+[81C2]
+Kappa Avenger{end}
+
+[81C3]
+Kanikabuto{end}
+
+[81C4]
+Zarigun{end}
+
+[81C5]
+Millennium Golem{end}
+
+[81C6]
+Destroyer Golem{end}
+
+[81C7]
+Barrel Rock{end}
+
+[81C8]
+Minomushi Warrior{end}
+
+[81C9]
+Stone Ghost{end}
+
+[81CA]
+Kaminari Attack{end}
+
+[81CB]
+Tripwire Beast{end}
+
+[81CC]
+Bolt Escargot{end}
+
+[81CD]
+Bolt Penguin{end}
+
+[81CE]
+The Immortal of Thunder{end}
+
+[81CF]
+Electric Snake{end}
+
+[81D0]
+Wing Eagle{end}
+
+[81D1]
+Punished Eagle{end}
+
+[81D2]
+Skull Red Bird{end}
+
+[81D3]
+Crimson Sunbird{end}
+
+[81D4]
+Queen Bird{end}
+
+[81D5]
+Armed Ninja{end}
+
+[81D6]
+Magical Ghost{end}
+
+[81D7]
+Soul Hunter{end}
+
+[81D8]
+Air Eater{end}
+
+[81D9]
+Vermillion Sparrow{end}
+
+[81DA]
+Sea Kamen{end}
+
+[81DB]
+Sinister Serpent{end}
+
+[81DC]
+Ganigumo{end}
+
+[81DD]
+Alinsection{end}
+
+[81DE]
+Insect Soldiers of the Sky{end}
+
+[81DF]
+Cockroach Knight{end}
+
+[81E0]
+Kuwagata α{end}
+
+[81E1]
+Burglar{end}
+
+[81E2]
+Pragtical{end}
+
+[81E3]
+Garvas{end}
+
+[81E4]
+Ameba{end}
+
+[81E5]
+Korogashi{end}
+
+[81E6]
+Boo Koo{end}
+
+[81E7]
+Flower Wolf{end}
+
+[81E8]
+Rainbow Flower{end}
+
+[81E9]
+Barrel Lily{end}
+
+[81EA]
+Needle Ball{end}
+
+[81EB]
+Peacock{end}
+
+[81EC]
+Hoshiningen{end}
+
+[81ED]
+Maha Vailo{end}
+
+[81EE]
+Rainbow Marine Mermaid{end}
+
+[81EF]
+Musician King{end}
+
+[81F0]
+Wilmee{end}
+
+[81F1]
+Yado Karu{end}
+
+[81F2]
+Morinphen{end}
+
+[81F3]
+Kattapillar{end}
+
+[81F4]
+Dragon Seeker{end}
+
+[81F5]
+Man-eater Bug{end}
+
+[81F6]
+D. Human{end}
+
+[81F7]
+Turtle Raccoon{end}
+
+[81F8]
+Fungi of the Musk{end}
+
+[81F9]
+Prisman{end}
+
+[81FA]
+Gale Dogra{end}
+
+[81FB]
+Crazy Fish{end}
+
+[81FC]
+Cyber Saurus{end}
+
+[81FD]
+Bracchio-raidus{end}
+
+[81FE]
+Laughing Flower{end}
+
+[81FF]
+Bean Soldier{end}
+
+[8200]
+Cannon Soldier{end}
+
+[8201]
+Guardian of the Throne Room{end}
+
+[8202]
+Brave Scizzar{end}
+
+[8203]
+The Statue of Easter Island{end}
+
+[8204]
+Muka Muka{end}
+
+[8205]
+Sand Stone{end}
+
+[8206]
+Boulder Tortoise{end}
+
+[8207]
+Fire Kraken{end}
+
+[8208]
+Turtle Bird{end}
+
+[8209]
+Skullbird{end}
+
+[820A]
+Monstrous Bird{end}
+
+[820B]
+The Bistro Butcher{end}
+
+[820C]
+Star Boy{end}
+
+[820D]
+Spirit of the Mountain{end}
+
+[820E]
+Neck Hunter{end}
+
+[820F]
+Milus Radiant{end}
+
+[8210]
+Togex{end}
+
+[8211]
+Flame Cerebrus{end}
+
+[8212]
+Eldeen{end}
+
+[8213]
+Mystical Sand{end}
+
+[8214]
+Gemini Elf{end}
+
+[8215]
+Kwagar Hercules{end}
+
+[8216]
+Minar{end}
+
+[8217]
+Kamakiriman{end}
+
+[8218]
+Mechaleon{end}
+
+[8219]
+Mega Thunderball{end}
+
+[821A]
+Niwatori{end}
+
+[821B]
+Corroding Shark{end}
+
+[821C]
+Skelengel{end}
+
+[821D]
+Hane-Hane{end}
+
+[821E]
+Misairuzame{end}
+
+[821F]
+Tongyo{end}
+
+[8220]
+Dharma Cannon{end}
+
+[8221]
+Skelgon{end}
+
+[8222]
+Wow Warrior{end}
+
+[8223]
+Griggle{end}
+
+[8224]
+Bone Mouse{end}
+
+[8225]
+Frog The Jam{end}
+
+[8226]
+Behegon{end}
+
+[8227]
+Dark Elf{end}
+
+[8228]
+Winged Dragon #2{end}
+
+[8229]
+Mushroom Man #2{end}
+
+[822A]
+Lava Battleguard{end}
+
+[822B]
+Tyhone #2{end}
+
+[822C]
+The Wandering Doomed{end}
+
+[822D]
+Steel Ogre Grotto #1{end}
+
+[822E]
+Pot the Trick{end}
+
+[822F]
+Oscillo Hero{end}
+
+[8230]
+Invader from Another Dimension{end}
+
+[8231]
+Lesser Dragon{end}
+
+[8232]
+Needle Worm{end}
+
+[8233]
+Wretched Ghost of the Attic{end}
+
+[8234]
+Great Mammoth of Goldfine{end}
+
+[8235]
+Man-eating Black Shark{end}
+
+[8236]
+Yormungarde{end}
+
+[8237]
+Darkworld Thorns{end}
+
+[8238]
+Anthrosaurus{end}
+
+[8239]
+Drooling Lizard{end}
+
+[823A]
+Trakadon{end}
+
+[823B]
+B. Dragon Jungle King{end}
+
+[823C]
+Empress Judge{end}
+
+[823D]
+Little D{end}
+
+[823E]
+Witch of the Black Forest{end}
+
+[823F]
+Ancient One of the Deep Forest{end}
+
+[8240]
+Giant Scorpion of the Tundra{end}
+
+[8241]
+Crow Goblin{end}
+
+[8242]
+Leo Wizard{end}
+
+[8243]
+Abyss Flower{end}
+
+[8244]
+Patrol Robo{end}
+
+[8245]
+Takuhee{end}
+
+[8246]
+Dark Witch{end}
+
+[8247]
+Weather Report{end}
+
+[8248]
+Binding Chain{end}
+
+[8249]
+Mechanical Snail{end}
+
+[824A]
+Greenkappa{end}
+
+[824B]
+Mon Larvas{end}
+
+[824C]
+Living Vase{end}
+
+[824D]
+Tentacle Plant{end}
+
+[824E]
+Beaked Snake{end}
+
+[824F]
+Morphing Jar{end}
+
+[8250]
+Muse-A{end}
+
+[8251]
+Giant Turtle Who Feeds on Flames{end}
+
+[8252]
+Rose Spectre of Dunn{end}
+
+[8253]
+Fiend Refrection #1{end}
+
+[8254]
+Ghoul with an Appetite{end}
+
+[8255]
+Pale Beast{end}
+
+[8256]
+Little Chimera{end}
+
+[8257]
+Violent Rain{end}
+
+[8258]
+Key Mace #2{end}
+
+[8259]
+Tenderness{end}
+
+[825A]
+Penguin Soldier{end}
+
+[825B]
+Fairy Dragon{end}
+
+[825C]
+Obese Marmot of Nefariousness{end}
+
+[825D]
+Liquid Beast{end}
+
+[825E]
+Twin Long Rods #2{end}
+
+[825F]
+Great Bill{end}
+
+[8260]
+Shining Friendship{end}
+
+[8261]
+Bladefly{end}
+
+[8262]
+Electric Lizard{end}
+
+[8263]
+Hiro's Shadow Scout{end}
+
+[8264]
+Lady of Faith{end}
+
+[8265]
+Twin-headed Thunder Dragon{end}
+
+[8266]
+Hunter Spider{end}
+
+[8267]
+Armored Starfish{end}
+
+[8268]
+Hourglass of Courage{end}
+
+[8269]
+Marine Beast{end}
+
+[826A]
+Warrior of Tradition{end}
+
+[826B]
+Rock Spirit{end}
+
+[826C]
+Snakeyashi{end}
+
+[826D]
+Succubus Knight{end}
+
+[826E]
+Ill Witch{end}
+
+[826F]
+The Thing That Hides in the Mud{end}
+
+[8270]
+High Tide Gyojin{end}
+
+[8271]
+Fairy of the Fountain{end}
+
+[8272]
+Amazon of the Seas{end}
+
+[8273]
+Nekogal #2{end}
+
+[8274]
+Witch's Apprentice{end}
+
+[8275]
+Armored Rat{end}
+
+[8276]
+Ancient Lizard Warrior{end}
+
+[8277]
+Maiden of the Moonlight{end}
+
+[8278]
+Stone Ogre Grotto{end}
+
+[8279]
+Winged Egg of New Life{end}
+
+[827A]
+Night Lizard{end}
+
+[827B]
+Queen's Double{end}
+
+[827C]
+Blue-winged Crown{end}
+
+[827D]
+Trent{end}
+
+[827E]
+Queen of Autumn Leaves{end}
+
+[827F]
+Amphibious Bugroth{end}
+
+[8280]
+Acid Crawler{end}
+
+[8281]
+Invader of the Throne{end}
+
+[8282]
+Mystical Sheep #1{end}
+
+[8283]
+Disk Magician{end}
+
+[8284]
+Flame Viper{end}
+
+[8285]
+Royal Guard{end}
+
+[8286]
+Gruesome Goo{end}
+
+[8287]
+Hyosube{end}
+
+[8288]
+Machine Attacker{end}
+
+[8289]
+Hibikime{end}
+
+[828A]
+Whiptail Crow{end}
+
+[828B]
+Kunai with Chain{end}
+
+[828C]
+Magical Labyrinth{end}
+
+[828D]
+Warrior Elimination{end}
+
+[828E]
+Salamandra{end}
+
+[828F]
+Cursebreaker{end}
+
+[8290]
+Eternal Rest{end}
+
+[8291]
+Megamorph{end}
+
+[8292]
+Metalmorph{end}
+
+[8293]
+Winged Trumpeter{end}
+
+[8294]
+Stain Storm{end}
+
+[8295]
+Crush Card{end}
+
+[8296]
+Eradicating Aerosol{end}
+
+[8297]
+Breath of Light{end}
+
+[8298]
+Eternal Draught{end}
+
+[8299]
+Curse of Millennium Shield{end}
+
+[829A]
+Yamadron Ritual{end}
+
+[829B]
+Gate Guardian Ritual{end}
+
+[829C]
+Bright Castle{end}
+
+[829D]
+Shadow Spell{end}
+
+[829E]
+Black Luster Ritual{end}
+
+[829F]
+Zera Ritual{end}
+
+[82A0]
+Harpie's Feather Duster{end}
+
+[82A1]
+War-lion Ritual{end}
+
+[82A2]
+Beastry Mirror Ritual{end}
+
+[82A3]
+Ultimate Dragon{end}
+
+[82A4]
+Commencement Dance{end}
+
+[82A5]
+Hamburger Recipe{end}
+
+[82A6]
+Revival of Sennen Genjin{end}
+
+[82A7]
+Novox's Prayer{end}
+
+[82A8]
+Curse of Tri-Horned Dragon{end}
+
+[82A9]
+House of Adhesive Tape{end}
+
+[82AA]
+Eatgaboon{end}
+
+[82AB]
+Bear Trap{end}
+
+[82AC]
+Invisible Wire{end}
+
+[82AD]
+Acid Trap Hole{end}
+
+[82AE]
+Widespread Ruin{end}
+
+[82AF]
+Goblin Fan{end}
+
+[82B0]
+Bad Reaction to Simochi{end}
+
+[82B1]
+Reverse Trap{end}
+
+[82B2]
+Fake Trap{end}
+
+[82B3]
+Revived of Serpent Night Dragon{end}
+
+[82B4]
+Turtle Oath{end}
+
+[82B5]
+Contruct of Mask{end}
+
+[82B6]
+Resurrection of Chakra{end}
+
+[82B7]
+Puppet Ritual{end}
+
+[82B8]
+Javelin Beetle Pact{end}
+
+[82B9]
+Garma Sword Oath{end}
+
+[82BA]
+Cosmo Queen's Prayer{end}
+
+[82BB]
+Revival of Skeleton Rider{end}
+
+[82BC]
+Fortress Whale's Oath{end}
+
+[82BD]
+Performance of Sword{end}
+
+[82BE]
+Hungry Burger{end}
+
+[82BF]
+Sengenjin{end}
+
+[82C0]
+Skull Guardian{end}
+
+[82C1]
+Tri-horned Dragon{end}
+
+[82C2]
+Serpent Night Dragon{end}
+
+[82C3]
+Skull Knight{end}
+
+[82C4]
+Cosmo Queen{end}
+
+[82C5]
+Chakra{end}
+
+[82C6]
+Crab Turtle{end}
+
+[82C7]
+Mikazukinoyaiba{end}
+
+[82C8]
+Meteor Dragon{end}
+
+[82C9]
+Meteor B. Dragon{end}
+
+[82CA]
+Firewing Pegasus{end}
+
+[82CB]
+Psycho-Puppet{end}
+
+[82CC]
+Garma Sword{end}
+
+[82CD]
+Javelin Beetle{end}
+
+[82CE]
+Fortress Whale{end}
+
+[82CF]
+Dokurorider{end}
+
+[82D0]
+Mask of Shine & Dark{end}
+
+[82D1]
+Dark Magic Ritual{end}
+
+[82D2]
+Magician of Black Chaos{end}
+
+[8300 8322 8323 8324 8325 8326 8327]
+Dragon{end}
+
+[8301]
+Spellcaster{end}
+
+[8302]
+Zombie{end}
+
+[8303]
+Warrior{end}
+
+[8304]
+BeastWarrior{end}
+
+[8305]
+Beast{end}
+
+[8306]
+WingedBeast{end}
+
+[8307]
+Fiend{end}
+
+[8308]
+Fairy{end}
+
+[8309]
+Insect{end}
+
+[830A]
+Dinosaur{end}
+
+[830B]
+Reptile{end}
+
+[830C]
+Fish{end}
+
+[830D]
+SeaSerpent{end}
+
+[830E]
+Machine{end}
+
+[830F]
+Thunder{end}
+
+[8310]
+Aqua{end}
+
+[8311]
+Pyro{end}
+
+[8312]
+Rock{end}
+
+[8313]
+Plant{end}
+
+[8314]
+Magic{end}
+
+[8315]
+Trap{end}
+
+[8316]
+Ritual{end}
+
+[8317]
+Equip{end}
+
+[8318]
+Mars  {sp}{end}
+
+[8319]
+Jupiter{end}
+
+[831A]
+Saturn{sp}{end}
+
+[831B]
+Uranus{sp}{end}
+
+[831C]
+Pluto {sp}{end}
+
+[831D]
+Neptune{end}
+
+[831E]
+Mercury{end}
+
+[831F]
+Sun   {sp}{end}
+
+[8320]
+Moon  {sp}{end}
+
+[8321]
+Venus {sp}{end}
+
+[8328]
+Build Deck{end}
+
+[8329]
+Simon Muran{end}
+
+[832A]
+Teana{end}
+
+[832B]
+Jono{end}
+
+[832C]
+Villager1{end}
+
+[832D]
+Villager2{end}
+
+[832E]
+Villager3{end}
+
+[832F]
+Seto{end}
+
+[8330]
+Heishin{end}
+
+[8331]
+Rex Raptor{end}
+
+[8332]
+Weevil Underwood{end}
+
+[8333]
+Mai Valentine{end}
+
+[8334]
+Bandit Keith{end}
+
+[8335]
+Shadi{end}
+
+[8336]
+Yami Bakura{end}
+
+[8337]
+Pegasus{end}
+
+[8338]
+Isis{end}
+
+[8339]
+Kaiba{end}
+
+[833A]
+Mage Soldier{end}
+
+[833B]
+Jono 2nd{end}
+
+[833C]
+Teana 2nd{end}
+
+[833D]
+Ocean Mage{end}
+
+[833E]
+High Mage Secmeton{end}
+
+[833F]
+Forest Mage{end}
+
+[8340]
+High Mage Anubisius{end}
+
+[8341]
+Mountain Mage{end}
+
+[8342]
+High Mage Atenza{end}
+
+[8343]
+Desert Mage{end}
+
+[8344]
+High Mage Martis{end}
+
+[8345]
+Meadow Mage{end}
+
+[8346]
+High Mage Kepura{end}
+
+[8347]
+Labyrinth Mage{end}
+
+[8348]
+Seto 2nd{end}
+
+[8349]
+Guardian Sebek{end}
+
+[834A]
+Guardian Neku{end}
+
+[834B]
+Heishin 2nd{end}
+
+[834C]
+Seto 3rd{end}
+
+[834D]
+DarkNite{end}
+
+[834E]
+Nitemare{end}
+
+[834F]
+Duel Master K{end}
+
+[8350]
+{f8 02 18}Metropolis{end}
+
+[8351]
+{f8 02 0C}Forest Shrine{end}
+
+[8352]
+{f8 02 0C}Desert Shrine{end}
+
+[8353]
+{f8 02 0C}King's Valley{end}
+
+[8354]
+{f8 02 18}Sea Shrine{end}
+
+[8355]
+{f8 02 04}Shrine of Glory{end}
+
+[8356]
+{f8 02 04}Mountain Shrine{end}
+
+[8357]
+{f8 02 04}Forbidden Ruins{end}
+
+[8358]
+{f8 02 0C}Meadow Shrine{end}
+
+[8359]
+{f8 02 14}Vast Shrine{end}
+
+[835A]
+{f8 02 18}Town Plaza{end}
+
+[835B]
+{f8 02 28}Shrine{end}
+
+[835C]
+{if 0047 L8E72}{f8 02 14}{cont}
+{:L8E66}
+Duel Ground{end}
+
+{:L8E72}
+{f8 02 04}Old {jump L8E66}
+
+[835D]
+{if 0047 L8E8E}{f8 02 18}{cont}
+{:L8E84}
+Card Shop{end}
+
+{:L8E8E}
+{f8 02 0C}Old {jump L8E84}
+
+[835E]
+Pharaoh's Palace{end}
+
+[835F]
+Hiding {jump L8E84}
+
+

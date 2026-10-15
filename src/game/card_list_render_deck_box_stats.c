@@ -1,0 +1,114 @@
+#include "../types.h"
+#include "card_type_icon_table.h"
+#include "text_encode_decimal_digits.h"
+#include "../psyq/libgte.h"
+#include "../psyq/libgpu.h"
+#include "../psyq/libgs.h"
+#include "card_constants.h"
+#include "color_constants.h"
+#include "text_constants.h"
+#include "duel_card.h"
+#include "card_list_render_deck_box_stats.h"
+#include "card_list_rows.h"
+
+#define GS_SPRITE_COLOR_WORD(sprite) (*(u32 *)&(sprite)->r)
+
+/* Draws a deck box's six type-count digits and its seven card stat rows
+   as 16x16 and 8x8 sprites into the ordering table. The glyph table
+   D_80090DD8 gives the u/v and page bits of each type icon; the selected
+   icon (byte +0x69) is drawn bright. For each card entry of the box
+   record (D_801A8000, 24 bytes per box) that names a monster, the attack
+   and defence from gDuel_adwCardStats are rendered as four decimal digits
+   each (through Text_EncodeDecimalDigits), dimmed when the entry's high
+   bit is set. */
+void CardList_RenderDeckBoxStats(DisplayObject *obj, GsOT *ot) {
+    u8 atk[8];
+    u8 def[8];
+    GsSPRITE *sp;
+    u8 *tbl;
+    CardListRowSet *rec;
+    u16 *entries;
+    s32 pri;
+    s32 i;
+    s32 j;
+    s32 id;
+    u8 d;
+
+    tbl = D_80090DD8;
+    sp = (GsSPRITE *)SCRATCHPAD_ADDR(0x1F800320);
+    rec = &D_801A8000[obj->field_6A];
+    pri = *(s16 *)&obj->field_14;
+    sp->attribute = obj->attribute;
+    sp->tpage = 0xB;
+    GS_SPRITE_COLOR_WORD(sp) = COLOR_RGB24_NEUTRAL_GREY;
+    *(u32 *)&sp->w = 0x100010;
+    sp->x = obj->field_30.h.field_30 + 0x22;
+    sp->y = obj->field_30.h.field_32 - 0x18;
+    sp->cy = 0xFB;
+    i = 0;
+    do {
+        GS_SPRITE_COLOR_WORD(sp) = 0x202020;
+        if (i == obj->field_69) {
+            GS_SPRITE_COLOR_WORD(sp) = COLOR_RGB24_NEUTRAL_GREY;
+        }
+        sp->u = (tbl[0] & 0xF) * 8 - 0x80;
+        sp->v = tbl[0] & 0xF0;
+        sp->cx = (tbl[1] & 0xF0) | 0x200;
+        GsSortFastSprite(sp, ot, pri);
+        sp->x += 0x14;
+        i++;
+        tbl += 2;
+    } while (i < 6);
+
+    if (rec->enabled != 0) {
+        sp->attribute = obj->attribute;
+        sp->x = obj->field_30.h.field_30 + 0x24;
+        *(u32 *)&sp->w = 0x80008;
+        entries = rec->card_entries;
+        sp->y = obj->field_30.h.field_32;
+        sp->tpage = 0xB;
+        sp->cx = 0x290;
+        sp->cy = 0xFA;
+        sp->u = 0x80;
+        sp->v = 0x70;
+        i = 0;
+        do {
+            id = *entries & CARD_ID_FIELD_MASK;
+            if (id != 0) {
+                if (((gDuel_adwCardStats[id - 1] >> CARD_STAT_TYPE_SHIFT) &
+                     CARD_STAT_TYPE_MASK) < CARD_TYPE_MAGIC) {
+                    sp->x = obj->field_30.h.field_30 + 0x24;
+                    GS_SPRITE_COLOR_WORD(sp) = COLOR_RGB24_NEUTRAL_GREY;
+                    if (*entries & 0x8000) {
+                        GS_SPRITE_COLOR_WORD(sp) = COLOR_RGB24_DIM_GREY;
+                    }
+                    Text_EncodeDecimalDigits(
+                        (gDuel_adwCardStats[id - 1] & CARD_STAT_VALUE_MASK) *
+                            CARD_STAT_SCALE,
+                        4, atk);
+                    Text_EncodeDecimalDigits(
+                        ((gDuel_adwCardStats[id - 1] >> CARD_STAT_DEFENSE_SHIFT) &
+                         CARD_STAT_VALUE_MASK) * CARD_STAT_SCALE,
+                        4, def);
+                    for (j = 3; j >= 0; j--) {
+                        d = atk[j];
+                        if (d < TEXT_DECIMAL_RADIX) {
+                            sp->u = d * 8 - 0x80;
+                            GsSortFastSprite(sp, ot, pri);
+                        }
+                        if (def[j] < TEXT_DECIMAL_RADIX) {
+                            sp->y += 8;
+                            sp->u = def[j] * 8 - 0x80;
+                            GsSortFastSprite(sp, ot, pri);
+                            sp->y -= 8;
+                        }
+                        sp->x += 8;
+                    }
+                }
+            }
+            i++;
+            sp->y += 0x16;
+            entries++;
+        } while (i < 7);
+    }
+}

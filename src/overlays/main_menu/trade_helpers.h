@@ -1,0 +1,182 @@
+#ifndef MEMORIES_DECOMP_MAIN_MENU_TRADE_HELPERS_H
+#define MEMORIES_DECOMP_MAIN_MENU_TRADE_HELPERS_H
+
+#include "../../types.h"
+#include "../../ygo_types.h"
+#include "../../game/card_constants.h"
+#include "module_rodata.h"
+
+/* One entry of D_801845EC, the two Trade card-display slots.
+   MainMenu_InitTradeScreen's `i < 2` loop stores the DisplayObject_AcquireSlot result,
+   or 0, into `.object` and 0 into `.unk4` (trade_update.c:54-65);
+   MainMenu_DrawTradeOffersAndHighlights reads `[0].object` and
+   `[1].object` (trade_offers.c:37-38); MainMenu_UpdateTradeScreen
+   (trade_update.c) stores `->y` through `[0].object` and `[1].object`.
+   The two readers used to declare the symbol `u8 *[]`, read at [0] and
+   [2], and `MainMenuWidget *`, with entry 1's pointer declared on its own
+   as D_801845F4 (+8); the 8-byte stride reconciled those views, and spelled
+   through this type they build the same overlay (measured, one build). */
+typedef struct {
+    u8 *G32 object;
+    s32 unk4;
+} MainMenuSlot;
+
+typedef char MainMenuSlot_size_must_be_8[
+    sizeof(MainMenuSlot) == 8 ? 1 : -1
+];
+
+extern MainMenuSlot D_801845EC[];
+
+/* One side's Trade list scroll position, D_80185C8C[side]. The README records
+   the meaning: "[side][0] is the current scrolling top; [1] is its target".
+
+   MainMenu_UpdateTradeScreen and rebuild_trade_inventory_rows.c declare the same storage
+   as `u16 [2]` and are the only sources that read it, so the members are u16
+   here; MainMenu_InitTradeScreen only ever stores zero, and
+   a halfword store is the same instruction either way. The read sites clamp
+   the target at zero, so the value is never negative. */
+typedef struct {
+    u16 current;
+    u16 target;
+} MainMenuPair;
+
+#ifdef MAIN_MENU_TRADE_SCROLL_AS_WORDS
+extern u16 D_80185C8C_words[2][2] asm("D_80185C8C");
+#define D_80185C8C D_80185C8C_words
+#else
+extern MainMenuPair D_80185C8C[];
+#endif
+
+/* One entry of D_801A8000, the per-side inventory row state. Only the leading
+   display-object pointer is named; the rest is carried so the stride is
+   right. */
+typedef struct {
+    u8 *G32 object;
+    s32 pad[5];
+} MainMenuState;
+
+/* These values are live on disjoint paths. Sharing their carrier reproduces
+   the retail s2 allocation without a hard-register binding. */
+typedef union {
+    s32 dirty;
+    u8 *G32 clearBase;
+} MainMenuTradeDirtyCarrier;
+
+/* The Trade updater and inventory updater's two-record view of the shared
+   overlay staging base. */
+#ifdef MAIN_MENU_TRADE_STATE_BUFFER
+extern MainMenuState D_801A8000[];
+#endif
+
+/* The main-menu view of a display-object pool record. Named for this overlay
+   rather than shared with the resident DisplayObject: `y` at 0x32 falls
+   inside that record's s32 at 0x30, which is the split display_object.h
+   documents as the reason its own callers keep private copies. */
+typedef struct {
+    u8 pad0[8];
+    u16 flags;
+    u8 pad0A[0x28];
+    s16 y;
+    u8 pad34[0x35];
+    u8 frame;
+} MainMenuWidget;
+
+/* The two Trade display handles, D_801845DC and D_801845E0 -- the pair
+ * README.md:177-178 lists as what MainMenu_ReleaseTradeDisplayHandles
+ * releases and clears. MainMenu_InitTradeScreen stores a DisplayObject_AcquireSlot
+ * result into each (trade_update.c:37, :45), ORs 0x28 into +8
+ * (:40, :48) and passes it to DisplayObject_SetDepthOffset (:41, :49);
+ * MainMenu_ReleaseTradeDisplayHandles passes each to DisplayObject_ReleaseIfPresent and
+ * stores 0 (trade_offers.c:141-144); MainMenu_UpdateTradeScreen
+ * (trade_update.c) reads D_801845E0->frame and passes D_801845E0 to
+ * DisplayObject_SetResourceVariant; MainMenu_RebuildTradeInventoryRows reads ->frame
+ * (trade_screen_helpers.c:101). The units used to declare them `u8 *` and
+ * `void *`, and D_801845E0 also `MainMenuWidget *` in the two units that
+ * read `frame`. `frame` is a member of that view, and so is the +8 halfword
+ * those two stores OR into, named `flags` as DisplayObjectConfig
+ * (display_object_config.h) names it, so the widget view is the one kept
+ * here; only the DisplayObject_SetDepthOffset sites cast to bytes. */
+extern MainMenuWidget *G32 D_801845DC;
+extern MainMenuWidget *G32 D_801845E0;
+
+/* Resident callers must load the main-menu image before using these entries. */
+void MainMenu_InitTradeScreen(void);
+s32 MainMenu_UpdateTradeScreen(void);
+void MainMenu_ReleaseTradeDisplayHandles(void);
+void MainMenu_RefreshTradeInventory(s32 slot, s32 force);
+void MainMenu_DrawTradeOffersAndHighlights(void);
+void MainMenu_DrawThreeDigitNumber(s32 x, s32 y, s32 value);
+void MainMenu_DrawCardTypeIcon(s32 x, s32 y, s32 cardID);
+void MainMenu_ApplyTradeOfferInventoryDelta(s32 slot, s32 amount);
+void MainMenu_AdjustTradeCardCount(s32 slot, s32 id, u32 amount);
+void MainMenu_DrawTradeColumnOverlay(s32 column);
+void MainMenu_RebuildTradeInventoryRows(s32 side);
+
+/* Trade screen state. All three sources that use these already include this
+ * header, so the ten local copies they carried existed only because the
+ * declarations were missing here. Every declarer already spelled them u8.
+ *
+ *   D_80185CCE  The focused pane, stepped as `(D_80185CCE + 2) % 3` and
+ *               `(D_80185CCE + 4) % 3`, so it has three positions. One site
+ *               reads it as `*(volatile u8 *)&D_80185CCE`; that volatile is
+ *               applied at the use, not by the declaration, so moving the
+ *               declaration here leaves it in place.
+ *   D_80185CC9  Set to 1 and tested; cleared nowhere in this overlay.
+ *   D_80185CCB  Player 1's row index, read once as `D_80185CCB * 22 + 36` to
+ *               place the second widget. It is the second byte of
+ *               D_80185CCA[2] below, and like D_80185CC9 inside D_80185CC8[2]
+ *               it carries its own address symbol because its reader reaches
+ *               the byte by that name rather than through the array. No C
+ *               source in this overlay writes it.
+ *   D_80185CCF  Three flags, each zeroed on entry, set while their part of
+ *   D_80185CD0  the screen is pending, tested, and cleared again.
+ *   D_80185CD1
+ */
+extern u8 D_80185CC9;
+extern u8 D_80185CCB;
+extern u8 D_80185CCE;
+extern u8 D_80185CCF;
+extern u8 D_80185CD0;
+extern u8 D_80185CD1;
+
+/* Per-side Trade interaction state. The offer table carries a count followed
+ * by ten card ids. D_80185CC8 needs a scalar view only in the offer drawing
+ * unit; the update paths index both players. */
+extern u16 D_80185C9C[2][11];
+#ifdef MAIN_MENU_TRADE_READY_AS_SCALAR
+extern u8 D_80185CC8;
+#else
+extern u8 D_80185CC8[2];
+#endif
+extern u8 D_80185CCA[2];
+extern u8 D_80185CCC[2];
+
+/* The per-side working card table, two rows of CARD_COUNT CardCountEntry
+ * (ygo_types.h) records. Three sources reach it and all three already include
+ * this header. The two-dimensional shape is the one that matched
+ * MainMenu_RefreshTradeInventory (trade_inventory.c stores
+ * `[slot][i].id` and `.count`, then sorts `[slot]`; the module's functions.csv
+ * row for 0x8018338C records why), and the other two sources reach the same
+ * rows through it: MainMenu_AdjustTradeCardCount walks row 0 from
+ * `D_801845FC[0]` with `slot * 2888` added (trade_offers.c:169-172, :180),
+ * MainMenu_RebuildTradeInventoryRows forms `side * 2888 + (s32)D_801845FC`
+ * (trade_screen_helpers.c:102), and MainMenu_UpdateTradeScreen
+ * (trade_update.c) indexes `[0][...]`. Row 1 is also named on its own as
+ * D_80185144 in that source (+0xB48 = CARD_COUNT * 4), which keeps its
+ * private declaration.
+ * Two rows end at D_80185C8C, +0x1690. */
+#ifdef MEMORIES_PC
+/* On the PC port the rows hold every card this run has (card_constants.h),
+ * which is more than fits at 0x801845FC: they are in
+ * src/pc/game/card_storage.c, and row 1 is reached through them. */
+extern CardCountEntry gTrade_aInventory[2][CARD_TABLE_COUNT];
+#define D_801845FC gTrade_aInventory
+#define D_80185144 (gTrade_aInventory[1])
+#define MAIN_MENU_TRADE_ROW_BYTES (CARD_TABLE_COUNT * 4)
+#else
+extern CardCountEntry D_801845FC[][CARD_COUNT];
+/* One row, CARD_COUNT four-byte entries. */
+#define MAIN_MENU_TRADE_ROW_BYTES 2888
+#endif
+
+#endif

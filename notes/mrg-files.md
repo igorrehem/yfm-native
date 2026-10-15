@@ -1,0 +1,342 @@
+# MRG File Model
+
+## Confirmed container model
+
+The project does not treat `*.MRG` as self-describing archives. The original
+build scripts merged input files by concatenation and generated offsets,
+counts, or resource-specific loader code that was compiled into the game.
+
+Consequences:
+
+- Do not infer a header from the first words of an MRG.
+- The authoritative index is executable code and data, not an archive
+  directory.
+- Inner boundaries must be recovered from seek/count arguments, callback phase
+  tables, affine index calculations, and exact checks against the merged bytes.
+- Different MRG files may use different generated layouts even though all were
+  produced by concatenation.
+- Repacking would require reproducing both the byte concatenation and the
+  generated source tables or macros.
+
+## Resident file indices
+
+The filename table at `0x8009078C` and runtime LBA table at `0x800E9EA8`
+establish:
+
+| Index | File | Disc LBA |
+|---:|---|---:|
+| 0 | `WA_MRG.MRG` | 10,102 |
+| 1 | `SU.MRG` | 954 |
+| 2 | `MODEL.MRG` | 28,534 |
+| 3 | `MOVIE.STR` | 202,734 |
+| 4 | `SD_SE.DAT` | 2,193 |
+| 5 | `SD_BGM.DAT` | 2,936 |
+| 6 | `MASTER.XA` | 199,930 |
+
+A boot-time PCSX-Redux trace observed all seven words populated before the
+Konami screen, with these exact values and a null filename pointer after index
+6. This confirms that the runtime lookup agrees with the retail disc layout.
+
+`File_SetPositionTable` bounds its scan with `FILE_POSITION_TABLE_CAPACITY`
+(`7`) while still stopping early on a null filename. `Sound_InitFrontend`
+uses `FILE_LBA_INDEX_SD_SE` (`4`), `FILE_LBA_INDEX_SD_BGM` (`5`), and
+`FILE_LBA_INDEX_MASTER_XA` (`6`) to read the three sound-file positions.
+These constants are indices into `gFile_anLba`, not the disc LBAs themselves;
+the table remains populated by file lookup at runtime.
+
+Loader offsets and counts for the three MRG files are expressed in
+`0x800`-byte logical sectors. `File_SetTransferLocation` converts a
+file-relative sector to both a byte offset and an absolute disc LBA.
+
+`src/game/file_constants.h` names this unit as `FILE_SECTOR_SIZE` and its
+byte-conversion shift as `FILE_SECTOR_SHIFT`. The descriptor setup and transfer
+control paths use them for sector-to-byte conversion and the one-sector gap
+between alternating buffer destinations. The named-file movie request
+`Movie_StartFileStream` also uses them to round the search result's byte size up to
+a sector count before adding it to the file's starting sector. This is the
+logical payload size, not the disc image's 2,352-byte raw sector size.
+
+## Shared high-memory slots
+
+The fixed addresses beginning at `0x8013A000` are a shared runtime layout, not
+a WA-only destination list. Resident loader traces currently establish:
+
+| Destination | Confirmed resident source | Role |
+|---:|---|---|
+| `0x8013A000` | `MODEL.MRG` | Executable/module slot; called at `+4` |
+| `0x80146000` | `WA_MRG.MRG` | Repeated executable module |
+| `0x80168000` | `WA_MRG.MRG` | Reused executable module slot |
+| `0x8017A1D8` | `WA_MRG.MRG` | Repeated data subrange |
+| `0x8017A000` | `MODEL.MRG` | Executable content at the slot base |
+| `0x80180000` | `SU.MRG` | Reused executable module slot |
+
+WA therefore supplies several overlays and data ranges, but not every
+high-memory slot. The constants at `0x80010000..0x80010034` mix general
+payload bases, paired MODEL module slots, paired MODEL data arguments, and
+SU-specific pointers; they are not one WA or main-menu destination table.
+See [`high-memory-load-addresses.md`](high-memory-load-addresses.md).
+
+## Recovered WA organization
+
+The resident executable contains no conventional 32-bit WA directory.
+Generated-looking WA boundaries are encoded as immediate sector numbers,
+stride arithmetic, transfer counts, and phase callbacks.
+
+A contiguous layout has been recovered from WA sectors `5776-8661`, or byte
+range `0xB48000-0x10EA800`. It includes seven 235-sector records, a likely
+40-entry family of three-sector records, and multiple fixed packages. The
+seven large records use a 13-phase callback whose counts total exactly 235
+sectors.
+
+The complete loader trace, descriptor layout, sector map, phase table, archive
+attribution, and called-address checks are recorded in
+`notes/overlays/runtime-loader.md`.
+
+### Duel terrain packages
+
+Matching `Duel_LoadTerrainPackage` selects one of seven terrain packages with the source
+constants `DUEL_TERRAIN_PACKAGE_FIRST_SECTOR` (`0x16C6`) and
+`DUEL_TERRAIN_PACKAGE_SECTOR_COUNT` (`0xEB`). Because the count is also the
+per-terrain stride, the seven packages occupy WA sectors `0x16C6-0x1D33`, or
+byte range `0xB63000-0xE99800`, without gaps.
+
+Matching `func_80024E58` reloads a narrower terrain-effect range from
+`DUEL_TERRAIN_EFFECT_DATA_FIRST_SECTOR` (`0x1791`) plus the same `0xEB`
+terrain stride. The difference from the package base is `0xCB` sectors, so
+the `DUEL_TERRAIN_EFFECT_DATA_SECTOR_COUNT` (`0x10`) request covers
+package-relative bytes from `+0x65800` to exclusive end `+0x6D800`: the first
+`0x8000` bytes of the final 32-sector callback phase.
+
+The five-sector phase at package-relative `+0x63000` is likewise identical
+across all seven terrain packages, with SHA-256
+`4d7c12766dec03a2d8faca71801dbc336db55144d52b2aad2f95efc263a2e237`.
+It is copied to `0x80100000`, but matching `func_80056250` only checks that
+pointer for null and never reads the bytes; its `0x63000` and `4` arguments
+are unused. The current image therefore establishes a real transfer but no
+payload role. The full negative evidence is recorded in
+[`duel-package-unused-data.md`](duel-package-unused-data.md).
+
+### End-of-duel results package
+
+Resident `DuelScene_UpdateResultOutro` requests 34 WA sectors beginning at sector `0x1DAB`,
+which is archive range `0xED5800-0xEE6800`. Matching callback
+`func_80020BE4` accounts for the complete package:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xED5800-0xEE5800` | `0x10000` / 32 sectors | Schedules the main image payload. The tutorial evidence divides it into two `0x8000`-byte image halves at `0xED5800` and `0xEDD800`. |
+| `0xEE5800-0xEE6000` | `0x800` / 1 sector | Uploads a `256 x 4` palette rectangle to VRAM `(0, 248)`. |
+| `0xEE6000-0xEE6800` | `0x800` / 1 sector | Schedules a transfer to `0x801AF000`; its later role remains unnamed. |
+
+The palette sector has SHA-256
+`bc1bbeb55e28cef036ec35e90d232b070df8221d5d114b4116a9743498fe7776`.
+Its 16-color slots cover the result, rank, statistics, card, and player
+win/lose graphics described in
+[`modding-tutorial-evidence.md`](modding-tutorial-evidence.md). Those visual
+labels come from the tutorial; the package boundaries, upload geometry, and
+final destination come from the resident request and matching callback.
+
+### Menu background and symbol package
+
+Resident `func_8002F630` requests 50 WA sectors beginning at sector `0x1FA7`,
+which is archive range `0xFD3800-0xFEC800`. Matching callback
+`func_8002F4C0` divides the package into three transfer phases:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xFD3800-0xFEB800` | `0x18000` / 48 sectors | Schedules the image payload. The tutorial evidence divides it into a `0x10000`-byte menu-background range and a `0x8000`-byte symbol range at `0xFE3800`. |
+| `0xFEB800-0xFEC000` | `0x800` / 1 sector | Stages palette data; the callback uploads its first `0x400` bytes as a `256 x 2` rectangle to VRAM `(0, 244)`. The remaining half-sector is not assigned a role. |
+| `0xFEC000-0xFEC800` | `0x800` / 1 sector | Schedules a transfer to `0x801AF000`; its later role remains unnamed. |
+
+The tutorial places a 256-color background palette at `0xFEB800` and a
+16-color symbol palette at `0xFEBA00`, which map to the first full VRAM row
+and the first 16 entries of the second row. Their exact spans are
+`0x200 = 256 * 2` bytes and `0x20 = 16 * 2` bytes. Paired with the two image
+ranges, `0x10000` bytes at 8 bits per pixel and `0x8000` bytes at 4 bits per
+pixel each describe 65,536 indices. These sizes independently support the
+8-bit/4-bit format pairing, while the background and symbol labels remain
+tutorial-derived. See
+[`modding-tutorial-evidence.md`](modding-tutorial-evidence.md) for the
+resource hashes and the visual-label confidence boundary.
+
+### Boot UI package
+
+Matching `Main_RunBootSequence` requests 54 WA sectors beginning at sector
+`0x1690`, which is archive range `0xB48000-0xB63000`. Its matching callback
+`Main_LoadBootPackageStage` accounts for all four transfer phases:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xB48000-0xB60000` | `0x18000` / 48 sectors | Schedules the main boot UI image payload. |
+| `0xB60000-0xB61000` | `0x1000` / 2 sectors | Uploads the complete block as a `256 x 8` rectangle to VRAM `(512, 248)`. |
+| `0xB61000-0xB61800` | `0x800` / 1 sector | Uploads its first `0x100` bytes as a `16 x 8` rectangle to VRAM `(640, 232)`; retail bytes `0xB61100-0xB617FF` are zero padding. |
+| `0xB61800-0xB63000` | `0x1800` / 3 sectors | Loads module ID `0x16` at `0x80168000`; the caller initializes it at `0x801680F4` and polls its 20-state controller at `0x80168160`. |
+
+Tutorial offsets place the shared card-pointer and fusion-number graphics
+inside the first phase, their palettes inside the second, and eight
+16-color UI ramps at `0xB61000-0xB61100` in the third. See
+[`modding-tutorial-evidence.md`](modding-tutorial-evidence.md) for the
+resource-level offsets, hashes, and visual-label confidence, and
+[`boot-frontend-sequence.md`](boot-frontend-sequence.md) for the complete
+package and compliance-module contract.
+
+### Campaign scene package
+
+Matching
+[`Campaign_LoadScenePackage`](../src/game/campaign_load_scene_package.c)
+requests the same 49 WA sectors beginning at `0x1E57` for every argument,
+which is archive range `0xF2B800-0xF44000`. Matching callback
+`Campaign_LoadScenePackageStage` accounts for all four transfer phases:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xF2B800-0xF33800` | `0x8000` / 16 sectors | Schedules the first campaign-scene image payload through the GPU/VRAM transfer path. |
+| `0xF33800-0xF34000` | `0x800` / 1 sector | Stages palette data. The callback uploads its first `0x200` bytes as a `256 x 1` rectangle to VRAM `(256, 240)`; the remaining `0x600` bytes are zero padding. |
+| `0xF34000-0xF35000` | `0x1000` / 2 sectors | Transfers to `0x801A8000`. This is the campaign event script: a `u16` offset table for 199 byte-coded events followed by their streams. |
+| `0xF35000-0xF44000` | `0xF000` / 30 sectors | Transfers to the primary arena at `0x80100000`. The first `0xED80` bytes are 25 dialog-portrait records of `0x980` bytes each; the final `0x280` bytes are an unused prefix of another portrait record introduced by sector rounding. |
+
+Each portrait record contains a `48 x 48` 8-bit image (`0x900` bytes)
+followed by a 64-color CLUT (`0x80` bytes). Text control `F6` selects these
+portraits through values `0x41`-`0x59`. The four phase sizes total the
+requested `0x18800` bytes exactly, and none supplies an executable module.
+See the [complete upload and F6 selection contract](dialog-portrait-bank.md).
+
+The argument initializes the event-script state at `D_8009B2A4`, not the
+archive location. Matching [`Main_RunCampaign`](../src/game/main_run_campaign.c)
+passes `gCampaignSceneIndex`. When neither dialog-active nor started state
+intervenes, [`Script_RunTick`](../src/game/script_run_tick.c) uses a nonzero
+value directly to index the script's `u16` offset table. A zero state does
+not start an event, but does not prevent the loader from requesting the
+shared resource package.
+
+### Free Duel screen package
+
+`Main_InitFreeDuelMenu` requests 87 WA sectors beginning at sector `0x1E88`,
+which is archive range `0xF44000-0xF6F800`. Resident callback
+`FreeDuel_LoadPackageStage` accounts for all five transfer phases:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xF44000-0xF54000` | `0x10000` / 32 sectors | Schedules the main image payload through the GPU/VRAM transfer path. |
+| `0xF54000-0xF54800` | `0x800` / 1 sector | Stages palette data; the following callback phase uploads the complete block as a `256 x 4` rectangle to VRAM `(0, 240)`. |
+| `0xF54800-0xF55000` | `0x800` / 1 sector | Schedules a transfer to `0x801AF000`; its later role remains unnamed. |
+| `0xF55000-0xF6D000` | `0x18000` / 48 sectors | Transfers to the arena pointer at `D_80010000[0]`, which is `0x80100000`. `FreeDuel_Init` consumes the first `0x17C00` bytes as 40 portrait records of `0x980` bytes each; the final `0x400` bytes are zero padding. |
+| `0xF6D000-0xF6F800` | `0x2800` / 5 sectors | Transfers through `D_800101D8` to `0x80168000`, producing the tracked Free Duel executable overlay. |
+
+Each portrait record contains a `48 x 48` 8-bit image (`0x900` bytes)
+followed by a 64-color CLUT (`0x80` bytes). The executable phase has SHA-256
+`e5091e1a5df0287dbd3561915ca53c0f91d359d7eb0ec4156c5734361b55c1f2`,
+and the five phase sizes total the requested `0x2B800` bytes exactly.
+
+Exact matching `FreeDuel_Init` confirms the record split while uploading all
+40 portraits. For each `0x980`-byte record it sends the first `0x900` bytes
+through a `24 x 48` VRAM rectangle, which represents `48 x 48` 8-bit indices,
+then sends the `0x80` bytes at `+0x900` through a `64 x 1` CLUT rectangle.
+Successive records begin exactly `0x980` bytes apart. Records `0`-`24` fill a
+`5 x 5` image bank beginning at VRAM `(128, 256)`, records `25`-`39` continue
+at x `256`, and the 64-color palettes occupy rows `496`-`511` before wrapping
+to the next 64-entry CLUT column.
+
+### Name-entry screen package
+
+Matching `File_RequestNameEntryPackage` requests 80 WA sectors beginning at sector `0x1EDF`,
+which is archive range `0xF6F800-0xF97800`. Its matching callback
+`NameEntry_LoadPackageStage` accounts for the complete package:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xF6F800-0xF87800` | `0x18000` / 48 sectors | Schedules the first image phase. |
+| `0xF87800-0xF8F800` | `0x8000` / 16 sectors | Schedules the second image phase. |
+| `0xF8F800-0xF90000` | `0x800` / 1 sector | Uploads the complete block as a `256 x 4` palette rectangle to VRAM `(256, 240)`. |
+| `0xF90000-0xF97800` | `0x7800` / 15 sectors | Transfers the executable phase entered by the name-entry screen. |
+
+The final phase shares the password front-end image but differs inside its
+last data sector, so it remains a distinct verified binary rather than an
+interchangeable copy. Its entry points and both phase hashes are documented
+under [`src/overlays/name_entry/`](../src/overlays/name_entry/).
+
+### Password screen package
+
+Matching `File_RequestPasswordPackage` requests 86 WA sectors beginning at sector `0x1F2F`,
+which is archive range `0xF97800-0xFC2800`. Its matching callback
+`Password_LoadPackageStage` accounts for the complete package:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0xF97800-0xFB7800` | `0x20000` / 64 sectors | Schedules the password-screen image payload. |
+| `0xFB7800-0xFB9800` | `0x2000` / 4 sectors | Uploads the complete block as a `256 x 16` palette rectangle to VRAM `(256, 240)`. |
+| `0xFB9800-0xFBB000` | `0x1800` / 3 sectors | Transfers to `0x801A8000`. The 723 eight-byte password/cost records occupy the first `0x1698` bytes; the remaining bytes retain no assigned role. |
+| `0xFBB000-0xFC2800` | `0x7800` / 15 sectors | Transfers the executable phase used by the tracked password overlay. |
+
+Tutorial offsets place the card, cursor, and frame images in the first phase
+and their palette rows in the second. The executable phase and its exact hash
+are tracked under [`src/overlays/password/`](../src/overlays/password/).
+See [`modding-tutorial-evidence.md`](modding-tutorial-evidence.md) for the
+resource-level offsets and visual-label confidence.
+
+### Options and PocketStation package
+
+`Main_RunOptionsMenu` calls `File_RequestOptionsPackage`, which first requests
+50 WA sectors beginning at `0x2115`. Its matching callback
+`Options_LoadPackageStage` accounts for the complete package:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0x108A800-0x109A800` | `0x10000` / 32 sectors | Schedules the main image phase through the GPU/VRAM transfer path. |
+| `0x109A800-0x109B000` | `0x800` / 1 sector | Stages palette data. |
+| `0x109B000-0x109B800` | `0x800` / 1 sector | Uploads the staged block as a `256 x 4` rectangle at VRAM `(256, 240)`, then transfers this sector to `0x801AF000`. |
+| `0x109B800-0x10A3800` | `0x8000` / 16 sectors | Transfers a PocketStation-titled 32 KiB payload to `0x80140000`. |
+
+The phase sizes total the requested 50 sectors exactly. After waiting,
+`File_RequestOptionsPackage` requests the next 16 sectors
+(`0x2147..0x2156`) directly to the same `0x80140000` address. The two 32 KiB
+payloads have distinct hashes and differ in 28,915 bytes; the second therefore
+replaces, rather than extends, the first before `Options_Init` runs. Their
+Shift-JIS headers identify two variants of
+`PocketStation   Yu-Gi-Oh! Shin Duel Monsters`, differing in the title
+punctuation. See [`options-screen.md`](options-screen.md) for the input
+reachability boundary and exact hashes.
+
+### Game Over package
+
+`Main_RunGameOver` calls `File_RequestGameOverPackage` on first entry,
+immediately before the resident Game Over screen is initialized. That wrapper
+requests 50 WA sectors beginning at `0x2157`, and
+`GameOver_LoadPackageStage` accounts for all three phases:
+
+| WA range | Size | Callback behavior |
+|---:|---:|---|
+| `0x10AB800-0x10C3800` | `0x18000` / 48 sectors | Schedules the Game Over image payload through the GPU/VRAM transfer path. |
+| `0x10C3800-0x10C4000` | `0x800` / 1 sector | Stages palette data. |
+| `0x10C4000-0x10C4800` | `0x800` / 1 sector | Uploads the staged block as a `256 x 4` rectangle at VRAM `(0, 240)`, then transfers this sector to `0x801AF000`. |
+
+The phase sizes total the requested 50 sectors exactly.
+
+## Development-path evidence
+
+The executable preserves paths including:
+
+```text
+M:/mrgSU/SU.mrg
+M:/mrgSU/model.mrg
+```
+
+The three resident copies have distinct addresses and consumers:
+
+| Address | Symbol | Text | Established use |
+|---:|---|---|---|
+| `0x800117C8` | `gFile_szSuMrgPath` | `M:/mrgSU/SU.mrg` | Matching `File_RequestMainMenuPackage` passes it to `File_RequestAsyncTransfer` with file selector `1`, sector `0`, and count `0x73`; this is the named SU request that supplies the main-menu package. |
+| `0x80011580` | `gFile_szModelMrgPath` | `M:/mrgSU/model.mrg` | Referenced by `Model_LoadMonsterMerge` in the resident model-loader cohort. |
+| `0x800114F8` | `D_800114F8` | `M:/mrgSU/SU.mrg` | A second live copy referenced by `Model_LoadMonsterMerge` and `func_800507D0`; its exact role remains unnamed. |
+
+These strings support the merge-script model and may identify the original
+source module that included generated offsets. The duplicate `SU.mrg` strings
+cannot share one linker symbol: both addresses have live references, so each
+must retain an address-specific identity until its own use is understood.
+
+## Scope
+
+The original BIN/CUE remains an immutable LBA and sector-layout reference.
+Recovering MRG boundaries is performed only when needed to understand resident
+code or runtime overlays. General asset extraction and repacking remain outside
+the executable matching target.

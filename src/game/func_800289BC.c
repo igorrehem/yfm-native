@@ -1,0 +1,74 @@
+#include "../types.h"
+#include "../psyq/libgte.h"
+#include "../psyq/libgpu.h"
+#include "file_transfer.h"
+#include "duel_effect_resource_record.h"
+#include "duel_effect_resource_setup.h"
+#include "../unmatched.h"
+#ifdef MEMORIES_PC
+#include "pc/cards/cards.h"
+#include "pc/text/hd_text.h"
+#endif
+
+#define VRAM_UPLOAD_WORDS(address) ((u32 *G32)(address))
+
+void func_800289BC(FileTransferDescriptor *object, s32 mode)
+{
+    DuelEffectResourceRecord *e;
+    RECT *rect;
+    s32 b;
+    s32 x;
+
+    if (mode == 0) {
+        object->phase_size = 0x3800;
+        D_8009B0F4 &= 0xFFDCFFFF;
+        object->value_0C = D_8009B118;
+        object->value_08 = D_8009B118;
+        object->done = 1;
+        return;
+    }
+
+    e = &D_800EA0E8[(s32)object->callback_data];
+#ifdef MEMORIES_PC
+    /* A card a mod added may have artwork of its own over its base's. */
+    Cards_PatchArtRecord(e->field_30, (u8 *G32)D_8009B118);
+#endif
+
+    rect = &e->rects[0];
+    b = D_8009B118;
+    e->rects[0].w = 0x33;
+    e->rects[0].h = 0x60;
+    e->rects[0].x = e->src_x;
+    e->rects[0].y = e->src_y;
+    LoadImage(rect, VRAM_UPLOAD_WORDS(b));
+
+    rect = &e->rects[1];
+    x = e->field_2C;
+    b = D_8009B118 + 0x2640;
+    e->rects[1].w = 0x100;
+    e->rects[1].h = 1;
+    e->rects[1].x = x;
+    e->rects[1].y = e->field_2E;
+    LoadImage(rect, VRAM_UPLOAD_WORDS(b));
+
+    rect = &e->rects[2];
+    x = e->src_x;
+    b = D_8009B118 + 0x2840;
+    e->rects[2].w = 0x18;
+    e->rects[2].h = 0xE;
+    e->rects[2].x = x;
+    e->rects[2].y = e->src_y + 0x60;
+    LoadImage(rect, VRAM_UPLOAD_WORDS(b));
+#ifdef MEMORIES_PC
+    /* HD text sets the card's title anew from its name (hd_text.h). */
+    HdText_TitleUploaded(e->field_30, x, e->src_y + 0x60);
+#endif
+
+    rect = &e->rects[3];
+    b = D_8009B118 + 0x2AE0;
+    e->rects[3].w = 8;
+    e->rects[3].h = 0x58;
+    e->rects[3].x = e->src_x + 0x38;
+    e->rects[3].y = e->src_y;
+    LoadImage(rect, VRAM_UPLOAD_WORDS(b));
+}

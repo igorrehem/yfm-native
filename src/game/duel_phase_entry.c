@@ -1,0 +1,360 @@
+#define FUNC_80018004_AMBIENT_POSITION_ARGS
+#define GDUEL_WBGMID_IN_DATA
+#define D_8009B1B9_AS_SIGNED
+#include "../types.h"
+#include "duel_init_scene.h"
+#include "display_object.h"
+#include "duel_card.h"
+#include "duel_card_object_helpers.h"
+#include "duel_effect_request.h"
+#include "duel_card_record_lifecycle.h"
+#include "duel_card_staging.h"
+#include "duel_side_state.h"
+#include "duel_scene_state.h"
+#include "duel_phase_entry.h"
+#include "duel_scene_resume.h"
+#include "duel_scene_card_placement.h"
+#include "view_state.h"
+#include "card_constants.h"
+#include "duel_scene_state.h"
+#include "duel_hand.h"
+#include "duel_deck_card.h"
+#include "duel_rank.h"
+#include "fade.h"
+#include "file_transfer.h"
+#include "duel_selection_layout.h"
+
+#include "duel_card_layout.h"
+#include "duel_grid.h"
+#include "sound.h"
+#include "../unmatched.h"
+#include "func_80018004.h"
+#include "duel_apply_card_object_flags.h"
+#include "duel_deck_card_data.h"
+#include "duel_swords_effect.h"
+
+#define DUEL_CARD_DISPLAY_OBJECT_VIEW(object) \
+    ((DuelCardDisplayObject *)(object))
+
+/* Three contiguous entries from the gDuel_apfnSceneStateHandler duel-phase callback table:
+   resume/replay reconstruction, initial deck and selection setup, and draw
+   phase hand reconstruction. All three use gDuel_wSceneStateFlags as their first-call
+   latch and rebuild active duel-card and side state around fade or transfer
+   gates. */
+
+void DuelScene_UpdateResume(void)
+{
+    DuelCardRecord *rec;
+    DuelEffectRequest *obj;
+    u8 *b;
+    DisplayObject *card;
+    s32 i;
+    s32 keep;
+    s32 y;
+    u16 flags;
+    s8 n;
+#ifdef MEMORIES_PC
+    s32 defense_y;
+#endif
+
+    if ((gDuel_wSceneStateFlags & DUEL_SCENE_FLAG_INITIALIZED) == 0) {
+        gDuel_wSceneStateFlags |= DUEL_SCENE_FLAG_INITIALIZED;
+        rec = D_801A7B64;
+        for (i = HAND_SIZE; i < DUEL_CARD_SIDE_RECORD_COUNT; i++, rec++) {
+            flags = rec->flags;
+            if (flags & DUEL_CARD_FLAG_OCCUPIED) {
+                keep = flags & 0x7A00;
+                y = rec->stat_modifier;
+#ifdef MEMORIES_PC
+                defense_y = rec->defense_modifier;
+#endif
+                func_80024D34(i, ((s8 *)rec->data)[2]);
+                rec->flags |= keep;
+                rec->stat_modifier = y;
+#ifdef MEMORIES_PC
+                rec->defense_modifier = defense_y;
+#endif
+                Duel_ApplyCardObjectFlags(
+                    DUEL_CARD_DISPLAY_OBJECT_VIEW(rec->object));
+            }
+        }
+        rec = D_801A7B64 + 15;
+        for (i = 20; i < DUEL_CARD_RECORD_COUNT; i++, rec++) {
+            flags = rec->flags;
+            if (flags & DUEL_CARD_FLAG_OCCUPIED) {
+                keep = flags & 0x7A00;
+                y = rec->stat_modifier;
+#ifdef MEMORIES_PC
+                defense_y = rec->defense_modifier;
+#endif
+                func_80024D34(i, ((s8 *)rec->data)[2]);
+                rec->flags |= keep;
+                rec->stat_modifier = y;
+#ifdef MEMORIES_PC
+                rec->defense_modifier = defense_y;
+#endif
+                Duel_ApplyCardObjectFlags(
+                    DUEL_CARD_DISPLAY_OBJECT_VIEW(rec->object));
+            }
+        }
+        ViewState_ApplyOrbit();
+        for (i = 0; i < DUEL_SIDE_COUNT; i++) {
+            if (D_800E9FF0[i].swords_turns_remaining != 0) {
+                obj = (DuelEffectRequest *)DuelEffect_AllocateRequest(0x15);
+                obj->field_1A = i + 2;
+                obj->flags |= DUEL_EFFECT_REQUEST_FLAG_NONBLOCKING;
+                gDuel_apSwordsEffectObjects[i] =
+                    (DuelFieldEffectObject *)obj;
+            }
+        }
+        if (D_8009B1C8->rank.result_adjustment ==
+            DUEL_RANK_ADJUST_EXODIA_WIN) {
+            gDuel_wSceneStateFlags |= 0x2000;
+            for (i = 0; i < DUEL_FIELD_SIDE_ZONE_COUNT; i++) {
+                rec = &D_801A7AD8[D_800907D8[
+                    i + D_8009B1D5 * DUEL_FIELD_SIDE_GRID_SLOT_COUNT]];
+                if (rec->flags & DUEL_CARD_FLAG_OCCUPIED) {
+                    DuelCard_RemoveFromField(rec);
+                }
+            }
+        } else {
+            if (D_800E9FF0[0].life_points.signed_value != 0 &&
+                D_800E9FF0[1].life_points.signed_value != 0) {
+                SD_BGMPlay(gDuel_wBgmId);
+            }
+        }
+        Fade_StartIn();
+        return;
+    }
+
+    if ((gDuel_wSceneStateFlags & 0x4000) == 0) {
+        if (((D_8009B0F4_abs & FILE_TRANSFER_REQUEST_BLOCKED_MASK) |
+             D_8009B134_abs) != 0) {
+            return;
+        }
+        if ((gFade_State.flags & FADE_FLAG_ACTIVE) != 0) {
+            return;
+        }
+        gDuel_wSceneStateFlags |= 0x4000;
+        D_8009B1B9 = 2;
+        if ((gDuel_wSceneStateFlags & 0x2000) != 0) {
+            gDuel_wSceneStateFlags = 0xC;
+        }
+        return;
+    }
+
+    for (;;) {
+        n = D_8009B1B9 - 1;
+        D_8009B1B9 = n;
+        if (n < 0) {
+            gDuel_wSceneStateFlags = 5;
+            return;
+        }
+        if (D_8009B208[n] >= 0) {
+            break;
+        }
+    }
+    {
+        s32 replay_offset = DUEL_CARD_STAGING_REPLAY_BASE_OFFSET;
+        DuelCardReplayRecordBlock *replay;
+
+        b = D_8015C424;
+        replay = (DuelCardReplayRecordBlock *)(
+            (u8 *)&((DuelCardRecord *)b)[D_8009B208[n]] + replay_offset);
+        card = replay->record.object;
+    }
+    ViewState_ApplyOrbit();
+    obj = DuelEffect_CreateRequest(0xB);
+    obj->field_00 = card->field_30.h.field_30;
+    obj->field_02 = card->field_30.h.field_32;
+    obj->field_04 = *(u16 *)&card->field_34;
+    obj->field_1A = Duel_GetCardEffectVariant((CardObject *)card);
+    DuelCard_RemoveFromField(&D_801A7AD8[card->field_6A]);
+    SD_SEPlayFull(0x1F);
+}
+
+void DuelScene_UpdateStartup(void)
+{
+    u16 *w;
+    DuelDeckCardRecord *rec;
+    s32 i;
+    s32 atk;
+    s32 def;
+    s32 stat;
+    s32 stat2;
+
+    w = (u16 *)&D_800F2848;
+    if ((gDuel_wSceneStateFlags & DUEL_SCENE_FLAG_INITIALIZED) == 0) {
+        gDuel_wSceneStateFlags |= DUEL_SCENE_FLAG_INITIALIZED;
+        Duel_RequestCombinedDeckData();
+        D_800F2848.field_00 = 0x4B0;
+        w[2] = 0x358;
+        w[1] = 0x16C0;
+        ViewState_ApplyOrbit();
+        D_8009B174 = 2;
+        Fade_StartIn();
+        return;
+    }
+
+    switch (D_8009B174 & 0x1F) {
+    case 2:
+        D_800F2848.field_00 -= 2;
+        w[2] -= 2;
+        w[1] -= 0x10;
+        if ((s16)w[1] <= 0x400) {
+            D_800F2848.field_00 = 0x258;
+            w[2] = 0x100;
+            w[1] = 0x400;
+            D_8009B174 = 3;
+        }
+        ViewState_ApplyOrbit();
+        break;
+    case 3:
+        if ((D_8009B174 & 0x80) == 0) {
+            D_8009B174 |= 0x80;
+            D_8009B162 = 2;
+            D_8009B1B4 = (DuelCardPickCursor *)(D_800E9F10 +
+                D_8009B1D5 * DUEL_SELECTION_SIDE_SIZE);
+            *(u16 *)&D_8009B1B4->field_0C = 0xAE;
+        }
+        if (D_8009B162 == 0) {
+            D_8009B174 = 4;
+        }
+        break;
+    case 4: {
+        u32 mask = FILE_TRANSFER_REQUEST_BLOCKED_MASK;
+
+        if (((D_8009B0F4_abs & mask) |
+             D_8009B134_abs) != 0) {
+            break;
+        }
+        SD_BGMPlay(gDuel_wBgmId);
+        Duel_PopulateCombinedDeckData();
+        atk = 0;
+        def = 0;
+        rec = gDuel_aDeckCardRecords;
+        for (i = 0; i < DECK_SIZE; i++, rec++) {
+            stat = gDuel_adwCardStats[rec->id - 1];
+            atk += (stat & CARD_STAT_VALUE_MASK) * CARD_STAT_SCALE;
+            def += ((stat >> CARD_STAT_DEFENSE_SHIFT) & CARD_STAT_VALUE_MASK) *
+                   CARD_STAT_SCALE;
+        }
+        D_800E9FF0[0].field_0E = atk / DECK_SIZE;
+        D_800E9FF0[0].field_10 = def / DECK_SIZE;
+        atk = 0;
+        def = 0;
+        rec = &gDuel_aDeckCardRecords[DECK_SIZE];
+        for (i = 0; i < DECK_SIZE; i++, rec++) {
+            stat2 = gDuel_adwCardStats[rec->id - 1];
+            atk += (stat2 & CARD_STAT_VALUE_MASK) * CARD_STAT_SCALE;
+            def += ((stat2 >> CARD_STAT_DEFENSE_SHIFT) & CARD_STAT_VALUE_MASK) *
+                   CARD_STAT_SCALE;
+        }
+        D_800E9FF0[1].field_0E = atk / DECK_SIZE;
+        D_800E9FF0[1].field_10 = def / DECK_SIZE;
+        D_8009B174 = 5;
+        break;
+    }
+    case 5:
+        Duel_ClearHandSlots();
+        D_8009B1EC = HAND_SIZE;
+        gDuel_wSceneStateFlags = 3;
+        ((DuelSelectionSideView *)(D_800E9F10 +
+            D_8009B1D5 * DUEL_SELECTION_SIDE_SIZE))->hand = D_800EA030;
+        break;
+    }
+}
+
+/* Draw phase entry. On its first call it sets the phase flag, points the
+   side state and selection records at the current side, ticks down the
+   side's Swords counter (releasing its effect object when
+   it reaches zero), resets the used flag on every card record, then
+   rebuilds the hand: the five hand slot bytes are copied out and cleared,
+   each valid one gets its card record set up and a hand object spawned at
+   a fixed x and a 0x3C-spaced y, and the number of empty slots is stored
+   for the draw. Later calls only clear the phase flag once the message
+   state has returned to zero. */
+void DuelScene_UpdateDrawPhase(void) {
+    u8 hand[HAND_SIZE];
+    DuelCardRecord *rec;
+    u8 *fl;
+    DuelCardRecord *placed;
+    DuelHandSlot *base;
+    DuelHandSlot *slot;
+    u8 *p;
+    s32 side;
+    s32 i;
+    s32 n;
+    s32 idx;
+    s32 y;
+    u16 flags;
+    s8 c;
+
+    if ((gDuel_wSceneStateFlags & DUEL_SCENE_FLAG_INITIALIZED) == 0) {
+        gDuel_wSceneStateFlags |= DUEL_SCENE_FLAG_INITIALIZED;
+        *(u16 *)&D_8009B21C->field_40.h.field_40 =
+            (D_8009B1D5 << 4) | 0x2E0;
+        Duel_ClearHandSlots();
+        side = D_8009B1D5;
+        D_8009B1C8 = &D_800E9FF0[side];
+        D_8009B1B4 = (DuelCardPickCursor *)(D_800E9F10 +
+                side * DUEL_SELECTION_SIDE_SIZE);
+        base = D_800EA030;
+        ((DuelSelectionSideView *)D_8009B1B4)->hand = base;
+        if (D_8009B1C8->swords_turns_remaining != 0) {
+            c = D_8009B1C8->swords_turns_remaining - 1;
+            D_8009B1C8->swords_turns_remaining = c;
+            if (c <= 0) {
+                D_8009B1C8->swords_turns_remaining = 0;
+                gDuel_apSwordsEffectObjects[D_8009B1D5]->field_1A =
+                    0xFFFD - D_8009B1D5;
+                gDuel_apSwordsEffectObjects[D_8009B1D5] = 0;
+            }
+        }
+        D_8009B1C8->rank.turns_taken++;
+        rec = D_801A7AD8;
+        for (i = 0; i < DUEL_CARD_RECORD_COUNT; i++, rec++) {
+            flags = rec->flags;
+            if (flags & DUEL_CARD_FLAG_OCCUPIED) {
+                rec->flags = flags & ~DUEL_CARD_FLAG_USED_THIS_TURN;
+                Duel_ApplyCardObjectFlags(
+                    DUEL_CARD_DISPLAY_OBJECT_VIEW(rec->object));
+            } else {
+                rec->flags = 0;
+            }
+        }
+        for (i = 0; i < HAND_SIZE; i++) {
+            hand[i] = D_8009B1C8->hand[i];
+            D_8009B1C8->hand[i] = -1;
+        }
+        n = 0;
+        i = n;
+        slot = base;
+        y = 0xE;
+        idx = D_8009B1D5 * DUEL_CARD_SIDE_RECORD_COUNT;
+        rec = &D_801A7AD8[idx];
+        placed = rec;
+        for (; i < HAND_SIZE; i++, rec++) {
+            p = &hand[i];
+            rec->flags = 0;
+            rec->object = 0;
+            if (*(s8 *)p >= 0) {
+                D_8009B1C8->hand[n] = *p;
+                Duel_SetupCardRecord(idx, *(s8 *)p);
+                idx++;
+                n++;
+                slot->object = (u8 *)func_80018004(placed, y, 0x292);
+                slot++;
+                y += 0x3C;
+                placed++;
+            }
+        }
+        D_8009B1EC = HAND_SIZE - n;
+        D_8009B162 = 2;
+        D_8009B1B4 = (DuelCardPickCursor *)(D_800E9F10 +
+                D_8009B1D5 * DUEL_SELECTION_SIDE_SIZE);
+        *(u16 *)&D_8009B1B4->field_0C = 0xAE;
+    } else if (D_8009B162 == 0) {
+        gDuel_wSceneStateFlags = 3;
+    }
+}

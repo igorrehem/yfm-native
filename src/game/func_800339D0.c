@@ -1,0 +1,164 @@
+#define D_8009B140_IN_DATA
+#define D_8009AF74_IN_DATA
+#define D_8009B09C_IN_DATA
+#define GDIALOG_CHOICE_IN_DATA
+#include "../types.h"
+#include "func_80032B38.h"
+#include "duel_effect.h"
+#include "fade.h"
+#include "card_constants.h"
+#include "text_box_lifecycle.h"
+#include "sound.h"
+#include "func_80039794.h"
+#include "display_object_helpers.h"
+#include "build_deck_transition_state.h"
+#include "graphics_frame.h"
+#include "func_800339D0.h"
+#include "duel_transition_step_table.h"
+#include "../psyq/rand.h"
+#include "duel_reward_setup.h"
+#include "build_deck_deck_capacity.h"
+#include "dialog_choice.h"
+#include "../unmatched.h"
+#ifdef MEMORIES_PC
+#include "pc/cards/cards.h"
+#endif
+
+#define DISPLAY_OBJECT_COLOR_BYTES(object) ((u8 *)&(object)->field_0C)
+
+/* Handles leaving the deck editor. When the editor's own check passes, the
+ * confirm sound plays and, if the deck has an open slot
+ * (BuildDeck_HasOpenDeckSlot), bit 14 of the state word at +0x633E is set, a
+ * confirmation box is created (the wide
+ * one in the 640-wide mode selected by bit 7 of D_8009B2F8, the narrow one
+ * otherwise, which is then waited on until its field_30 pointer is filled),
+ * Fade_SetTargetLevel(0xA0, 2) runs and D_8009B140 is set from D_8009AF74[1] - 8.
+ * With bit 14 set the effect channel at D_800EB0F8 is polled: once its flags
+ * match TEXT_BOX_FLAG_DONE under TEXT_BOX_COMPLETION_MASK, the box is
+ * destroyed and either bit 14
+ * is cleared (narrow mode with a choice made) or the state word is reloaded
+ * from +0x6340 and Fade_SetTargetLevel(0xFF, 2) runs. Without bit 14 the CARD_COUNT
+ * trunk bytes at +0x5D98 are copied after the DECK_SIZE halfwords of the
+ * object at +0. Those halfwords are rebuilt from the 0x10-byte entries at
+ * +0x2D54 whose byte 9 is set, func_80032370 runs and the state word is
+ * cleared. */
+void func_800339D0(BuildDeckTransitionState *record)
+{
+    BuildDeckTransitionState *workspace = record;
+    DuelEffectChannel *box;
+    u8 *src;
+    u8 *dst;
+    u16 *slot;
+    CardEntry *entry;
+    s32 mode;
+    s32 i;
+
+    if (BuildDeck_TestAndSetInitialized(workspace) == 0) {
+        SD_SEPlayFull(8);
+        if (BuildDeck_HasOpenDeckSlot() != 0) {
+            /* The mode byte is read before the flag store, as retail
+               schedules it. */
+            mode = D_8009B2F8 & BUILD_DECK_CONFIRM_FLAG_WIDE_DIALOG;
+            workspace->state |= 0x4000;
+            if (mode) {
+                ((DuelEffectChannel *)TextBox_CreateFlagged(
+                    0, 8, 0x28, 0x78, 0xF0, 0x10, 0x1028
+                ))->field_59 = 0xA;
+            } else {
+                box = TextBox_CreateFlagged(0, 9, 0x30, 0x60, 0xE0, 0x30, 0x20);
+                box->field_59 = 0xA;
+                do {
+                    func_80039794();
+                } while (box->field_30 == 0);
+            }
+            Fade_SetTargetLevel(0xA0, 2);
+            D_8009B140 = *(u8 *)&D_8009AF74[1] - 8;
+        }
+    }
+    /* Computed before the branch: it is only used on the copy path, so it
+       crosses no call, and reorg lifts it into the branch delay slot. */
+    src = &workspace->chest_card_quantities[CARD_ID_FIRST];
+    if (workspace->state & 0x4000) {
+        func_80039794();
+        /* The same variable as the confirmation box, which keeps the
+           channel in $s0 across the destroy call. */
+        box = D_800EB0F8;
+        if ((*(u32 *)&box->flags_34 & TEXT_BOX_COMPLETION_MASK) ==
+            TEXT_BOX_FLAG_DONE) {
+            TextBox_Destroy(box);
+            if (!(D_8009B2F8 & BUILD_DECK_CONFIRM_FLAG_WIDE_DIALOG) &&
+                gDialog_bChoice != 0) {
+                workspace->state &= 0xBFFF;
+            } else {
+                workspace->state = workspace->next_state;
+                Fade_SetTargetLevel(0xFF, 2);
+            }
+        }
+    } else {
+        /* One counter for both loops, initialised before the pointers each
+           time; that is what ranks the counter and the pointers into
+           retail's argument registers. */
+        i = 0;
+        dst = (u8 *)(workspace->deck_cards + DECK_SIZE);
+        for (; i < CARD_COUNT; i++) {
+            *dst++ = *src++;
+        }
+#ifdef MEMORIES_PC
+        /* The cards past the disc's keep their trunk outside the save. */
+        for (i = CARD_ID_END; i <= CARD_COUNT_LIVE; i++) {
+            *Cards_ChestSlot(workspace->deck_cards, i) =
+                workspace->chest_card_quantities[i];
+        }
+#endif
+        slot = workspace->deck_cards;
+        i = 0;
+        entry = workspace->lists[1].entries;
+        for (; i < DECK_SIZE; i++) {
+            *slot = 0;
+            if (entry->flags != 0) {
+                *slot = entry->id;
+            }
+            slot++;
+            entry++;
+        }
+        func_80032370();
+        workspace->state = 0;
+    }
+}
+
+/* Per-frame Build Deck transition driver. It pulses both pane colors, then
+ * dispatches the current step through D_80090DF8; func_800339D0 above is the
+ * table's exit step. */
+s32 func_80033BE8(void)
+{
+    s32 intensity;
+    s32 color;
+    BuildDeckTransitionState *base;
+    DisplayObject *first;
+    DisplayObject *second;
+
+    rand();
+
+    intensity = D_8009B09C & 0x3F;
+    if (intensity >= 0x20) {
+        intensity = 0x3F - intensity;
+    }
+
+    base = gBuildDeck_pState;
+    color = intensity * 2 + 0x40;
+    first = base->lists[0].cursor_box;
+    second = base->lists[1].cursor_box;
+
+    DISPLAY_OBJECT_COLOR_BYTES(second)[2] = color;
+    DISPLAY_OBJECT_COLOR_BYTES(second)[1] = color;
+    DISPLAY_OBJECT_COLOR_BYTES(second)[0] = color;
+    DISPLAY_OBJECT_COLOR_BYTES(first)[2] = color;
+    DISPLAY_OBJECT_COLOR_BYTES(first)[1] = color;
+    DISPLAY_OBJECT_COLOR_BYTES(first)[0] = color;
+
+    if (DuelEffect_UpdateState() == 0) {
+        D_80090DF8[gBuildDeck_pState->state & 0x3F](gBuildDeck_pState);
+    }
+
+    return gBuildDeck_pState->state;
+}

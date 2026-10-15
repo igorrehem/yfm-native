@@ -1,0 +1,12 @@
+{
+    "id": "c",
+    "name": "C",
+    "drops": {
+        "Heishin": {
+            "pow": {
+                "replace": true,
+                "Mystical Elf": 5
+            }
+        }
+    }
+}

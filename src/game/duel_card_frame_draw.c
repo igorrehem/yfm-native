@@ -1,0 +1,336 @@
+#include "../types.h"
+#include "../psyq/libgte.h"
+#include "../psyq/libgpu.h"
+#include "text_encode_decimal_digits.h"
+#include "duel_card.h"
+#include "display_object_projection.h"
+#include "display_object_layout.h"
+#include "display_object.h"
+#include "card_constants.h"
+#include "duel_card_layout.h"
+#include "sprite_primitive.h"
+#include "display_object_packet_submit.h"
+#include "func_80016784.h"
+#include "duel_draw_card_output_position.h"
+#ifdef MEMORIES_PC
+#include "../psyq/libgs.h"
+#include "pc/cards/cards.h"
+#include "pc/cards/card_layout_art.h"
+#endif
+
+#define POLY_FT4_BYTES(packet) ((u8 *)(packet))
+#define CARD_FRAME_SCRATCH_BYTES(scratch) ((u8 *)(scratch))
+
+/* Draws one card's frame on the duel field: position, the hand/field
+ * flags, the card-number digits (via Duel_CalcCardStats and
+ * Text_EncodeDecimalDigits) and the face/back sprite, through
+ * DisplayObject_SubmitPacket on the 0x1F8003xx scratchpad records.
+ *
+ * The two records it fills are SpritePrim, the GsSPRITE sprite_primitive.h
+ * already spells for the two display-object renderers, which build theirs at
+ * the same 0x1F800320. This one builds a second at 0x1F800000 for the card
+ * art and reuses 0x1F800320 for the number digits, the spell-class frame and
+ * the card face, resetting the fields it needs between submissions.
+ *
+ * The third scratch record, at 0x1F800344, is the POLY_FT4 the clip path
+ * primes (len 9, code 0x2C) with the object's color, and the record at
+ * 0x1F8003E0 is CardFrameScratch above.
+ *
+ * All three reads of the color word at 0x0C sit between scratchpad stores,
+ * and the target keeps every one of them where the source puts it. That used
+ * to need the read spelled through a cast, because a member read is a struct
+ * reference and GCC 2.8.1 floats one across stores that are not. With the
+ * scratchpad records typed, those stores are struct references too, the
+ * reads stay put, and every offset this function touches is a member. */
+void func_80016784(DisplayObject *object, s32 arg1, s32 arg2, s32 arg3) {
+    u8 sp18[8];
+    u8 sp20[8];
+    DuelCardRecord *card;
+    s32 fl;
+    s32 i;
+    SpritePrim *k;
+    CardFrameScratch *o;
+    s32 n;
+    s32 d;
+    s32 g1;
+    s32 g2;
+    s32 t;
+    SpritePrim *z;
+    POLY_FT4 *y;
+#ifdef MEMORIES_PC
+    s32 wide;
+    s32 hand_tpage, hand_u, hand_v, hand_clut, hand_w, hand_h;
+    s32 back_tpage, back_u, back_v, back_clut, back_w, back_h;
+#endif
+
+    if ((u32)(arg2 + 0x33) < 0x173) {
+        if (arg3 >= -0x3B) {
+            if (arg3 < 0xF0) {
+                o = (CardFrameScratch *)SCRATCHPAD_ADDR(0x1F8003E0);
+                k = (SpritePrim *)SCRATCHPAD_ADDR(0x1F800320);
+                y = (POLY_FT4 *)SCRATCHPAD_ADDR(0x1F800344);
+                z = (SpritePrim *)SCRATCHPAD_ADDR(0x1F800000);
+                card = &D_801A7AD8[object->field_6A];
+                o->pos.h.x = arg2;
+                o->pos.h.y = arg3;
+                fl = object->field_14 | 0x10000;
+                t = object->attribute;
+                k->attribute = t;
+                z->attribute = t;
+                object->field_69 = 0;
+                if (object->flags & DISPLAY_OBJECT_FLAG_CLIP_TEST) {
+                    fl = object->field_14 | 0xF0000;
+                    if (func_80041F90(object,
+                                      (s16)o->pos.h.x + 0x1A,
+                                      (s16)o->pos.h.y + 0x1E,
+                                      (struct ProjectionOut *)SCRATCHPAD_ADDR(0x1F8003E0)) < 0) {
+                        return;
+                    }
+                    g1 = object->field_0C;
+                    setlen(y, 9);
+                    *(s32 *)&y->r0 = g1;
+                    y->code = 0x2C;
+                    if ((object->field_20.word & 0xFFFFFF) == 0) {
+                        k->attribute = k->attribute | 0x80;
+                        z->attribute = k->attribute;
+                    }
+                }
+                k->tpage = 0x1E;
+                g2 = object->field_0C;
+                k->cxcy.word = 0xF10100;
+                k->rgb = g2;
+                n = object->field_67;
+                if (n != 0) {
+                    if (n < 0x29) {
+                        k->extent.word = 0x10000C;
+                        k->uv.b.hi = 0x70;
+                        k->xy.h.x = o->pos.h.x + 0xF;
+                        k->xy.h.y = o->pos.h.y + 0xF;
+                        k->uv.b.lo = (n / 10) * 0xC;
+                        DisplayObject_SubmitPacket(
+                            k, POLY_FT4_BYTES(y), arg1, fl,
+                            CARD_FRAME_SCRATCH_BYTES(o));
+                        k->uv.b.lo = (n % 10) * 0xC;
+                        k->xy.h.x = k->xy.h.x + 0xC;
+                        DisplayObject_SubmitPacket(
+                            k, POLY_FT4_BYTES(y), arg1, fl,
+                            CARD_FRAME_SCRATCH_BYTES(o));
+                    }
+                } else if (object->field_69 == 0) {
+                    k->extent.word = 0x100020;
+                    k->uv.word = 0x6000;
+                    k->xy.h.x = o->pos.h.x + 0xA;
+                    k->xy.h.y = o->pos.h.y + 0x28;
+                    switch (object->field_68) {
+                    case CARD_TYPE_EQUIP:
+                        k->uv.b.lo = 0x20;
+                    case CARD_TYPE_MAGIC:
+                        DisplayObject_SubmitPacket(
+                            k, POLY_FT4_BYTES(y), arg1, fl,
+                            CARD_FRAME_SCRATCH_BYTES(o));
+                        k->cxcy.h.cy = k->cxcy.h.cy + 1;
+                        break;
+                    case CARD_TYPE_TRAP:
+                        k->uv.b.lo = 0x40;
+                        DisplayObject_SubmitPacket(
+                            k, POLY_FT4_BYTES(y), arg1, fl,
+                            CARD_FRAME_SCRATCH_BYTES(o));
+                        k->cxcy.h.cy = k->cxcy.h.cy + 2;
+                        break;
+                    case CARD_TYPE_RITUAL:
+                        k->uv.b.lo = 0x60;
+                        DisplayObject_SubmitPacket(
+                            k, POLY_FT4_BYTES(y), arg1, fl,
+                            CARD_FRAME_SCRATCH_BYTES(o));
+                        k->cxcy.h.cy = k->cxcy.h.cy + 3;
+                        break;
+                    default:
+#ifdef MEMORIES_PC
+                        /* ATK or DEF past 9999 (a mod's "limits",
+                           pc/cards/tables.h): five digits a row, seven
+                           pixels apart from two further left, and the
+                           sword and shield two to the left, all inside the
+                           card. Under 10000 nothing moves. */
+                        d = Duel_CalcCardStats(card);
+                        wide = (d & 0xFFFF) >= 10000 || ((u32)d >> 16) >= 10000;
+#endif
+                        k->extent.word = 0x100008;
+                        k->uv.word = 0x7078;
+                        k->xy.h.x = o->pos.h.x + 5;
+#ifdef MEMORIES_PC
+                        if (wide) {
+                            k->xy.h.x = o->pos.h.x + 3;
+                        }
+#endif
+                        DisplayObject_SubmitPacket(
+                            k, POLY_FT4_BYTES(y), arg1, fl,
+                            CARD_FRAME_SCRATCH_BYTES(o));
+                        k->uv.b.hi = 0x58;
+                        k->extent.wh.h = 8;
+                        k->xy.h.x = o->pos.h.x + 0xE;
+#ifdef MEMORIES_PC
+                        if (wide) {
+                            k->xy.h.x = o->pos.h.x + 0xB;
+                            Text_EncodeDecimalDigits(d & 0xFFFF, 5, sp18);
+                            Text_EncodeDecimalDigits((u32)d >> 16, 5, sp20);
+                            i = 4;
+                            do {
+                                k->uv.b.lo = sp18[i] * 8;
+                                DisplayObject_SubmitPacket(
+                                    k, POLY_FT4_BYTES(y), arg1, fl,
+                                    CARD_FRAME_SCRATCH_BYTES(o));
+                                k->xy.h.y = k->xy.h.y + 8;
+                                k->uv.b.lo = sp20[i] * 8;
+                                DisplayObject_SubmitPacket(
+                                    k, POLY_FT4_BYTES(y), arg1, fl,
+                                    CARD_FRAME_SCRATCH_BYTES(o));
+                                i--;
+                                k->xy.h.x = k->xy.h.x + 7;
+                                k->xy.h.y = k->xy.h.y - 8;
+                            } while (i >= 0);
+                            break;
+                        }
+#endif
+                        d = Duel_CalcCardStats(card);
+                        Text_EncodeDecimalDigits((s16)d, 4, sp18);
+                        Text_EncodeDecimalDigits(d >> 0x10, 4, sp20);
+                        i = 3;
+                        do {
+                            k->uv.b.lo = sp18[i] * 8;
+                            DisplayObject_SubmitPacket(
+                                k, POLY_FT4_BYTES(y), arg1, fl,
+                                CARD_FRAME_SCRATCH_BYTES(o));
+                            k->xy.h.y = k->xy.h.y + 8;
+                            k->uv.b.lo = sp20[i] * 8;
+                            DisplayObject_SubmitPacket(
+                                k, POLY_FT4_BYTES(y), arg1, fl,
+                                CARD_FRAME_SCRATCH_BYTES(o));
+                            i--;
+                            k->xy.h.x = k->xy.h.x + 8;
+                            k->xy.h.y = k->xy.h.y - 8;
+                        } while (i >= 0);
+                        break;
+                    }
+#ifdef MEMORIES_PC
+                    /* A mod's frame color (Cards_FrameColor): the face's
+                     * palette row, after the type's kind word or stats. */
+                    if (Cards_FrameColor(card->card_id) >= 0) {
+                        k->cxcy.h.cy = 0xF1 + Cards_FrameColor(card->card_id);
+                    }
+#endif
+                    z->tpage = 0xE;
+                    z->rgb = object->field_0C;
+                    z->xy.h.x = o->pos.h.x + 6;
+                    z->xy.h.y = o->pos.h.y + 6;
+                    i = (s8)card->table_index;
+                    z->cxcy.h.cx = 0x380;
+                    z->cxcy.h.cy = i + 0xE0;
+                    z->uv.b.lo = (i % 5) * 0x28;
+                    z->extent.word = 0x200028;
+                    z->uv.b.hi = (i / 5) << 5;
+                    DisplayObject_SubmitPacket(
+                        z, POLY_FT4_BYTES(y), arg1, fl,
+                        CARD_FRAME_SCRATCH_BYTES(o));
+                }
+                k->extent.word = 0x3C0034;
+                k->uv.word = 0x8000;
+                k->xy.word = o->pos.word;
+                if (object->field_67 != 0) {
+                    k->uv.word = 0xC000;
+                }
+                if (object->field_69 != 0) {
+                    k->uv.word = 0x8038;
+                    k->cxcy.word = 0xF10100;
+                }
+#ifdef MEMORIES_PC
+                /* A frame style's hand_image replaces only this flat 52x60
+                 * duel sprite, and only while the card is face up: object->
+                 * field_69 just above picked retail's own generic card-back
+                 * uv/clut for a face-down card (including mid-flip, which
+                 * draws through this same function), and a style's art has
+                 * no "back" of its own to show there. Its card art, stats
+                 * and type marker above remain the game's own overlays. */
+                if (object->field_69 == 0 && object->field_67 == 0 &&   /* not the 0xC000 variant */
+                    CardLayoutArt_HandFrameCell(card->card_id, &hand_tpage, &hand_u, &hand_v,
+                                                 &hand_clut, &hand_w, &hand_h)) {
+                    /* `fl` here is field_14|0x10000 for an ordinary (not
+                     * clip-tested) card -- DisplayObject_SubmitPacket's case
+                     * 1, GsSortFastSprite, whose own packet keeps only 5 bits
+                     * of tpage (page location alone; depth and bank come
+                     * from whatever DrawMode the GPU already has set, not
+                     * from the sprite). Fine for retail's own flat sprite,
+                     * always real VRAM; not for a style's own hand_image, in
+                     * its own bank at 8bpp, whose bank and depth bits that
+                     * mask silently drops -- the same limit func_80029EC4.c's
+                     * Library icon hits. Submitted as its own textured quad
+                     * instead (not through `k`, whose scratchpad address always
+                     * has DisplayObject_SubmitPacket's own 0x04000000
+                     * "projected" bit set, which would misroute a case-5-style
+                     * dispatch into a perspective transform this flat sprite
+                     * never wants), whose tpage field is a full word. */
+                    POLY_FT4 quad;
+                    setPolyFT4(&quad);
+                    /* pad1/pad2 are the upper half of a bank-sampling
+                     * polygon's own fade (soft_gpu.h's SoftGpu_FadeOf) -- a
+                     * stack local leaves them whatever the stack held, which
+                     * CardLayout_DrawCell (func_80028B08.c) already has to
+                     * zero for the same reason. Left alone, a stray 0x8000
+                     * bit fades the hand frame into whatever is behind it at
+                     * a random amount -- the "semi transparent" look. */
+                    quad.pad1 = quad.pad2 = 0;
+                    quad.r0 = (u8)g2;
+                    quad.g0 = (u8)(g2 >> 8);
+                    quad.b0 = (u8)(g2 >> 16);
+                    quad.tpage = (u16)hand_tpage;
+                    quad.clut = (u16)hand_clut;
+                    quad.x0 = quad.x2 = o->pos.h.x;
+                    quad.x1 = quad.x3 = (short)(o->pos.h.x + hand_w);
+                    quad.y0 = quad.y1 = o->pos.h.y;
+                    quad.y2 = quad.y3 = (short)(o->pos.h.y + hand_h);
+                    quad.u0 = quad.u2 = (u8)hand_u;
+                    quad.u1 = quad.u3 = (u8)(hand_u + hand_w);
+                    quad.v0 = quad.v1 = (u8)hand_v;
+                    quad.v2 = quad.v3 = (u8)(hand_v + hand_h);
+                    GsSortPoly(&quad, (GsOT *G32)arg1, (u16)fl);
+                    return;
+                }
+                /* The mirror case: the card is face down (or mid-flip,
+                 * which also draws through this function), and the style
+                 * has its own "field_back_image" for what retail would
+                 * otherwise draw from k->uv/cxcy just above. Same bank/tpage
+                 * reasoning as the face-up quad above. */
+                if (object->field_69 != 0 &&
+                    CardLayoutArt_FieldBackCell(card->card_id, &back_tpage, &back_u, &back_v,
+                                                 &back_clut, &back_w, &back_h)) {
+                    POLY_FT4 quad;
+                    setPolyFT4(&quad);
+                    quad.pad1 = quad.pad2 = 0;
+                    quad.r0 = (u8)g2;
+                    quad.g0 = (u8)(g2 >> 8);
+                    quad.b0 = (u8)(g2 >> 16);
+                    quad.tpage = (u16)back_tpage;
+                    quad.clut = (u16)back_clut;
+                    quad.x0 = quad.x2 = o->pos.h.x;
+                    quad.x1 = quad.x3 = (short)(o->pos.h.x + back_w);
+                    quad.y0 = quad.y1 = o->pos.h.y;
+                    quad.y2 = quad.y3 = (short)(o->pos.h.y + back_h);
+                    quad.u0 = quad.u2 = (u8)back_u;
+                    quad.u1 = quad.u3 = (u8)(back_u + back_w);
+                    quad.v0 = quad.v1 = (u8)back_v;
+                    quad.v2 = quad.v3 = (u8)(back_v + back_h);
+                    GsSortPoly(&quad, (GsOT *G32)arg1, (u16)fl);
+                    return;
+                }
+#endif
+                DisplayObject_SubmitPacket(
+                    k, POLY_FT4_BYTES(y), arg1, fl,
+                    CARD_FRAME_SCRATCH_BYTES(o));
+            }
+        }
+    }
+}
+
+void Duel_DrawCardAtOutputPosition(DisplayObjectPosition *object, s32 arg1)
+{
+    func_80016784((DisplayObject *)object, arg1, object->out_x, object->out_y);
+}

@@ -1,0 +1,115 @@
+#define D_8009B0C0_IN_DATA
+#define D_8009B362_IN_DATA
+#define D_8009B369_IN_DATA
+#define D_8009B368_IN_DATA
+#define MAIN_MODE_STATE_NEXT_AS_SCALAR
+#define MAIN_MODE_STATE_ACTIVE_AS_SCALAR
+#define D_8009B2F8_AS_ABSOLUTE_ARRAY
+#define D_8009B370_AS_ABSOLUTE_ARRAY
+#define GCAMPAIGN_SCENE_INDEX_AS_ABSOLUTE_ARRAY
+#define D_8009B16C_IN_DATA
+#include "../types.h"
+#include "../game/ai_opponent_data.h"
+#include "../game/duel_check_quit_input.h"
+#include "../game/duel_init_scene.h"
+#include "../game/func_80024DC8.h"
+#include "../game/graphics_frame.h"
+#include "../game/func_800323F8.h"
+#include "../game/func_800339D0.h"
+#include "../game/save_data.h"
+#include "../game/main_frame.h"
+#include "../game/fade.h"
+#include "../game/file_transfer.h"
+#include "../game/main_modes.h"
+#include "../game/main_reset_frontend_runtime.h"
+#ifdef MEMORIES_PC
+#include "pc/saves/deck_menu.h"
+#endif
+#include "../game/main_services.h"
+#include "../game/sound.h"
+#include "../game/sound_pending_entries.h"
+#include "../game/sound_voice_selection.h"
+#include "../game/library_runtime.h"
+#include "../game/duel_scene_update.h"
+#include "../game/duel_side_state.h"
+#define D_8009B2F8_AS_ARRAY
+#define GCAMPAIGN_SCENE_INDEX_AS_ARRAY
+#define D_8009B370_AS_BYTE_ARRAY
+#include "../unmatched.h"
+
+u8 D_8009B26C;
+
+#define HIGH_MEMORY_ADDRESSES_MODEL_PREFIX
+#include "../game/high_memory_addresses.h"
+#include "../game/main_mode_state.h"
+
+void Main_RunDuel(void)
+{
+    u8 value = D_8009B26C;
+    int state;
+
+    if (!(value & 0x40)) {
+        D_8009B26C = value | 0x40;
+        D_8009B26E = 1;
+        if (!D_8009B369 && gDuel_bOpponentID >= 0)
+            D_8009B26E = 0;
+        D_8009B0A3[0] = 10;
+        return;
+    }
+
+    value = D_8009B26E;
+    state = value & 0xF;
+    switch (state) {
+    case 0:
+        if (!(value & 0x80)) {
+#ifdef MEMORIES_PC
+            if (DeckMenu_DuelChestEntry()) break; /* which deck first (deck_menu.h) */
+#endif
+            D_8009B26E = value | 0x80;
+            D_8009B2F8[0] = 0x80;
+            func_800323F8(BUILD_DECK_WORKSPACE(D_80010000[0].payload_bases[0]),
+                         (u8 *)gDuel_awPlayerDeck, 0, 0x80);
+            Fade_WaitIn();
+        } else if (func_80033BE8() == 0) {
+            SD_BGMFadeOut();
+            Fade_WaitOut();
+            Main_ResetFrontendRuntime();
+#ifdef MEMORIES_PC
+            if (DeckMenu_DuelChestLeft()) { /* F6 in it: the deck list, then the chest again */
+                D_8009B26E = 0;
+                break;
+            }
+#endif
+            D_8009B26E = 1;
+        }
+        break;
+    case 1:
+        if (!(value & 0x80)) {
+            D_8009B26E = value | 0x80;
+            Duel_InitScene();
+        } else {
+            DuelScene_UpdateWithSideInput();
+            if (D_8009B16C & 0x2000)
+                D_8009B26E = 2;
+        }
+        break;
+    case 2:
+    {
+        u8 *table = D_8009B370;
+        u8 next;
+
+        Fade_WaitOut();
+        SD_BGMFadeOut();
+        func_80047AD0(2);
+        Main_ClearFrameServiceCallbacks();
+        D_8009B0A3[0] = 6;
+        Main_AdvanceFrames(4);
+        File_WaitForTransfers();
+        next = D_8009B368;
+        D_8009B26C = next;
+        if (D_8009B26C == state)
+            gCampaignSceneIndex[0] = table[D_8009B362 * 2];
+        break;
+    }
+    }
+}

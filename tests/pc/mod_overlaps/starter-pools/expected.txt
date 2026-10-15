@@ -1,0 +1,18 @@
+# p16, p24
+Starter decks|info|add|p16, p24|Starter pools	Starter pools (Pools 16, Pools 24): both apply and add up (their draws make the 40 cards of a deck)
+# p16, p24, p40
+Starter decks|warning|dropped|p16, p24, p40|Starter pools	Starter pools (Pools 16, Pools 24, Pools 40): pools dropped: 80 draws, not 40; the disc's starter decks are used
+# deck, p16, p24
+Starter decks|warning|written|deck, p16, p24|Starter pools	Starter pools (Deck, Pools 16, Pools 24): Deck's starter deck is dealt; every mod's pools are left out (a written deck wins)
+# deck0, p16, p24
+Starter decks|info|add|p16, p24|Starter pools	Starter pools (Pools 16, Pools 24): both apply and add up (their draws make the 40 cards of a deck)
+# deck0, p24
+Starter decks|warning|dropped|p24|Starter pools	Starter pools (Pools 24): pools dropped: 24 draws, not 40; the disc's starter decks are used
+# p40, deck0
+# deck, deck0, p40
+Starter decks|warning|written|deck, p40|Starter pools	Starter pools (Deck, Pools 40): Deck's starter deck is dealt; every mod's pools are left out (a written deck wins)
+Starter decks|info|add|deck, deck0|Starter decks	Starter decks (Deck, Deck0): both apply and add up
+# deck, both, p16
+Starter decks|warning|written|deck, both, p16|Starter pools	Starter pools (Deck, Both, Pools 16): Deck's and Both's starter decks are dealt; every mod's pools are left out (a written deck wins)
+Starter decks|info|add|deck, both|Starter decks	Starter decks (Deck, Both): both apply and add up
+# p24

@@ -1,0 +1,23 @@
+[
+    {
+        "file": "a.png",
+        "alias": "cards/001",
+        "archive": "WA_MRG.MRG",
+        "offset": 4096,
+        "words": 51,
+        "rows": 96,
+        "bpp": 8,
+        "clut_offset": 8192,
+        "clut_entries": 256
+    },
+    {
+        "file": "b.png",
+        "archive": "WA_MRG.MRG",
+        "offset": 65536,
+        "words": 64,
+        "rows": 32,
+        "bpp": 4,
+        "clut_offset": 0,
+        "clut_entries": 0
+    }
+]

@@ -1,0 +1,12 @@
+{
+    "id": "p24",
+    "name": "Pools 24",
+    "about": "Pools drawing 24: the last three are left out as starter.c leaves them (no card it knows, draws past 40, no weight from 1 to 65535).",
+    "starter_pools": [
+        {"name": "Spellcasters", "draws": 10, "cards": {"Mystical Elf": 3, "Celtic Guardian": 2}},
+        {"draws": 14, "cards": {"Kuriboh": 1, "Baby Dragon": 1, "Ryu-kishin": 1}},
+        {"draws": 5, "cards": {"No Such Card": 3}},
+        {"draws": 41, "cards": {"Kuriboh": 1}},
+        {"draws": 6, "cards": {"Kuriboh": 0, "Mystical Elf": 70000}}
+    ]
+}

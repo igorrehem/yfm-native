@@ -1,0 +1,98 @@
+{
+  "modules": [
+    {
+      "archive": "game/DATA/WA_MRG.MRG",
+      "archive_sha256": "2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4",
+      "layout": "config/slus_01411/overlays/free_duel.yaml",
+      "linker_symbols": "config/slus_01411/overlays/free_duel_linker_symbols.txt",
+      "load_address": "0x80168000",
+      "name": "free_duel",
+      "output": "tmp/overlays/free_duel/module.bin",
+      "sector_count": 5,
+      "sector_offset": 7898,
+      "sha256": "e5091e1a5df0287dbd3561915ca53c0f91d359d7eb0ec4156c5734361b55c1f2"
+    },
+    {
+      "archive": "game/DATA/WA_MRG.MRG",
+      "archive_sha256": "2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4",
+      "layout": "config/slus_01411/overlays/password.yaml",
+      "linker_symbols": "config/slus_01411/overlays/password_linker_symbols.txt",
+      "load_address": "0x80168000",
+      "name": "password",
+      "output": "tmp/overlays/password/module.bin",
+      "sector_count": 15,
+      "sector_offset": 8054,
+      "sha256": "6925509db80d4ff8869f41350f0256524f5ff15cb9b3bf2f6dc7351a7caf3d55"
+    },
+    {
+      "archive": "game/DATA/WA_MRG.MRG",
+      "archive_sha256": "2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4",
+      "layout": "config/slus_01411/overlays/overworld_before_coup.yaml",
+      "linker_symbols": "config/slus_01411/overlays/overworld_linker_symbols.txt",
+      "load_address": "0x80168000",
+      "name": "overworld_before_coup",
+      "output": "tmp/overlays/overworld_before_coup/module.bin",
+      "sector_count": 6,
+      "sector_offset": 8153,
+      "sha256": "9a72a17c1c1716dd799d94c3ab9233b26b87797bfa8b123d7c9d631f8405553f"
+    },
+    {
+      "archive": "game/DATA/WA_MRG.MRG",
+      "archive_sha256": "2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4",
+      "layout": "config/slus_01411/overlays/overworld_after_coup.yaml",
+      "linker_symbols": "config/slus_01411/overlays/overworld_linker_symbols.txt",
+      "load_address": "0x80168000",
+      "name": "overworld_after_coup",
+      "output": "tmp/overlays/overworld_after_coup/module.bin",
+      "sector_count": 6,
+      "sector_offset": 8311,
+      "sha256": "d1c4f8299d526c8d45911a255bb8388abd14722cb4141df383f4fdb369875dc5"
+    },
+    {
+      "archive": "game/DATA/SU.MRG",
+      "archive_sha256": "c34d1eef2445e15ed40d20ad325c9907c55123d03f35b8693e7031966ef52e51",
+      "layout": "config/slus_01411/overlays/main_menu.yaml",
+      "linker_symbols": "config/slus_01411/overlays/main_menu_linker_symbols.txt",
+      "load_address": "0x80180000",
+      "name": "main_menu",
+      "output": "tmp/overlays/main_menu/module.bin",
+      "sector_count": 16,
+      "sector_offset": 98,
+      "sha256": "34e9421eb10dc3ff97f8810e4f595045d4847b2b54760e9895eb83266008bc97"
+    },
+    {
+      "archive": "game/DATA/WA_MRG.MRG",
+      "archive_sha256": "2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4",
+      "duplicate_sector_offsets": [
+        6205,
+        6440,
+        6675,
+        6910,
+        7145,
+        7380
+      ],
+      "layout": "config/slus_01411/overlays/duel_effects.yaml",
+      "linker_symbols": "config/slus_01411/overlays/duel_effects_linker_symbols.txt",
+      "load_address": "0x80146000",
+      "name": "duel_effects",
+      "output": "tmp/overlays/duel_effects/module.bin",
+      "sector_count": 44,
+      "sector_offset": 5970,
+      "sha256": "baa203b937dc6bdf91b1826c5832f0f32e11ae5fe9d05193a4361bc08158b9e0"
+    },
+    {
+      "archive": "game/DATA/SU.MRG",
+      "archive_sha256": "c34d1eef2445e15ed40d20ad325c9907c55123d03f35b8693e7031966ef52e51",
+      "layout": "config/slus_01411/overlays/credits.yaml",
+      "linker_symbols": "config/slus_01411/overlays/credits_linker_symbols.txt",
+      "load_address": "0x80180000",
+      "name": "credits",
+      "output": "tmp/overlays/credits/module.bin",
+      "sector_count": 16,
+      "sector_offset": 1223,
+      "sha256": "f125a2a6a8b57d222df544a7a02bf8c639c1fdde5cf978f80a56ea3fba2b836a"
+    }
+  ],
+  "schema": 1,
+  "sector_size": 2048
+}

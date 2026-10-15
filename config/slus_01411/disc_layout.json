@@ -1,0 +1,110 @@
+{
+  "bin_sha256": "6e22494a45bf50fa2d239cd3819a57163a5f9b91e0365babc3e101509b5c3a7c",
+  "cue_path": "game/rpg-yfm.cue",
+  "cue_sha256": "5d834807b43eaee5a3113cf1ed9167efac9fc40a2b64b395435095e429b86d4a",
+  "files": [
+    {
+      "flags": 0,
+      "lba": 23,
+      "local_path": null,
+      "logical_blocks": 1,
+      "msf": "00:02:23",
+      "path": "SYSTEM.CNF",
+      "sha256": "61c627deaabe603b7b4bd48813a7e731dcc0b76a2c57bdb1c6ca774cfbc9daea",
+      "size": 68
+    },
+    {
+      "flags": 0,
+      "lba": 24,
+      "local_path": "game/SLUS_014.11",
+      "logical_blocks": 929,
+      "msf": "00:02:24",
+      "path": "SLUS_014.11",
+      "sha256": "84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88",
+      "size": 1902592
+    },
+    {
+      "flags": 0,
+      "lba": 954,
+      "local_path": "game/DATA/SU.MRG",
+      "logical_blocks": 1239,
+      "msf": "00:14:54",
+      "path": "DATA/SU.MRG",
+      "sha256": "c34d1eef2445e15ed40d20ad325c9907c55123d03f35b8693e7031966ef52e51",
+      "size": 2537472
+    },
+    {
+      "flags": 0,
+      "lba": 2193,
+      "local_path": "game/DATA/SD_SE.DAT",
+      "logical_blocks": 743,
+      "msf": "00:31:18",
+      "path": "DATA/SD_SE.DAT",
+      "sha256": "d6624c01be530b71a128342b89ad267e3e0463a8cabf27e644eb7b544af7e904",
+      "size": 1521664
+    },
+    {
+      "flags": 0,
+      "lba": 2936,
+      "local_path": "game/DATA/SD_BGM.DAT",
+      "logical_blocks": 7166,
+      "msf": "00:41:11",
+      "path": "DATA/SD_BGM.DAT",
+      "sha256": "69f43b469272079701e62ff45b99061f5bdf321b9032406e051b4d0b0c3b3c39",
+      "size": 14675968
+    },
+    {
+      "flags": 0,
+      "lba": 10102,
+      "local_path": "game/DATA/WA_MRG.MRG",
+      "logical_blocks": 18432,
+      "msf": "02:16:52",
+      "path": "DATA/WA_MRG.MRG",
+      "sha256": "2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4",
+      "size": 37748736
+    },
+    {
+      "flags": 0,
+      "lba": 28534,
+      "local_path": "game/DATA/MODEL.MRG",
+      "logical_blocks": 171396,
+      "msf": "06:22:34",
+      "path": "DATA/MODEL.MRG",
+      "sha256": "6a738960cfae167d6612f190c07cf0147f3bcc8c2dd97814e154fecc283e1d4b",
+      "size": 351019008
+    },
+    {
+      "flags": 0,
+      "lba": 199930,
+      "local_path": "game/DATA/MASTER.XA",
+      "logical_blocks": 2804,
+      "msf": "44:27:55",
+      "path": "DATA/MASTER.XA",
+      "sha256": "f8f9aad28fdea9729155c575d175f8587118d94cff083ca32ff040ef10e1fa94",
+      "size": 5742592
+    },
+    {
+      "flags": 0,
+      "lba": 202734,
+      "local_path": "game/DATA/MOVIE.STR",
+      "logical_blocks": 17300,
+      "msf": "45:05:09",
+      "path": "DATA/MOVIE.STR",
+      "sha256": "c37cbd1c5489a6f9bc94ae9bb0e04ec587a5cb80c0f5e514e2dd99c63f38e5e2",
+      "size": 35430400
+    }
+  ],
+  "logical_block_size": 2048,
+  "raw_sector_count": 220184,
+  "raw_sector_size": 2352,
+  "referenced_bin_name": "RPG-YFM.BIN",
+  "resolved_bin_path": "game/rpg-yfm.bin",
+  "schema": 1,
+  "track": {
+    "index_lba": 0,
+    "mode": "MODE2/2352",
+    "number": 1
+  },
+  "volume_block_count": 220184,
+  "volume_identifier": ""
+}

@@ -1,0 +1,216 @@
+{
+    "id": "3d-monsters",
+    "name": "3D Monsters",
+    "version": "1.0",
+    "author": "DecompRecomp",
+    "description": "Face-up monsters stand on their cards, either as the models the battle presentation uses (animating on the spot, and able to stand on the big cards facing each other when one attacks another -- the console had neither the RAM nor the VRAM for it), or, at no model-loading or VRAM cost at all, as an enlarged cutout of their own card art, always facing the camera.",
+    "library": "3d-monsters",
+    "enabled": true,
+    "legacy_setting": "3d_monsters",
+    "settings": [
+        {
+            "key": "style",
+            "label": "Style",
+            "type": "choice",
+            "default": 0,
+            "choices": ["3D models", "Card art"],
+            "description": "3D models shows each monster standing on its card as its battle model. Card art shows an enlarged cutout of the card's own art instead, with an optional glow. Monsters on attack cards works in 3D models only."
+        },
+        {
+            "key": "scale",
+            "label": "Model scale (3D models)",
+            "type": "int",
+            "default": 4096,
+            "min": 512,
+            "max": 8192,
+            "step": 256,
+            "restart": true,
+            "description": "4096 is the original model scale."
+        },
+        {
+            "key": "pixels",
+            "label": "Target height",
+            "type": "int",
+            "default": 32,
+            "min": 8,
+            "max": 160,
+            "step": 4,
+            "restart": true,
+            "description": "Model height in game pixels."
+        },
+        {
+            "key": "lift",
+            "label": "Vertical lift",
+            "type": "int",
+            "default": 16,
+            "min": -4096,
+            "max": 4096,
+            "step": 128
+        },
+        {
+            "key": "pitch",
+            "label": "Field pitch threshold",
+            "type": "int",
+            "default": 512,
+            "min": 0,
+            "max": 4096,
+            "step": 64
+        },
+        {
+            "key": "depth",
+            "label": "Depth offset",
+            "type": "int",
+            "default": 3,
+            "min": 0,
+            "max": 64,
+            "step": 1
+        },
+        {
+            "key": "battle",
+            "label": "Monsters on attack cards (3D models)",
+            "type": "bool",
+            "default": 0,
+            "description": "When one monster attacks another, the two stand on their big cards facing each other, and the cards are dimmed under them. Only in the 3D models style; attack cards show plainly in Card art."
+        },
+        {
+            "key": "battle_pixels",
+            "label": "Attack card monster size (3D models)",
+            "type": "int",
+            "default": 160,
+            "min": 40,
+            "max": 200,
+            "step": 10,
+            "description": "A middling monster's height on its card, in game pixels; bigger monsters stand taller and smaller ones shorter. Each is fitted by its height or its width, whichever it reaches first."
+        },
+        {
+            "key": "battle_dim",
+            "label": "Attack card dimming (3D models)",
+            "type": "int",
+            "default": 50,
+            "min": 0,
+            "max": 90,
+            "step": 10,
+            "description": "How much darker the cards are drawn under the monsters, in percent."
+        },
+        {
+            "key": "attack",
+            "label": "Monsters attack (3D models)",
+            "type": "choice",
+            "default": 0,
+            "choices": ["Off", "On the attack cards", "On the field", "Both"],
+            "description": "The attacker strikes and the defender reacts as in the 3D arena: it is hit, it guards, or, when the attacker is weaker, it strikes back. On the attack cards needs the monsters on the attack cards. On the field, the attacker crosses the field to the defender's zone, strikes and goes back; the damage shows over the monster struck, a destroyed monster fades away, and the attack cards do not come up. Both plays it on the field, then on the attack cards. The battle waits for the blows before it shows the damage. Only in the 3D models style."
+        },
+        {
+            "key": "attack_speed",
+            "label": "Attack speed (3D models)",
+            "type": "int",
+            "default": 200,
+            "min": 25,
+            "max": 400,
+            "step": 25,
+            "description": "How fast the attack and the reactions play, in percent of the 3D arena's speed: 100 is the arena's own pace."
+        },
+        {
+            "key": "effects",
+            "label": "Attack effects (3D models)",
+            "type": "bool",
+            "default": 1,
+            "description": "In the fight on the field, the attacker's own effects from the 3D arena: its beams, flashes and particles, sized to the field, and the blow lands when they reach the defender. Only in the 3D models style."
+        },
+        {
+            "key": "sounds",
+            "label": "Attack sounds (3D models)",
+            "type": "bool",
+            "default": 1,
+            "description": "When monsters attack, they make the sounds they make in the 3D arena: the attacker's blow and the defender's reaction, at the moments of the animation the arena plays them. Only with Monsters attack on."
+        },
+        {
+            "key": "summon",
+            "label": "Anime summon (3D models)",
+            "type": "bool",
+            "default": 0,
+            "description": "A monster put face up grows out of its card, fading in, while the card flashes and then disappears; the card stays hidden under the monster wherever the monster is drawn. Off: the card stays and the monster appears at once."
+        },
+        {
+            "key": "summon_frames",
+            "label": "Summon length (3D models)",
+            "type": "int",
+            "default": 30,
+            "min": 6,
+            "max": 120,
+            "step": 2,
+            "description": "Frames a monster takes to grow out of its card, at 60 a second."
+        },
+        {
+            "key": "board",
+            "label": "Monsters on the overhead field (3D models)",
+            "type": "bool",
+            "default": 0,
+            "description": "The monsters stay on when the camera rises to the field seen from overhead, where a zone or an attack is chosen: seen from above, facing the way they face on the field, over their cards. Off: they are drawn on the field seen across only."
+        },
+        {
+            "key": "board_size",
+            "label": "Overhead monster size (3D models)",
+            "type": "int",
+            "default": 50,
+            "min": 20,
+            "max": 100,
+            "step": 5,
+            "description": "How big the monsters are on the overhead field, in percent of their size on the field; the camera comes much nearer there, so smaller keeps each one over its own card. They shrink to it as the camera rises."
+        },
+        {
+            "key": "glow",
+            "label": "Glowing diffusion (Card art)",
+            "type": "bool",
+            "default": 1,
+            "description": "A soft, pulsing, additively-blended glow diffusing outward from each cutout. Only in the Card art style."
+        },
+        {
+            "key": "glow_r",
+            "label": "Glow colour: red (Card art)",
+            "type": "int",
+            "default": 255,
+            "min": 0,
+            "max": 255,
+            "step": 1
+        },
+        {
+            "key": "glow_g",
+            "label": "Glow colour: green (Card art)",
+            "type": "int",
+            "default": 255,
+            "min": 0,
+            "max": 255,
+            "step": 1
+        },
+        {
+            "key": "glow_b",
+            "label": "Glow colour: blue (Card art)",
+            "type": "int",
+            "default": 90,
+            "min": 0,
+            "max": 255,
+            "step": 1
+        },
+        {
+            "key": "glow_reach",
+            "label": "Glow reach (Card art)",
+            "type": "int",
+            "default": 50,
+            "min": 40,
+            "max": 300,
+            "step": 10,
+            "description": "Percent: how far the glow diffuses outward, scaled to the cutout's own size."
+        },
+        {
+            "key": "glow_period",
+            "label": "Glow pulse period (Card art)",
+            "type": "int",
+            "default": 90,
+            "min": 4,
+            "max": 240,
+            "step": 2,
+            "description": "Frames for one full dim-to-bright-to-dim cycle. Lower is faster."
+        }
+    ]
+}

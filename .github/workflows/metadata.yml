@@ -1,0 +1,56 @@
+name: Metadata
+
+# Deliberately unfiltered, and deliberately minimal. These checks read only
+# tracked text under config/, notes/ and src/, so they need no retail input, no
+# toolchain, no bootstrapped Python and no secrets -- which is what lets this
+# job watch every path, including the notes/** the overlay build ignores.
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: metadata-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-metadata:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify tracked metadata
+        run: make check-metadata
+
+      - name: Verify external attempt ledger
+        run: make external-attempts
+
+      - name: Exercise overlay source and data wiring checks
+        run: |
+          PYTHONPYCACHEPREFIX="$PWD/tmp/pycache" python3 -m unittest discover \
+            -s tools/project/tests -p test_overlay_sources.py
+
+      - name: Verify no C data definition collides with a linker assignment
+        run: make check-data-symbols
+
+      - name: Check grouped translation-unit notes
+        run: make check-notes
+
+      - name: Verify every C source uses the shared basic types
+        run: make basic-types
+
+      - name: Verify guest-width pointer annotations
+        run: make check-g32

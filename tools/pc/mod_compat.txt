@@ -1,0 +1,117 @@
+# The releases whose mods this build must still run, and the differences
+# from them that were looked at and accepted (tools/pc/check_mod_abi.py).
+#
+#   baseline TAG [TARGET]         check this build against release TAG's mods
+#                                 for TARGET: i386 (the default, the 32-bit
+#                                 games' objects) or x86_64-windows (the 64-bit
+#                                 Windows game's, from the first release that
+#                                 ships them; until then that game is only held
+#                                 to refusing the i386 baselines' code mods by
+#                                 name)
+#   sha256 TAG SYSTEM DIGEST      the package of TAG the check may unpack and
+#                                 run (windows: the .zip, linux: the .tar.gz,
+#                                 windows-x64: the 64-bit .zip, which an
+#                                 x86_64-windows baseline needs pinned too),
+#                                 as GitHub's release API lists its digest:
+#                                 gh api repos/Unchiga/Yu-Gi-Oh-Forbidden-Memories-Recompiled/releases/tags/TAG --jq '.assets[] | .name + " " + (.digest | ltrimstr("sha256:"))'
+#   accept TAG KIND NAME reason   a difference that breaks no mod in use
+baseline v0.1.2
+sha256 v0.1.2 windows a6d5ddc86ad1de3fac263298b070224d990684ac221f1b55be60246186faf558
+sha256 v0.1.2 linux 2ef326fad001284a6dddbc1cfc33561a16d61d8656a180a586eba42275abc1e9
+baseline v0.2.0
+sha256 v0.2.0 windows bf1db67397f60f6f12b845c21ce82cef3051e6b67d4f82e284e8c9bf359824ab
+sha256 v0.2.0 linux c6dfa734174ef1432ba5cb4b085f3a59a6d4e53bdd4763db249f2e4c897fde68
+baseline v0.3.0
+sha256 v0.3.0 windows 40f1fedd363c0db193f8d67dff48c49ebc375f5aa903279fd70d7c622ccb63a6
+sha256 v0.3.0 linux 4b205351fb753882660174986ce7cdc92279d89c382b809be27678344cd89d73
+
+# The Cheats menu's functions now say whether they did anything (0 before a
+# game is loaded); a caller built against v0.1.2's void ignores eax.
+accept v0.1.2 function Cheats_GiveAllCards returns int where it returned void
+accept v0.1.2 function Cheats_UnlockAllFreeDuelists returns int where it returned void
+# The port SDK stand-ins compile against the game's Psy-Q headers: libgte.h
+# now declares RotAverageNclip3_nom with the return the resident routine and
+# its stand-in always had (the GTE flag word, in v0/eax). A caller built
+# against v0.1.2's void ignores eax, which every call may change anyway.
+accept v0.1.2 function RotAverageNclip3_nom returns long (the flag word) where it returned void
+# PR #105 (the burning card keeps its HD pack image): the recorder gained
+# `capture` at its end. Only the port's own OpenGL picture installs a
+# recorder; none of v0.1.2's mods calls SoftGpu_SetRecorder.
+accept v0.1.2 record SoftGpuRecorder grew by one callback at its end
+# The Game list (host actions: Exit game, save states, the other shortcuts):
+# every controls profile gained its host bindings at its end, which moves
+# what follows a profile. No v0.1.2 mod imports a Controls or
+# ControlsRuntime name; the controls file is the port's own and has its own
+# version (controls.txt 2).
+accept v0.1.2 record ControlsProfile grew by the host action bindings at its end
+accept v0.1.2 record ControlsDeviceProfile holds the larger ControlsProfile
+accept v0.1.2 record ControlsConfig holds the larger ControlsProfile
+# PR #231 (the fusion helper asks a mod's equip bonus): the planner's rules
+# gained `bonus` at their end. Only the port's own fusion helper builds a
+# FusionRules; none of v0.1.2's mods calls a Fusion_ function.
+accept v0.1.2 record FusionRules grew by two callbacks at its end (bonus, bonuses)
+# Equips with their own DEF bonus ("bonus_defense"): the duel record's unused
+# bytes 0x1A-0x1B hold defense_modifier (offsets and size unchanged; the
+# disc never used them), and the planner's card gained defense_modifier at
+# its end, which FusionLine holds. None of v0.1.2's mods calls a Fusion_
+# function, and a mod reading a record's stat_modifier still reads it.
+accept v0.1.2 record DuelCardRecord names two of its pad bytes defense_modifier
+accept v0.1.2 record FusionCard grew by defense_modifier at its end
+accept v0.1.2 record FusionLine holds the larger FusionCard
+
+# v0.2.0 (PRs #237-#291 since then). The same RotAverageNclip3_nom return
+# as v0.1.2 above: v0.2.0's SDK still declared it void.
+accept v0.2.0 function RotAverageNclip3_nom returns long (the flag word) where it returned void
+# PR #279 (equips with their own DEF bonus), as for v0.1.2 above: the duel
+# record's unused bytes 0x1A-0x1B hold defense_modifier, the planner's card
+# grew by it at its end, and the rules by `bonuses` at theirs. Only the
+# port's own fusion helper builds these; no v0.2.0 mod calls a Fusion_
+# function.
+accept v0.2.0 record DuelCardRecord names two of its pad bytes defense_modifier
+accept v0.2.0 record FusionCard grew by defense_modifier at its end
+accept v0.2.0 record FusionLine holds the larger FusionCard
+accept v0.2.0 record FusionRules grew by the bonuses callback at its end
+# PR #265 ("image_style": "full"): Pack grew by image_style at its end, so a
+# mod reading Packs_At() still finds every v0.2.0 field where it was. The
+# pack table is the port's own; a mod never allocates a Pack.
+accept v0.2.0 record Pack grew by image_style at its end
+# PR #297 (the title menus' buttons take a "scale"): the title screen's own
+# label maker takes the button's factor, and its config and image tables
+# grew. Mods set these through the "title" and "menu" keys; no mod calls
+# MenuLabel_Make or reads a TitleConfig, which are the port's title code's.
+accept v0.2.0 function MenuLabel_Make takes the button's factor after selected
+accept v0.2.0 record TitleConfig holds the larger TitleItem
+accept v0.2.0 record TitleItem gained scale before wide
+accept v0.2.0 enum TITLE_IMAGES counts the scaled buttons' images
+# A win's starchips up to 1000 ("starchip_prize"): the results record's
+# starchip_prize byte and the unread pad byte after it are one halfword on
+# the PC (offset 0x3A and size 0x40 unchanged). The disc's 1 to 8 read the
+# same through the low byte, so a mod reading the old byte still sees them.
+accept v0.1.2 record DuelResultDisplayState reads starchip_prize and its pad byte as one halfword
+accept v0.2.0 record DuelResultDisplayState reads starchip_prize and its pad byte as one halfword
+# American spelling: the title records' `colour` fields are `color` (same
+# offset, type and size; a mod built against v0.2.0 still reads them). The
+# enumerators TITLE_BACKGROUND_COLOUR and FONT_ART_COLOURS stay as aliases.
+accept v0.2.0 record TitleBackground names its colour field color
+accept v0.2.0 record TitleLine names its colour field color
+# The export lists of v0.1.2 and v0.2.0 (and of every build until the
+# per-target lists) held "name": build_mod.py read the C library list out
+# of all of mod_libc.c, where F(name) and AS(name, function) are the
+# macros' parameters. The game never lent anything under it (Mods_Lookup has no
+# such entry), so no mod can have used it.
+accept v0.1.2 export name was the C library macros' parameter, never a name the game lent
+accept v0.2.0 export name was the C library macros' parameter, never a name the game lent
+
+# Custom monster attributes (API 16): a monster effect's attribute filter
+# goes past 127 (ATTRIBUTES_MAX 255), so MonsterEffect's `attribute` and
+# `each_attribute` widened from signed char to short. Both grew in place,
+# into the byte clang already padded them to for the field after (`card`,
+# then the struct's own trailing pad): every other field keeps its offset,
+# and sizeof/align are unchanged (20, 4, both builds). A v0.3.0 mod only
+# reads these through Cards_MonsterEffects's `const MonsterEffect *` (the
+# SDK has no call a mod can use to write one of the engine's own), and a
+# narrow signed-char read of the new short's low byte, little-endian, still
+# gives -1 or 0-127 exactly as before; a value of 128-255 is new and no
+# v0.3.0 mod could have compiled a comparison against one. Same reasoning
+# as DuelResultDisplayState's starchip_prize above.
+accept v0.3.0 record MonsterEffect widened attribute and each_attribute into their own trailing pad byte

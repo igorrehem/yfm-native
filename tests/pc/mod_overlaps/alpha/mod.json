@@ -1,0 +1,225 @@
+{
+    "id": "alpha",
+    "name": "Alpha",
+    "priority": 0,
+    "data": [
+        {
+            "file": "\\DATA\\WA_MRG.MRG;1",
+            "replace": "wa.mrg"
+        },
+        {
+            "file": "\\DATA\\SU.MRG;1",
+            "patch": [
+                {
+                    "at": "0x100",
+                    "bytes": "01 02 03 04"
+                }
+            ]
+        },
+        {
+            "lba": 1234,
+            "patch": [
+                {
+                    "at": 0,
+                    "bytes": "FF"
+                }
+            ]
+        }
+    ],
+    "audio": {
+        "music": {
+            "0x010": "a.ogg"
+        },
+        "sfx": {
+            "7": "click.wav"
+        }
+    },
+    "textures": "images",
+    "cards": [
+        {
+            "replace": "Kuriboh",
+            "name": "Big Kuriboh",
+            "attack": 1000
+        },
+        {
+            "replace": 1,
+            "description": "Shiny"
+        },
+        {
+            "copy": "Kuriboh",
+            "id": "tiny",
+            "name": "Tiny"
+        }
+    ],
+    "fusions": [
+        {
+            "with": [
+                "Kuriboh",
+                "Mystical Elf"
+            ],
+            "result": "Celtic Guardian"
+        },
+        {
+            "with": [
+                "Baby Dragon",
+                "Ryu-kishin"
+            ],
+            "result": "Blue-eyes White Dragon"
+        },
+        {
+            "remove": "Celtic Guardian"
+        },
+        {
+            "remove": "all"
+        }
+    ],
+    "equips": [
+        {
+            "card": "Legendary Sword",
+            "add": [
+                "Dragon"
+            ],
+            "bonus": 300
+        },
+        {
+            "card": "Megamorph",
+            "remove": [
+                "Blue-eyes White Dragon"
+            ],
+            "bonus_if": {
+                "Dragon": 900
+            }
+        }
+    ],
+    "rituals": [
+        {
+            "card": "Black Luster Ritual",
+            "tributes": [
+                "Kuriboh",
+                "Mystical Elf",
+                "Baby Dragon"
+            ],
+            "result": "Black Luster Soldier"
+        }
+    ],
+    "drops": {
+        "Simon Muran": {
+            "pow": {
+                "Kuriboh": 20
+            }
+        },
+        "all": {
+            "tec": {
+                "Kuriboh": 0
+            },
+            "bcd": {
+                "replace": true,
+                "Kuriboh": 5
+            }
+        }
+    },
+    "decks": {
+        "Heishin": {
+            "Kuriboh": 60
+        }
+    },
+    "starter": {
+        "name": "A",
+        "Kuriboh": 40
+    },
+    "passwords": {
+        "Kuriboh": {
+            "password": "00000001",
+            "starchips": 10
+        },
+        "Mystical Elf": {
+            "starchips": 5
+        }
+    },
+    "guardian_stars": {
+        "stars": [
+            {
+                "id": 11,
+                "name": "Fire"
+            }
+        ],
+        "matchups": [
+            {
+                "attacker": "Mars",
+                "defender": "Jupiter",
+                "bonus": 1000
+            }
+        ]
+    },
+    "limits": {
+        "stats": 20000,
+        "life_points": 16000
+    },
+    "chest_overflow": {
+        "limit": 3
+    },
+    "terrain_bonus": {
+        "Forest": {
+            "Beast": 300
+        }
+    },
+    "trap_thresholds": {
+        "Bear Trap": 1600
+    },
+    "text": "text.txt",
+    "font": "font.ttf",
+    "title": {
+        "logo": {
+            "tint": "#FF0000"
+        },
+        "text": [
+            {
+                "text": "Alpha"
+            }
+        ],
+        "images": [
+            {
+                "image": "seal.png"
+            }
+        ],
+        "entries": {
+            "load": {
+                "hide": true
+            }
+        }
+    },
+    "menu": {
+        "buttons": [
+            {
+                "id": "credits",
+                "label": "CREDITS"
+            }
+        ]
+    },
+    "ui": {
+        "duel": {
+            "lp_player": {
+                "x": -10,
+                "tint": "#FF0000"
+            }
+        }
+    },
+    "pack_shop": {
+        "password": "both",
+        "shops": [
+            {
+                "id": "main",
+                "name": "CARD SHOP"
+            }
+        ]
+    },
+    "packs": [
+        {
+            "id": "starter",
+            "password": "12345678",
+            "cards": [
+                "Kuriboh"
+            ]
+        }
+    ]
+}

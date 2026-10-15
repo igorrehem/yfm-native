@@ -1,0 +1,6 @@
+{
+    "id": "p16",
+    "name": "Pools 16",
+    "about": "One pool, written as an object, drawing 16; a card named by its number.",
+    "starter_pools": {"name": "Dragons", "draws": 16, "cards": {"Blue-eyes White Dragon": 1, "2": 5, "Hitotsu-me Giant": 2}}
+}

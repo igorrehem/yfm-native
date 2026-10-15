@@ -1,0 +1,42 @@
+#include "../../types.h"
+#include "translated_runtime.h"
+#include <stdlib.h>
+#include <stdint.h>
+#include <errno.h>
+
+void *GuestRuntime_malloc(size_t length)
+{
+    void *p = malloc(length ? length : 1);
+    if (p && GuestRuntime_IsBound()) GuestRuntime_RegisterAllocation(p, length ? length : 1);
+    return p;
+}
+void *GuestRuntime_calloc(size_t count, size_t length)
+{
+    size_t size;
+    void *p;
+    if (count && length > SIZE_MAX / count) { errno = ENOMEM; return NULL; }
+    size = count * length;
+    p = calloc(1, size ? size : 1);
+    if (p && GuestRuntime_IsBound()) GuestRuntime_RegisterAllocation(p, size ? size : 1);
+    return p;
+}
+void GuestRuntime_free(void *pointer)
+{
+    void *host;
+    if (!pointer) return;
+    host = GuestRuntime_ResolveData(pointer, 1);
+    GuestRuntime_UnregisterData(host);
+    free(host);
+}
+void *GuestRuntime_realloc(void *pointer, size_t length)
+{
+    void *old, *p;
+    if (!pointer) return GuestRuntime_malloc(length);
+    if (!length) { GuestRuntime_free(pointer); return NULL; }
+    old = GuestRuntime_ResolveData(pointer, 1);
+    p = realloc(old, length);
+    if (!p) return NULL;
+    GuestRuntime_UnregisterData(old);
+    if (GuestRuntime_IsBound()) GuestRuntime_RegisterAllocation(p, length);
+    return p;
+}

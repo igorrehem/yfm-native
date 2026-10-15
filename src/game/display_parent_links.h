@@ -1,0 +1,48 @@
+#ifndef MEMORIES_DECOMP_DISPLAY_PARENT_LINKS_H
+#define MEMORIES_DECOMP_DISPLAY_PARENT_LINKS_H
+
+#include "../types.h"
+#include "display_object.h"
+
+#define DISPLAY_PARENT_OFFSET(member) \
+    ((u32)&(((DisplayParent *)0)->member))
+
+/* DuelSelection_LinkDisplayObjects passes both objects of each entry to
+ * DuelSelection_LinkDisplayObject; func_800235C0 positions the first and frees
+ * both with DisplayObject_ReleaseIfPresent. */
+typedef struct DisplayLinkEntry {
+    DisplayObject *G32 object;
+    DisplayObject *G32 field_04;
+    u8 pad_08[4];
+} DisplayLinkEntry;
+
+typedef struct DisplayParent {
+    DisplayObject *G32 position_base;
+    DisplayObject *G32 base;
+    DisplayLinkEntry *G32 entries;
+    u8 pad_0C[0xB];
+    u8 index;
+} DisplayParent;
+
+typedef char DisplayLinkEntry_size_must_be_0xC[
+    sizeof(DisplayLinkEntry) == 0xC ? 1 : -1
+];
+typedef char DisplayParent_entries_offset_must_be_0x8[
+    DISPLAY_PARENT_OFFSET(entries) == 0x8 ? 1 : -1
+];
+typedef char DisplayParent_index_offset_must_be_0x17[
+    DISPLAY_PARENT_OFFSET(index) == 0x17 ? 1 : -1
+];
+typedef char DisplayParent_size_must_be_0x18[
+    sizeof(DisplayParent) == 0x18 ? 1 : -1
+];
+
+#undef DISPLAY_PARENT_OFFSET
+
+void DuelSelection_LinkDisplayObject(
+    DisplayParent *parent,
+    volatile DisplayObject *object
+);
+void DuelSelection_LinkDisplayObjects(DisplayParent *parent, s32 clear);
+
+#endif

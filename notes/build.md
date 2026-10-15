@@ -1,0 +1,1534 @@
+# Build and Match Workflow
+
+## Workspace contract
+
+Run every command from the repository root. Project entry points validate the
+current directory and reject paths that resolve outside the workspace.
+
+Project-managed dependencies are installed beneath `tools/`. Generated files,
+package caches, compiler scratch files, split output, linker maps, and rebuilt
+executables stay beneath `tmp/`.
+
+## Inputs
+
+Supply the North American `SLUS-01411` files beneath `game/`. They are ignored
+by Git and validated against `config/slus_01411/files.sha256`.
+
+```sh
+make verify-inputs
+```
+
+The executable must have SHA-256:
+
+```text
+84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88
+```
+
+## Local tools
+
+```sh
+make tools
+make check-tools
+```
+
+The bootstrap installs:
+
+- A copied Python 3.10 environment with hash-locked Python packages.
+- Splat, spimdisasm, Rabbitizer, and `m2c`.
+- Pinned checkouts of asm-differ, maspsx, and decomp-permuter.
+- GNU binutils 2.42 configured for `mipsel-none-elf`.
+- A pinned `mips-sony-psx` GCC 2.8.1 probe compiler built from the public
+  decompals/old-gcc recipe. This is the default selected by `make tools`.
+
+Downloaded archives, installed packages, source checkouts, and toolchains remain
+under `tools/`. Temporary build directories remain under `tmp/`.
+
+To use the pinned prebuilt GCC 2.8.1 release instead of compiling that probe,
+run the component targets rather than `make tools`:
+
+```sh
+make python-tools toolchain compiler-281-prebuilt compiler-272
+make check-build-tools
+tools/environments/python/bin/python tools/bootstrap/old_gcc_272.py --check
+```
+
+The prebuilt installer verifies release `0.17` and its archive/member hashes,
+then installs the compiler at the same project path used by the profiles. Its
+wrapper is named `mips-sony-psx-gcc`, while the packaged driver reports
+`mips-linux-gnu`; the explicit profile flags and PSX macro definitions provide
+the required target behavior. `make check-tools` validates the source-built
+installation, whereas `make check-build-tools` validates the prebuilt one.
+
+### Host requirements, and what breaks on a newer distribution
+
+The bootstrap pins its dependencies exactly, which is the right default and
+also means a host newer than the pins needs three specific accommodations.
+Everything below was reproduced on **Ubuntu 26.04 LTS with GCC 15.2.0**; the
+pins themselves are correct and none of this asks for them to be loosened.
+
+**The Python environment is pinned to CPython 3.10 exactly.**
+`tools/bootstrap/tools.json` declares `major_minor: [3, 10]` and
+`bootstrap.py` enforces it with `sys.version_info[:2] != expected`. Ubuntu
+26.04 ships only 3.14, and 3.10 is not packaged for it. A standalone
+interpreter satisfies the check without touching the system:
+
+```sh
+uv python install 3.10
+make python-tools BOOTSTRAP_PYTHON="$(uv python find 3.10)"
+```
+
+**`make toolchain-system` is unusable there.** It requires
+`binutils-mips-linux-gnu` at exactly `2.38-1ubuntu1cross2`; 26.04 ships
+`2.45.90.20260125-1ubuntu1cross1`, so the check fails and
+`USE_SYSTEM_MIPS_BINUTILS=1` is not an option. The from-source `make
+toolchain` is the only route, which leads to the next point.
+
+**binutils 2.42 does not compile under GCC 15.** GCC 15 defaults to C23, where
+`static_assert` is a keyword, and the build stops at:
+
+```text
+opcodes/mips-formats.h:86:7: error: expected identifier or '(' before 'static_assert'
+```
+
+Selecting the older dialect builds it unmodified:
+
+```sh
+CFLAGS=-std=gnu17 make toolchain
+```
+
+`make compiler-281-prebuilt` avoids compiling GCC and needs no multilib
+development files on x86 hosts. Its real driver is a statically linked 32-bit
+i386 executable, so non-x86 hosts must use the source-build path instead.
+
+A full `make clean match` on such a host reproduces
+`84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88`, so the
+pinned toolchain itself is portable; only these three bootstrap steps notice
+the host.
+
+## Analysis pipeline
+
+```sh
+make info
+make extract
+make map
+make split
+make inventory
+make classify-functions
+make progress
+make verify-disc
+```
+
+- `info` prints the verified PS-X EXE header.
+- `extract` writes the header, loaded payload, and parsed metadata to
+  `tmp/extract/slus_01411/`.
+- `map` validates every top-level byte range and its SHA-256.
+- `split` deletes only the previous `tmp/generated/` and `tmp/splat/` output and regenerates
+  disassembly, data assembly, binary regions, linker diagnostics, and automatic
+  symbols there. Before Splat runs,
+  `tools/project/generate_build_config.py` combines the static split template
+  with `config/slus_01411/matching_c.json` and writes generated manifests under
+  `tmp/generated/`.
+- `inventory` reconciles generated function boundaries with the tracked
+  `config/slus_01411/functions.csv`.
+- `classify-functions` applies the verified game/CRT/SDK ownership ranges
+  without overwriting a future `matching_c` status.
+- `progress` refreshes the generated progress section in the root `README.md`
+  and writes current status and ownership metrics to
+  `tmp/reports/progress.json`.
+- `verify-disc` verifies the original MODE2/2352 BIN/CUE, tracked ISO9660 LBAs,
+  and every extracted file against its disc extent.
+
+The exact build uses Splat's generated `tmp/splat/slus_01411.ld`. Its tracked
+source of truth is `config/slus_01411/split.yaml`, combined with
+`config/slus_01411/matching_c.json` by
+`tools/project/generate_build_config.py` before Splat runs.
+`config/slus_01411/c_symbols.ld` and
+`config/slus_01411/link_symbols.ld` supplement the generated script with fixed
+aliases and layout symbols; generated linker output under `tmp/` is not source
+and must not be edited.
+
+## Mapping a section to a source file
+
+A Splat subsegment says two things: which byte range it covers, and where the
+bytes are to come from. For everything that is not text there are two
+spellings of the same section, and they mean opposite things:
+
+| spelling | meaning | what Splat emits |
+|---|---|---|
+| `.rodata`, `.data`, `.sdata`, `.bss` — **with a dot**, plus a source file name | this section is produced by **our** C file | `build/.../<name>.o(<section>);` |
+| `rodata`, `data`, `sdata`, `bss` — **no dot** | extract this range from the original image as a blob | `<name>.<section>.o(<section>);` |
+
+So converting data is the same move as converting code: a definition leaves
+the extracted blob, moves into the C file that owns it, and a dotted
+subsegment names that file at the address the definition has to keep. The blob
+shrinks; the boundary moves.
+
+The resident initialized-data ranges are code groups even though they have no
+text. That lets their extracted `.data` and C-owned `.sdata` contributions
+share fixed-address ranges without flattening both into the same linker
+section.
+
+`section_order` is the other half, and it is easy to misread as a constraint.
+**It is a description of the image's layout**, applied within each segment. If
+a module is laid out rodata-then-text, the option should say so; the answer to
+"the rodata is landing after the text" is to describe the image correctly, not
+to build a segment to work around it. Getting this wrong looks like a tooling
+limitation and is not one.
+
+### Three ways this fails without telling you
+
+Layout mistakes here are only caught by the final hash, so it is worth knowing
+the shapes in advance.
+
+- **Anything nobody placed is dropped.** The generated Splat script ends with
+  `/DISCARD/ : { *(*); }`. A section that no line claims does not fail the
+  link; it silently disappears.
+- **Undeclared object sections are appended, not placed.** Splat emits a
+  `(.rodata)` line for *every* C object in a segment, so a file without an
+  explicit dotted subsegment still gets one — at the end of the run. That is
+  harmless only while the section is empty. The first time such a file gains a
+  string or a table its bytes land in the wrong place and push everything
+  after them down.
+- **A zero-valued global is not `.data`.** Written as `u8 x;` or `u8 x = 0;`
+  it goes to `.bss`. Declaring a `.data` subsegment for a file whose globals
+  are all zero yields an empty section and loses the blob's bytes.
+
+The resident script guards its largest section explicitly —
+`ASSERT(SIZEOF(.text) == 0x7DCFC, ...)` — which turns one class of this into a
+link error rather than a hash mismatch. The generated overlay scripts have no
+equivalent, so there the hash is the only check.
+
+`notes/overlays/README.md` has the worked example: a printf format string
+moved out of an extracted blob into the C file that uses it, placed ahead of
+the module's text, with all five overlay modules still byte-exact.
+
+### Owning resident initialized data
+
+`src/game/file_names.c` is the worked example for the resident image: the
+loader's seven disc paths and the null-terminated `gFile_apszName` table, 0xA8
+bytes at 0x80090704, come from that file instead of the extracted blob.
+`ai_script_commands.c` and `ai_opponent_data.c` are the other two, an opcode
+table of relocations and a typed record array. Five things make one of these:
+
+1. **Split the blob in `config/slus_01411/split.yaml`.** The owning file gets a
+   dotted subsegment at its address and the remainder keeps going to a
+   generated blob:
+
+   ```yaml
+   - [0x80ee0, data, initialized_data_800906e0]
+   - [0x80f04, .data, game/file_names]
+   - [0x80fac, data, initialized_data_800907ac]
+   ```
+
+   A blob chunk is named for the address it starts at, so taking ownership of
+   one range never renames another and two people can split different parts of
+   the segment without colliding.
+
+2. **Only a unit with no text of its own can own `.data`.** A text segment's
+   linker script lists `.rodata`, `.data` and `.bss` for every one of its
+   objects, so those sections are claimed there first and a matched function's
+   file cannot also supply them from another segment; `make split` says so
+   rather than letting the bytes land in the wrong place. It lists no
+   small-data section, which is why `.sdata` and `.sbss` can go back into the
+   matched text unit that owns them, the way `duel_trap_resolution.c` does.
+3. **Name the profile in `config/slus_01411/data_c.json`.** Data units are not
+   in `matching_c.json`, which describes functions; the build gets its compiler
+   profile from this manifest, and `make split` rejects a file that owns a
+   dotted section without one, or a manifest entry the template never maps.
+   `gcc_2_8_1_g0` is the profile to use while the unit's own small-data
+   placement has not been worked out: at `-G0` every definition lands in
+   `.data`.
+4. **Declare the symbols `extern` in a header** (`src/game/file_names.h`) and
+   delete every other declaration of them, including any entry in
+   `config/slus_01411/c_symbols.ld`. A file-scope definition and a linker alias
+   for the same address are not interchangeable, and while both exist the alias
+   silently wins.
+5. **Give a definition a name of its own.** The image has more than one copy of
+   several strings - the `\DATA\SU.MRG;1` the loader opens is not the
+   `M:/mrgSU/SU.mrg` development path already named `gFile_szSuMrgPath` in the
+   read-only region - and the link fails loudly on the duplicate, which is the
+   good case.
+
+6. **Carving `.sdata` out of the middle of a mapped blob moves the symbol.**
+   Splitting an extracted range into blob, `.sdata` subsegment, blob and
+   defining the symbol in its owning text unit builds and links, but the
+   image does not match: the symbol lands after the other small-data
+   contributions rather than at its own address. Taking one symbol in
+   isolation is not enough, because the `.sdata` output section is filled in
+   linker-script order and every contribution before it decides where it
+   starts. This is what the issue means by figuring out the order first.
+
+   The mismatch names the culprit precisely, which makes this cheap to
+   diagnose. `D_8009AF74` sits at `_gp + 0x6C`, and the failure was a byte in
+   *text* at VRAM `0x800401a4` reading `0x74` where `0x6c` was expected - the
+   gp-relative displacement of the instruction that loads it, moved by exactly
+   the eight bytes the definition added. When a data change breaks a byte
+   inside code, read the differing value as a `%gp_rel` displacement and
+   subtract `_gp` (`0x8009AF08`) to find which symbol shifted and by how much.
+
+   The fix is to classify the whole GP-relative tail as `sdata` in image order,
+   not to isolate one symbol from a range still called `data`.
+   `save_data_mask_state.c` is the worked example at `0x8009AF64`: before the
+   tail was classified, its two words moved from `_gp + 0x5C` to `_gp + 0x174`;
+   after the extracted ranges from `_gp` onward became ordered `sdata`, splitting
+   the `0x8009AF40` blob around those words preserved both their addresses and
+   every existing text relocation.
+
+**The segment holding the data has to be a `code` segment.** Only a group
+segment adds each of its subsegments to the linker script; a segment declared
+`type: data` emits one line for itself, so the C object is built, is never
+named by the script, and is silently dropped while the blob still supplies the
+original bytes - a full `make match` that proves nothing. The resident
+`initialized_data` segment is therefore `type: code` with no text subsegments,
+exactly like the leading read-only `main` segment.
+
+**Assembly that still references the range keeps working.** `D_800907AC` is
+reached by two functions that are still extracted assembly; when
+`duel_field_layout.c` took ownership of it, those `%hi`/`%lo` references
+resolved to the C definition, with no entry added to
+`undefined_syms_auto.txt`. Splat only invents an absolute symbol for an
+address it cannot attribute to a segment, and a dotted subsegment is an
+attribution.
+
+The build reads the generated `tmp/generated/data_sources.json` the way it
+reads `text_sources.json`, so both `make match` and `make match-incremental`
+compile and place these units; editing one rebuilds one object. Before
+building any of them it checks that the generated linker script actually names
+each object, because that is the one layout mistake the byte-exact comparison
+cannot catch: an object nobody places is not loaded, the blob keeps supplying
+the original bytes, and the build still matches.
+
+#### What is left, and why each piece resists ownership
+
+Every game-owned range in `initialized_data` is owned by a C source. The one
+remaining ordinary-data blob is the Psy-Q SDK range identified below; it is
+kept extracted because the project does not claim vendor source ownership.
+
+| Range | Section | Bytes | Labels | What blocks it |
+| --- | --- | --- | --- | --- |
+| `initialized_data_80091958` | `.data` | 38320 (`0x95B0`) | 274 | Psy-Q SDK-owned data; no game source owner |
+
+The former `0x8009AF2A` range was the overlapping-symbol case in its smallest
+form. Splat emitted three labels there: `D_8009AF2A`, `D_8009AF2C`, and the
+interior alias `D_8009AF2D`. The sole consumer used the middle label as a
+two-byte array and the last label as its second element:
+
+```c
+FntPrint(D_80010074, D_8009AF2C[0], D_8009AF2D);
+```
+
+Separate definitions cannot reproduce that layout because GCC aligns the
+second object to offset 4. The successful owner is one six-byte array,
+`gDebugEffect_abPreviewState`: the old identities become elements 0, 2, and
+3, and the live page byte at `0x8009AF2E` becomes element 4. Because all views
+were private to `debug_effect_screen.c`, no external alias is lost. The object
+tiles the complete six-byte window and the linked executable remains exact.
+
+`initialized_data_8009af08` is blocked for a different reason: it opens with
+`runtime_gp`, which `symbols.txt` fixes at `0x8009AF08` and which the
+`%gp_rel` arithmetic elsewhere in this file uses as the `_gp` base. A C
+definition of that word would have to reproduce a symbol the addressing model
+is expressed in terms of. It also stores a pointer to
+`gFile_PrimaryTransferDescriptor`, so the range carries a relocation as well as
+plain bytes.
+
+The name deserves a note, because it looks wrong and is not. `runtime_gp` is
+also read and written as an ordinary counter: `main_services.c` does
+`cnt = runtime_gp - 1; runtime_gp = cnt;` and resets it to `0x3C` when it goes
+negative, matching the `0x0000003C` the range is initialized with, and the
+function's own comment calls it the watchdog counter. A GP base is never
+decremented, so the two readings genuinely conflict -- but the answer is that
+the address carries two independent roles rather than that either reading is
+mistaken. `_gp` points at `0x8009AF08` because that is where the small-data
+region is centred; the word stored there is a separate variable that happens
+to live at the base.
+
+The naming follows the first role, and that is load bearing outside the game
+sources: `audit_unchiga_candidates.py` looks the symbol up by name to recover
+the base, `global_usage.py` special-cases it beside the `_start`/`_end`
+boundary markers, and the GPREL16 reach test in
+`notes/research/matching-evidence.md` is expressed as ±32 KB around it. So
+`runtime_gp` should not be renamed to describe the counter, and the counter is
+not drift to be cleaned up either.
+
+That sharpens what blocks the range rather than removing the block. A source
+file taking `0x8009AF08` would have to define a watchdog counter under a name
+three tools resolve as the GP base, which is a heavier commitment than the
+twenty-eight bytes suggest.
+
+#### Who actually owned the extracted bytes
+
+The triage above asks what resists ownership. The prior question is who owns
+the bytes at all, and answering it for all five ranges at once changes the
+shape of the remaining work considerably.
+
+Every label in each range can be attributed to the functions that reference
+it, and `functions.csv` records an owner for each of those functions --
+`game`, `psyq/sdk` or `psyq/crt`. Doing that across the whole set gives:
+
+| range | section | complete bytes | referenced label extents | game |
+| --- | --- | ---: | ---: | ---: |
+| `initialized_data_800906e0` | `.data` | 12 | 8 | 0 |
+| `initialized_data_80091958` | `.data` | 38320 | 34724 | 0 |
+| former `initialized_data_8009af08` | `.sdata` | 20 | 8 | 8 |
+| former `initialized_data_8009af2a` | `.sdata` | 6 | 0 | 6 |
+| former `initialized_data_8009af6c` | `.sdata` | 184 | 0 | 184 |
+
+The large `.data` range is not a game data blob at all. Its complete measured
+extent is `0x8009AF08 - 0x80091958 = 0x95B0`, or 38,320 bytes. Label-to-label
+attribution covers 34,724 bytes; the remaining 3,596 bytes are unnamed gaps
+inside the same single generated SDK data subsegment, not a second unaccounted
+range. Its 274 labels are referenced by 246 distinct functions and **every one
+of them is `psyq/sdk`** -- `_spu_init`, `_spu_setReverbAttr`,
+`SpuSetReverbModeParam`, `StCdInterrupt`, `CD_cw`, `FntOpen` and their
+neighbours. The text range that reaches into it opens with `PCopen`,
+`InitHeap`, `_bu_init`, `OpenEvent`, `EnterCriticalSection` and the
+`open`/`read`/`write`/`close` wrappers. This is the Psy-Q library's own
+initialized data: SPU voice and reverb state, the CD streaming machinery, the
+font system, the heap and event tables.
+
+That is a negative worth stating precisely rather than by implication. No file
+under `src/` mentions any of those 274 names -- not the game sources, not the
+overlays, not the candidate sources. The single unreferenced label,
+`D_80092A68`, appears in neither `c_symbols.ld` nor `symbols.txt`.
+
+The consequence is that the biggest item on the remaining list is not
+"bulk remainder, must be split before any ownership". It is vendor data, and
+the project already holds that Psy-Q CRT and SDK code is never a
+decompilation candidate. The same reasoning applies to its data: there is no
+game translation unit that could honestly define it, and inventing one would
+assert authorship the image does not support.
+
+Netting the vendor bytes out, the genuine game-owned remainder across all
+five ranges was **198 bytes, all of it `.sdata`** -- the six bytes at
+`0x8009AF2A`, the remaining 184 at `0x8009AF6C`, and eight of the twenty at
+`0x8009AF08`. That is a very different target from thirty-four kilobytes, and
+it lands entirely in the section the `.data`-before-`.sdata` rule calls the
+harder one: a text unit can own `.sdata` in place, but the byte layout then
+has to survive the section's four-byte alignment, which is exactly what the
+measured failure at `0x8009AF2A` ran into.
+
+Two caveats on the method. Sizes are measured label-to-label, so the final
+label in each range is assumed four bytes and the totals are approximate at
+the margin; and attribution is by symbol reference, so a byte reached only
+through pointer arithmetic from a neighbouring symbol would be credited to
+that neighbour. Neither affects the conclusion, which rests on a 246-to-0
+split rather than on a close count.
+
+#### The largest game-owned range, and who does not own it
+
+The original 276 bytes at `0x8009AF6C` were previously written off here as a
+scattered grab-bag with no coherent translation unit. Three interior ranges
+are now C-owned: the 36-byte model/graphics state block at `0x8009AF88`, the
+56-byte primitive-template block at `0x8009AFAC`, and the 116-byte handler
+state/diagnostic block at `0x8009AFE4`; the 28-byte head at `0x8009AF6C` has
+since been converted as well. The remaining 40 bytes are the tail described
+below.
+
+Mapping the original 77 labels in address order now gives five pieces:
+
+| range | state |
+| --- | --- |
+| `0x8009AF6C`-`0x8009AF87` | C-owned mixed-subsystem window |
+| `0x8009AF88`-`0x8009AFAB` | C-owned model/graphics state |
+| `0x8009AFAC`-`0x8009AFE3` | C-owned model primitive templates |
+| `0x8009AFE4`-`0x8009B057` | C-owned model handler state and diagnostics |
+| `0x8009B058`-`0x8009B07F` | scattered 40-byte tail |
+
+The four owned ranges prove that placement was never the obstacle. All are
+data-only units inserted between `save_data_mask_state` and
+`ai_script_source_line_format`, so their position comes directly from the
+split template. `model_graphics_state` also proves that mixed byte, halfword
+and word fields are viable when each unnamed continuation byte is represented
+explicitly: its `.sdata` is exactly 36 bytes and retains the pointer relocation
+to `D_80091008`.
+
+`model_handler_state` applies the same measured-layout approach to a more
+varied block: five leading state labels, a private halfword continuation, two
+word pairs, two mutable words, and eleven fixed 4- or 8-byte strings. That
+spelling produces an exact 116-byte section without relocations. The split at
+`D_8009B058` leaves the unrelated 40-byte tail extracted.
+
+#### Scatter is not what blocks a carve; gaps are
+
+The 28-byte head above was written off twice here, first as part of a
+grab-bag and then as "scattered", on the grounds that its contents have no
+common subject. That reasoning was wrong, and the range converted without
+difficulty once the right question was asked.
+
+Its contents really are unrelated: a `"%s\n"` format used only by the
+still-unmatched function at `0x8002E41C`, two separate one-character strings
+read by `MemCardDialog_UpdateSave` (`mem_card_dialog_load_save.c`) and
+`mem_card_driver.c`, the display-object
+`ot_index` array, and the `"MTrk"` MIDI track tag compared by
+`sound_sequence_marker_scan.c`. Four subsystems, no shared subject, and no
+name for the unit better than its address.
+
+None of that matters. What decides whether a range can be carved is whether
+its objects **tile it exactly**, leaving no byte unaccounted for. Here they
+do: 4 + 4 + 8 + 4 + 8 is 28, which is exactly the distance to
+`model_graphics_state`. Because every byte is claimed, the unit reproduces
+the window whatever its contents mean. Coherence is a naming problem, not a
+matching problem, and `data_80091510.c` already established that an
+address-named unit is an acceptable answer to it.
+
+The corollary is the useful one: a range should be screened by measuring
+whether its objects sum to its length, not by reading its contents and
+judging whether they belong together. Screening by subject rejects ranges
+that would have converted, which is what happened here.
+
+#### The tiling test applied to the rest of the small ranges
+
+Re-screening the remaining small `.sdata` ranges with that test rather than
+by subject sorts them immediately.
+
+| range | length | named objects | tiles? |
+| --- | ---: | --- | --- |
+| `0x8009AF10` | 16 | 4 + 4 + 4, then 4 unnamed | yes, with explicit padding |
+| `0x8009AF2A` | 6 | one packed 6-byte state array | yes |
+
+`0x8009AF10` converted. It holds two boot-time sizing constants read together
+by the code at `0x800129FC`, where they are subtracted from `bss_end`
+(`0x00200000` is the console's main RAM size and `0x00002000` the reserve
+held back from it), plus a file-transfer pointer that shares nothing with
+them. Another address-named unit, for the same reason as before.
+
+Its trailing word is unnamed, carries no reference anywhere in the image and
+is zero. Representing it as explicit padding is what `model_graphics_state.c`
+already does for its own unnamed continuation bytes, and the section
+attribute matters more on padding than on anything else in these files: a
+zero-valued object without one is placed in `.sbss`, and the window then
+comes up short by exactly that much.
+
+This also settles a doubt recorded earlier, that a pointer relocation in
+`.sdata` might obstruct a carve. It does not. `D_8009AF18` initialises to the
+address of `gFile_PrimaryTransferDescriptor` and links unchanged, as
+`D_8009AF88` already did.
+
+`0x8009AF2A` also converted after changing the unit of ownership. Treating
+the old labels as separate objects left two bytes unnamed and forced GCC to
+align the second object to offset 4. Treating the complete window as one
+six-byte array tiles it exactly: the old labels become private element views,
+the live page byte is element 4, and the final byte is explicit unused storage.
+
+#### A splat label is not always an object
+
+This range names seven labels but holds five objects. `D_8009AF74` is one
+eight-byte `volatile u16[4]`, and because code addresses its middle elements
+directly, spimdisasm also emitted names at `0x8009AF76` and `0x8009AF7A`.
+
+Defining those two as separate objects would have produced byte-identical
+output and still been wrong, since they are positions inside an array rather
+than things in their own right. The bytes cannot detect this error, so the
+check has to come from the consumers: `display_object_helpers.h` had already
+worked out the array shape and recorded that the two inner labels were once
+spelled privately.
+
+`0x8009AF10` shows the same hazard in its other form. Splat's third label
+there spans eight bytes, but `D_8009AF18` is a four-byte pointer: its readers
+load it and immediately dereference it at `+0x08`, `+0x10` and `+0x46`. The
+label runs long only because the word after it has no name of its own. One
+label covered part of an object in the first case and more than an object in
+the second, so neither direction can be assumed.
+
+This is the resident-side counterpart to the overlay obstacle noted earlier,
+where a label's extent is the gap to the next name rather than an object's
+size. Both say the same thing: label boundaries are evidence about where code
+points, not about where objects begin and end. Read the consumers before
+trusting them.
+
+The remaining coherent handler range is harder only because its layout mixes
+single bytes, packed sub-word state, words and aligned strings. Its identity is
+still clear: the model handler family and `func_800540B4` are its readers, and
+the strings and state words are renderer diagnostics/working state. Any next
+conversion should therefore start from byte-layout probes, not from uncertainty
+about placement or ownership.
+
+### The small-data region
+
+`.data` runs to 0x8009AF08 and `.sdata` from there to 0x8009B090, which is
+where `_gp` points; the template says so, with that tail declared as `sdata`
+blob chunks rather than `data` ones. The ordering is what makes ownership
+possible at all: Splat emits a segment's whole `.data` list before its
+`.sdata` list, so a unit owning small data in the middle of a `data` blob
+would land after every byte of it. Declared as small data, blobs and owning
+units interleave in address order.
+
+Small data goes back into the **matched translation unit that owns it**, not
+into a data-only unit: at `-G8` a definition of eight bytes or fewer lands in
+`.sdata` by itself, and a text segment claims no small-data section.
+`duel_trap_resolution.c` owns the six trap thresholds and `duel_card_effects.c`
+the two life-point tables this way.
+
+**The consumer's addressing form says whether it owns the symbol.** At `-G8`
+the assembler resolves a small global `%gp_rel` - one instruction - only in the
+translation unit that *defines* it; everywhere else it is `lui %hi` + `%lo`,
+two. So a file that reaches a small symbol through the two-instruction form did
+not define it in retail, and moving the definition there makes its text four
+bytes shorter. `duel_magic_effect_dispatch.c` reads the `"%d\n"` trace format
+at 0x8009AF40 that way, so that symbol belongs to some other unit and the blob
+keeps it; `duel_trap_resolution.c` and `duel_card_effects.c` reach theirs
+gp-relative, which is why the definitions land there and the build stays
+byte-exact. The failure is loud but indirect: the shortened function shifts
+every jump-table entry after it.
+
+**A `sdata` blob chunk stops at its last non-zero symbol.** Trailing zero
+bytes are padding to spimdisasm and it does not emit them, so a chunk can be
+shorter than the range it covers and everything after it starts too early.
+Before the final carve, `initialized_data_8009af2a` covered six bytes but
+emitted four, so a `pad` subsegment at `0x8b72e` made up the difference.
+`gDebugEffect_abPreviewState[6]` now emits the whole range and removes that
+special case. A missing byte still shows up as a shifted `%gp_rel` reference,
+and the build's size check catches the rest.
+
+### Which arguments a callee actually reads
+
+Several consumers declare a function with fewer parameters than its definition
+takes and call it with fewer arguments. That is not always a mistake, and it is
+not always safe to correct, so the question has to be settled per call site.
+
+The argument register is not empty at such a call. It usually holds the
+*calling* function's own incoming parameter, still live because nothing
+clobbered it, so the argument was being passed all along and simply was not
+written down. Whether it can be written down depends on one thing:
+
+> A no-argument call site can be given its arguments when every register the
+> callee READS already holds a value the calling file can name.
+
+Both outcomes occur, and they look identical in C:
+
+- `DisplayObject_ResetVelocity` reads only `$a0`, and its two `void (void)` consumers are
+  functions taking `u8 *object` whose prologue is `addu $16,$4,$zero` without
+  reassigning `$4`. `$a0` still holds the object, so naming the argument is
+  byte-exact.
+- `func_80023D08` reads `$a0` and `$a1` and branches on the second. Its
+  one-parameter consumer sets only `$a0`, so `dir` arrives as that function's
+  own caller's leftover. There is no expression to write, and the narrow
+  declaration has to stay.
+
+To decide, find the callee's assembly and take the FIRST mention of each of
+`$a0` to `$a3`, then ask whether that mention is a read or a write. A first
+mention that is a write means the register is scratch, not an argument.
+
+Two traps make this easy to get wrong:
+
+- **Counting mentions is not analysis.** A function that sets up its own calls
+  writes `$a0` to `$a3` constantly. `func_800235C0` mentions them 119 times and
+  reads none of them; its first use of each is `addiu $aN, $zero, imm`.
+- **The first operand is not always the destination.** For stores and branches
+  it is a source, so `sw $a1, 0x54($sp)` and `bltz $a3, .L…` are READS. Reading
+  them as writes makes a four-argument function look like it takes one --
+  `func_8004CB0C` spills `$a1` and `$a2` to the stack in its prologue and
+  branches on `$a3`, and reads all four.
+
+### The declaration spelling is the consumer's lever
+
+Ownership decides where a definition lands. For the far more common case of a
+*consumer* that does not own a small symbol, the `extern` spelling is what
+picks the addressing form, so several translation units will declare one symbol
+incompatibly on purpose. Which lever a file needs follows from the `-G`
+settings of its profile in `compiler_profiles.json`, so the spelling is a
+property of the profile rather than of taste:
+
+| Profile shape | What a byte- or halfword-sized global gets | Lever needed |
+| --- | --- | --- |
+| compile `-G0`, assemble `-G0` | already `lui %hi` + `%lo` | none; a plain scalar is correct |
+| compile `-G8`, assemble `-G8` | `%gp_rel` | an array, or `section(".data")` |
+| compile `-G8`, assemble **`-G4`** | `%gp_rel` | an array with a size the assembler can see is **above 4** |
+
+The array length is a threshold, not a claim about storage. Two symbols have
+carried the pattern, and both would overrun their neighbours if read literally:
+
+- `gDuel_bTerrain` (0x8009B364) is one byte -- `gFreeDuel_bReturnFlags` sits at
+  0x8009B365 -- yet is declared `[8]` and `[]` as well as a plain and a
+  `section(".data")` scalar, across eight files spanning all three rows above.
+- `gSD_bOutputType` (0x8009B408) is read only at index 0 yet was declared `[16]`
+  and `[9]`. `options_init.c` stated the reason inline: it "needs an oversized
+  array extern to force absolute (lui+lbu)". Its consumers now take the
+  `section(".data")` arm `sound.h` guards instead.
+
+The last row is why the forms are not interchangeable, and it is worth
+measuring rather than assuming. Relaxing `func_80024E58.c`'s `[8]` to an
+incomplete `[]` costs four bytes of text, because that file assembles at `-G4`;
+the identical relaxation in `duel_load_terrain_package.c`, which assembles at `-G8`, is
+exact. `options_init.c` used to sit on the `-G4` assembler arm with a sized
+array for the same reason. Once it took the `.data` arm, the assembler
+threshold had nothing left to decide in it, and `Options_Init` now builds at
+`gcc_2_8_1_g8_split` inside `options_screen.c`.
+
+So a run of incompatible declarations of one global is not automatically drift
+to be collapsed. Check the profiles first: if the spellings line up with the
+table, they are load bearing, and the useful work is recording which lever each
+file pulls rather than unifying them.
+
+#### Where the per-symbol answer is already written down
+
+The table says which lever a profile needs. For a specific symbol there is
+usually a better source than reasoning: `config/slus_01411/external_attempts.csv`
+records, on every `matched` row, why the accepted source was spelled the way it
+was. Eighty-seven of those notes explain an addressing choice, and between them
+they name fifty-two globals.
+
+They are worth reading before touching a declaration, because they cover cases
+the table alone does not predict:
+
+- **Array versus scalar decides who allocates the register.** For
+  `MainMenu_LoadPackageStage` the note records that `D_8009B058`, `D_801DD000` and
+  `D_801AF800` "are arrays so `-msplit-addresses` gives them registers, while
+  the scalars carry `section(.data)`" and rebuild their address per access.
+- **Defining rather than declaring is itself a lever.** `func_8002BFCC`'s note
+  explains that the assembler only resolves a small global gp-relative when the
+  translation unit *defines* it, which is what supplies a missing load-delay
+  `nop`. The same reasoning is recorded for `D_8009B142`/`143`/`144`.
+- **Oversizing is deliberate.** `D_8009B488`, `D_8009B48E` and `D_8009B490`
+  "needed sized array declarations to land in small data as `%gp_rel`", while
+  `D_800F5678` needed the incomplete form so its `lui %hi` would hoist into a
+  branch delay slot.
+- **A neighbour's spelling can be the reason.** Declaring `D_8009B260` as an
+  eight-byte aggregate is what keeps it non-small "while the four-byte
+  `D_8009B20C` remains gp-relative".
+
+#### Where a shared declaration belongs
+
+Once a spelling is settled, the remaining question is which header holds it,
+and the answer follows the include graph rather than the name.
+
+`D_8009B318` is a movie playback state byte. `movie_playback_control.h`
+describes exactly what its bits mean and is the obvious home by name, but
+`main_run_frontend_loop.c` does not include that header at all, while all three
+consumers already include `graphics_frame.h`. Placing the declaration by what
+the include graph is, rather than by which subsystem the name sounds like,
+costs no new include and cannot strand a consumer.
+
+The same test decides whether a symbol is `unmatched.h` material at all. That
+header says it is for symbols that are still homeless, and the difference
+between *homeless* and *merely undeclared* is whether the consumers share
+anything above `types.h`:
+
+- The three text banks are read by four files that all include
+  `text_constants.h`, which already defines the constants their expressions
+  use, so they went there.
+- `D_800EFE18` is used by four files that all include `mem_card.h`, so that
+  centralization added no include at all.
+- `D_8009B363` is written by four files spanning four subsystems with no
+  header between them, so it went to `unmatched.h`.
+
+`make check-unmatched-contracts` enforces both sides of that boundary. For
+functions it cross-references `functions.csv`, the matching-C source manifest,
+and `unmatched.h`: an unmatched function referenced by matching C must have
+one central declaration, and a file-local declaration is rejected unless its
+exact source and spelling appear in
+`unmatched_contract_exceptions.json`. The same check rejects declarations that
+remain after a function becomes matching C. Unreferenced assembly functions
+do not receive guessed prototypes merely to fill the header.
+
+Ownership is only half of a declaration contract; the caller also has to see
+it. GCC 2.8.1 compiles a call with no visible declaration as `int f()`, and
+the executable and candidate fingerprints stay byte-exact, so a caller that
+loses sight of a prototype -- typically because the prototype moved to a
+header it does not include -- passes every ownership check.
+`make check-declaration-visibility` (run in the matching-build job and by
+`make audit`) compiles every matching source and every candidate with
+`-Wimplicit-function-declaration` under each profile it is built with, and
+fails on any implicit call. A source listed under two profiles is compiled
+under both, because their `-D`/`-U` flags can hide a call from one of them. The fix is the include of the header that owns the
+declaration. The current tree has no exceptions. If a future implicit call is
+proved load-bearing, it must be recorded with its measurement in the checker's
+exception manifest; a recorded site that no longer calls implicitly is an
+error, so that list cannot go stale.
+
+Build-integrated candidates are the one exception on the function side.
+`unmatched.h` exists because an assembly function has no defining C
+translation unit and so nowhere for a per-unit header to live. A candidate in
+`src/candidates/` does have one, which the build compiles and fingerprints, so
+the header of the unit it came from stays a legitimate home. That is how #3859
+left the functions it moved out of matching C for pinned registers or inline
+asm: each keeps its declaration in its former header. The check therefore
+accepts a referenced candidate that is declared by exactly one resident header
+outside `src/candidates/` and `src/overlays/`, and rejects one that is declared
+both there and in `unmatched.h`. Either place is one declaration site; both
+would be two. Local declarations of a candidate still need an exception like
+any other unmatched function.
+
+There is no separate note-only candidate store. Every preserved resident or
+overlay candidate has source under `src/candidates/`, retail assembly under
+`src/candidates_target/`, and profile, object, target, and declaration-contract
+fingerprints in `config/slus_01411/candidates.json`. The normal resident and
+overlay builds compile those candidates without mapping their objects into the
+image. `make check-metadata` rejects any `func_*.md` or generated candidate
+bundle reintroduced under `notes/candidates/` or
+`notes/overlays/candidates/`, so a candidate cannot bypass build validation.
+
+For data, the check cross-references `c_symbols.ld`, every top-level extern in
+matching C, and all resident headers. A symbol centralized in `unmatched.h`
+cannot remain locally declared, lose its linker assignment, or gain a
+subsystem-header declaration without making the check fail. Distinct guarded
+central views are allowed; exact duplicates are not. A measured local
+addressing view can remain only when its source and normalized declaration are
+recorded in `unmatched_data_contract_exceptions.json`. Both exception lists
+are site-specific so a type or qualifier change cannot hide behind an approved
+symbol name.
+
+The data audit also reports the headerless remainder without rejecting it.
+That lets centralization proceed in measured batches instead of flattening
+array, section, volatile, or asm-alias forms simply to make a count reach zero.
+The first enforced batch moved thirty unanimous primitive declarations from
+thirty-one matching-C sites already including `unmatched.h`.
+
+The next batch demonstrates why the include intersection is evidence only
+after checking behavior. Twelve globals locally declared by
+`func_80022D94.c` also appeared in files including `view_state.h`, but their
+actual contract is narrower: the matching function publishes four targets,
+four 16.16 starting accumulators, and four per-frame deltas for
+`func_800235C0` to advance. They therefore live with the producer in
+`func_80022D94.h`. The neighbouring frame count `D_8009B204` stays local:
+another writer declares it unsigned, so it is a separate divergent-contract
+question rather than a thirteenth member of the batch.
+
+Three multi-consumer symbols show the three outcomes of the same ownership
+test. `D_8009B2A0` is created by the scene-package initializer and toggled by
+its result-screen consumer, so it lives in `campaign_scene_package.h`.
+`D_800EB184` is the four-object brightness pool and now lives in the narrow
+`display_object_brightness.h`, avoiding a declaration in the cross-module
+`display_object.h`. `D_800E9EC0` has unrelated boot-sound and file-transfer
+interpretations with no narrower owner, so its raw byte-array contract is
+genuinely homeless and lives in `unmatched.h`.
+
+`D_8009B269` and `D_8009B26C` show the same rule at larger scale. The first is
+the next/base frontend mode; mode runners copy it into the second when they
+exit. The second combines the active mode with lifecycle flags 0x20, 0x40 and
+0x80. The current 38 resident/candidate/overlay consumers use plain byte
+scalars, incomplete arrays, and scalars forced into `.data`.
+`main_mode_state.h` is their single declaration owner, with independent
+selectors for each byte; `unmatched.h` forwards to it without repeating the
+declarations. Defaults deliberately preserve the current contract: scalar
+NEXT and array ACTIVE. In particular, selecting only NEXT's `.data` view
+must not introduce an ACTIVE scalar into `Main_Init`.
+
+Current consumers select both measured views explicitly. Legacy
+`D_8009B269_*` and `D_8009B26C_*` selectors still work through either header,
+including the historical `.data` precedence. The dedicated header's
+`MAIN_MODE_STATE_ACTIVE_AS_SCALAR` is required for the active scalar view;
+`MAIN_MODE_STATE_ACTIVE_AS_ARRAY` explicitly selects its default.
+
+Eight tentative definitions remain in seven current mode-runner units:
+animated battle, build-deck, game-over, name-entry, options, trade, and
+two-player setup. Trade retains both bytes. These are codegen inputs under
+their named profiles; `c_symbols.ld` supplies the final addresses, so their
+COMMON symbols allocate no additional storage. The retired
+`func_8002D458.c`/`func_8002DC38.c` paths are not restored, nor are the retired
+matching versions of the current `func_800283F4` and `func_8002EE94`
+candidates. The current candidate registry retains its object/target
+fingerprints and dependency keys; only the affected declaration-owner
+hashes change.
+
+`test_main_mode_state.py` checks all nine independent semantic and legacy
+view combinations through both headers and include orders, mixed selector
+namespaces, all 38 actual preprocessed consumers, and all eight tentative
+definitions. Native probes compile the selected declarations, rather than
+mistaking unrelated full-host SDK front-end errors for contract regressions.
+An intentionally wrong ACTIVE scalar default must fail the typed array
+probe. Candidate dependency checks continue to bind the five affected
+current candidates to this single owner.
+
+#### A neighbour can refute a size, never establish one
+
+Both directions come up, and only one of them is sound.
+
+Refuting works. `D_8009B0A3` was declared `[9]` by one consumer, and
+`c_symbols.ld` names `D_8009B0A4` one byte later, so nine bytes would run
+through that and past `gGraphics_bActiveBuffer`. The bound was therefore an
+addressing lever rather than a size -- and that is what made it worth
+measuring rather than keeping. Both of the symbol's array consumers compile
+at a plain `gcc_2_8_1_g8` profile, where an incomplete array is already out
+of small data, so relaxing the `[9]` to the shared `[]` left the retail
+SHA-256 unchanged and the arm is gone. `gDuel_bTerrain`'s `[8]` is the case
+that survives the same question, and its own header records why: one
+consumer assembles at -G4 while compiling at -G8, and relaxing the bound
+there costs four bytes of text.
+
+Establishing does not. That the next name sits *n* bytes away shows only that
+nothing is named inside those *n* bytes; the object may be shorter, and
+consecutive `D_` names are often interior elements. `D_8009B23A`'s next name
+is ten bytes on and its consumers read a halfword, so the gap was recorded as
+an upper bound and the bytes above it left unclaimed.
+
+A real size needs a reader. `D_800F2878` takes its length from
+`DisplayObject_ResetPool`, which advances one pointer into it and one into
+`D_800EFE38` together for `DISPLAY_OBJECT_LIST_COUNT` iterations; the
+per-list renderer table takes its seven from the loop that walks it. Those are
+sizes; a neighbour's address is not.
+
+#### Two things that look like disagreement and are not
+
+A scan over declaration spellings reports both of these, and neither is work:
+
+- **Arms already in place.** Three guarded branches for one symbol inside one
+  header are three spellings by text and one declaration in fact.
+  `D_8009B0C0` in `graphics_frame.h` reads as a three-way conflict to a
+  regular expression.
+- **A semantic type against a raw view.** When some consumers have adopted a
+  real type and others still reach the bytes, that is type adoption partly
+  done rather than drift. Arming it would freeze the raw view in place, which
+  is the opposite of finishing the job.
+
+#### A worked rejection
+
+`D_8009B058` looks like an ideal candidate for giving a global its real type.
+It has one consumer, `main_menu_load_package_stage.c`; that file declares it `extern u8
+D_8009B058[]` and immediately casts at its only use, `rect = *(RECT
+*)D_8009B058`; and the next name, `D_8009B060`, is exactly eight bytes on,
+which is `sizeof(RECT)`. Every cheap check agrees.
+
+The attempt record refutes it anyway: the array spelling is what gets the
+symbol a compiler-allocated register under `-msplit-addresses`, so
+`extern RECT D_8009B058` would change how the address is materialised. The
+same note also explains the local copy — retail copies the eight-byte `RECT`
+by value into a stack slot before calling `LoadImage2`, and omitting the local
+leaves the frame eight bytes short.
+
+Both facts were free to read and would each have cost a build to rediscover.
+
+#### Reading the lever out of the objects
+
+The two subsections above need the answer either to be predictable from the
+table or to have been written down already in an attempt record. There is a
+third source that is free, exact, and exists for every symbol: the built
+objects record the addressing form as a relocation, so the lever can be read
+instead of inferred.
+
+```sh
+OD=tools/toolchains/binutils-2.42/bin/mipsel-none-elf-objdump
+"$OD" -dr tmp/splat/build/src/game/<file>.o | grep D_8009B16C
+```
+
+`R_MIPS_GPREL16` means the symbol resolved into small data. `R_MIPS_HI16`
+paired with `R_MIPS_LO16` means it did not. When one symbol shows both forms
+across the objects that use it, the differing declarations are not drift to be
+collapsed: they are opposite levers, and no single spelling can serve them.
+
+This check belongs *before* any attempt to reconcile sizes, because a size
+disagreement on its own does not settle the question. #3108 settled
+`D_8009B20C` by bounding the object from two directions -- the next named
+address above it, and the highest index any consumer actually reaches below --
+and then centralizing on the size that was correct rather than the largest one
+observed. That reasoning holds only while every consumer wants the same
+addressing form, and the relocations are what say whether it can hold at all.
+
+`D_8009B16C` is the case where it cannot. The object is eight bytes:
+`D_8009B174` is the next name. Five files declare it three ways, and four of
+them agree.
+
+| Translation unit | Spelling | Bytes | Relocation |
+| --- | --- | --- | --- |
+| `src/game/func_80024200.c` | `extern u16 D_8009B16C` | 2 | `R_MIPS_GPREL16` |
+| `src/game/duel_init_scene.c` | `extern u16 D_8009B16C` | 2 | `R_MIPS_GPREL16` |
+| `debug_effect_screen.c` | `extern u8 D_8009B16C[4]` | 4 | `R_MIPS_GPREL16` |
+| `src/game/main_run_duel.c` | `extern u16 D_8009B16C` in `.data` | 2 | `R_MIPS_HI16` + `R_MIPS_LO16` |
+
+The scalar `.data` spelling lets Main_RunDuel describe the accessed halfword
+truthfully while retaining the required absolute relocation.
+
+Both translation units in the disagreement compile at `-G8`, so the profile is
+not what separates them. Main_RunDuel's explicit `.data` placement supplies
+the absolute addressing without inventing an oversized array extent.
+
+The `[4]` is load bearing from the other direction, and this one was written
+down: `func_800222F4`, which is `debug_effect_screen.c`, records "small-data
+sized arrays for `D_8009B16C` and `D_8009AF2C`" as the discriminator that
+matched it under `gcc_2_8_1_g8_split`.
+
+That leaves no single unqualified declaration to centralize on: the scalar
+users require both small-data and absolute-address forms, while the byte-view
+consumer has a distinct access width. The symbol is a genuine multi-arm case,
+not a cleanup target, and the reads confirm the split is meaningful rather than
+accidental: the `u16` consumers only ever test bits `0x1000` and `0x2000` at
+offset 0, while `debug_effect_screen.c` only ever touches byte 2.
+
+#### Agreeing relocations still need a source-expression check
+
+The check above rejects a symbol when its objects disagree. An earlier
+experiment with `gAi_wBestDifference` appeared to show the converse was also
+unsafe: changing the G8 use from an array to a scalar moved the two-byte symbol
+into small data. That result was real, but the conclusion drawn from it was too
+broad. The completed loader now shows that one shared array declaration works
+for both translation units when each use spells the element access explicitly:
+
+| Translation unit | Spelling | Profile | Relocation |
+| --- | --- | --- | --- |
+| `src/game/ai_script_combo.c` | shared `extern u16 gAi_wBestDifference[]`; reads `[0]` | `gcc_2_8_1_g0_split` | `R_MIPS_HI16` + `R_MIPS_LO16` |
+| `src/game/ai_script_find_best_attack.c` | shared `extern u16 gAi_wBestDifference[]`; reads `[0]` | `gcc_2_8_1_g8_split_no_strength_reduce` | `R_MIPS_HI16` + `R_MIPS_LO16` |
+
+The object is still exactly one `u16`: `gAi_bBestAttacker` is the next name at
+`+2`, followed by `gAi_bBestTarget` at `+3`, and neither source indexes above
+`[0]`. The array spelling therefore remains an addressing lever rather than a
+storage-size claim. It keeps the G8 best-attack source out of small data, while
+the G0 loader naturally emits the same absolute relocation pair. In the loader,
+the `[0]` expression also preserves the measured unsigned-halfword load; its
+explicit byte-scaled destination index supplies the separate scheduling lever
+needed for the exact 60-byte function.
+
+The historical scalar experiment is useful because it proves that relocation,
+profile, declaration, and expression must be checked together. It does not
+prove that differing profiles require guarded declarations. Here, the current
+native builds establish the opposite: the flat shared `u16[]` declaration in
+`ai.h` is correct for both profiles, and both current sources retain their exact
+retail text and absolute relocations.
+
+#### A header may declare what its own source defines
+
+An earlier draft of this section claimed the opposite: that because
+`graphics_frame.c` *defines* its symbols rather than declaring them -- the
+definition being the lever that makes the assembler resolve a small global
+gp-relative -- `graphics_frame.h` could not declare them without colliding
+with the definition or quietly changing how the symbol resolves. That was
+wrong, and the tree now shows it plainly.
+
+`graphics_frame.c` defines six symbols. Its own header declares **five** of
+them:
+
+| symbol | defined in the source as | in the header |
+| --- | --- | --- |
+| `D_8009B098` | `u16 D_8009B098;` | yes, guarded two-arm |
+| `D_8009B0A8` | `u8 D_8009B0A8;` | yes, guarded two-arm |
+| `D_8009B0AD` | `u8 D_8009B0AD;` | yes, guarded two-arm |
+| `D_8009B0C1` | `u8 D_8009B0C1;` | yes, guarded two-arm |
+| `D_8009B0D0` | `u8 D_8009B0D0;` | yes, guarded two-arm |
+| `D_8009B0A0` | `u8 D_8009B0A0[4];` | **no** |
+
+A plain `extern` in the header does not fight the definition. As the header
+puts it for `D_8009B0C1`, the declaration "sits in front of that definition
+and does not change it", and the definition remains the lever it always was.
+Consumers that reach the symbol through `%hi`/`%lo` instead take the `.data`
+arm, which is why each of the five is guarded rather than flat.
+
+The measured part is what makes this more than a tidy-up. `main_services.c`
+reached `D_8009B0A8`, `D_8009B0AD` and `D_8009B0D0` through its own
+`extern volatile u8` declarations, under a comment arguing the volatile was
+what held the init block in source order. Dropping the volatile and taking
+the header's declarations builds byte-identical, and the same was true of
+`D_8009B0C1`'s volatile view in `main_init.c`. So a spelling that merely
+*differs* is not automatically load bearing; it is worth one build to find
+out, and here four such spellings turned out to be inert.
+
+#### The test is agreement, not definition
+
+The distinguishing question is not whether the owning unit defines the
+symbol. It is whether the consumer's spelling **agrees** with the definition:
+
+- A declaration that agrees is inert and belongs in the owning header. Five
+  of the six above are exactly this.
+- A spelling that merely differs may still be inert. `volatile` was, four
+  times over, but only a build could say so.
+- A spelling that encodes a different **view** of the address cannot be
+  centralized at all, and this is why `D_8009B0A0` is the one exclusion:
+  `graphics_frame.c` defines it `u8 D_8009B0A0[4]` while `main_services.c`
+  declares it a scalar and assigns `D_8009B0A0 = 2`. Array and scalar are two
+  faithful views of one address, the case the section below describes, so
+  neither spelling can absorb the other.
+
+Read that way the five-and-one split is not a partial job. It is the boundary
+falling exactly where the agreement test puts it.
+
+#### One address, several faithful types
+
+Not every symbol has a type waiting to be found. Some are shared staging
+areas, written by unrelated subsystems that each stage a different shape into
+the same bytes. For those, the differing declarations are not drift and there
+is no canonical type to adopt: each one is faithful to what its own caller
+puts there.
+
+`D_801D5608` is the clearest example in the tree. Before Tick389, seven
+resident sources declared it a flat `s32 []`, while `duel_result_runtime.c` used
+`s32 [16][DUEL_SIDE_COUNT]`. Two overlays, `free_duel/screen_runtime.c` and
+`password/shop.c`, used the shared `Pair` from `ygo_types.h`; the password
+source also needed a plain `s32` same-symbol alias for its starchip renderer.
+
+These views now meet in [`text_staging.h`](../src/game/text_staging.h).
+Seven resident producers use an incomplete array of `TextStagingValues`,
+a union of observed message inputs; the rank table, overlay pair and scalar
+alias keep their original declaration arms. The union exposes card statistics,
+card/count pairs, build-deck counts, library totals, memory-card block counts
+and the invalid-side word at `+0x40`. It does not declare permanent contents
+or a complete allocation, and only array element zero is used as a view.
+The measured resident and overlay images remain byte-identical.
+
+The earlier warning against making `Pair` the universal symbol type still
+holds. It does not preclude sharing the declarations with explicit view
+selection, or sharing a union that documents the overlap instead of erasing it.
+See [the producer and offset evidence](text-staging.md).
+
+`Main_RunCredits` settles it from a third direction. It never declares the
+symbol at all; it stores a halfword at `+0` and a word at `+4` through
+`%hi`/`%lo`. Its former `main_run_credits.c` hand-assembled that access with
+explicit relocation directives (the function is generated assembly again):
+
+```
+".word 0x3C060000\n"
+".reloc .-4, R_MIPS_HI16, D_801D5608\n"
+".word 0xACC20000\n"
+".reloc .-4, R_MIPS_LO16, D_801D5608\n"
+```
+
+Its address form is fixed by that generated assembly, not by any C
+declaration.
+
+The rule this gives is narrow but useful. A type duplicated across files is
+worth unifying when the files agree about *the same object*. When consumers
+stage different shapes into one buffer, centralize their observed views rather
+than choosing one meaning for the storage. State what the symbol is NOT, and
+preserve each load/store width and addressing boundary.
+
+#### Two kinds of differing spelling, and only one is predictable
+
+A consumer whose declaration disagrees with the definition is not
+automatically load bearing. Two measurements a few hours apart came out
+opposite ways, and the difference between them is mechanical enough to use as
+a decision procedure.
+
+**Case one: the difference constrains optimization.** `graphics_frame.c`
+defines `D_8009B0AD`, `D_8009B0D0` and `D_8009B0A8` as plain bytes.
+`main_services.c` declared all three `extern volatile u8`, under a comment
+saying the `func_80013154` init block in `src/game/main_services.c`
+is volatile so the emitted order is the source order.
+Those three are the *first three stores* of that run, so the honest
+expectation was a shift. There was none: dropping the `volatile` and taking
+the declarations from the owning header builds byte-identical. The comment was
+true of the rest of the run and over-claimed for these three.
+
+**Case two: the difference changes the addressing mode.** `Main_RunTrade` in `main_mode_runners.c`
+defines `u8 D_8009B269;`. `script_control_commands.c` compiles at `-G8` and
+declares it `extern u8 D_8009B269[]`, writing `D_8009B269[0]` at two sites.
+Converting that consumer to the scalar spelling does not shift bytes -- it
+*shortens the executable*:
+
+```
+error: rebuilt executable is 0x1d07f8 bytes, expected 0x1d0800
+```
+
+Eight bytes, across two write sites, four bytes each. At `-G8` a small scalar
+is small-data eligible and each store becomes one `%gp_rel` instruction; the
+array spelling pushes it out of small data and each store becomes a `%hi/%lo`
+pair. The array is the lever the table above describes, and here it is
+measured rather than inferred.
+
+The two cases separate cleanly:
+
+- A spelling that changes **addressing mode** -- array versus scalar under
+  `-G8`, `section(".data")`, an addend neighbour -- is structural. The `-G`
+  table predicts it, it changes the instruction *count*, and there is no need
+  to spend a build confirming it.
+- A spelling that only **constrains the optimizer** -- `volatile` is the one
+  that occurs here -- is not predictable from the table at all. It costs
+  nothing wherever the optimization it forbids was not available anyway, which
+  is why two separate `volatile` views in this tree turned out inert. Measure
+  it; do not assume either way.
+
+The build error tells you which case you are in. A pure **length** change means
+the instruction count moved, which points at addressing mode. A same-length
+mismatch points at scheduling or register allocation, where `volatile` and
+register pins live.
+
+#### One symbol reached by two addressing modes at the same `-G` level
+
+The section above says the `-G` table predicts an addressing-mode lever. It
+predicts which levers are *available*; it does not, on its own, say which one a
+given consumer needs. `D_8009B26C` is the case that separates those two
+claims, and it is worth writing down because it looks like an obvious
+centralization target and is not one.
+
+Seven sources declare it identically as `extern u8 D_8009B26C[]` and write
+`D_8009B26C[0]`: `frontend_scene_states.c`,
+`duel_effect_basic_commands.c`, `duel_effect_mode_7.c`, `func_8002FA28.c`,
+`func_8002EB48.c`, `script_control_commands.c` and
+`debug_menu_two_player_entry.c`. Seven identical
+declarations of one symbol, with no disagreement to resolve, is exactly the
+shape that has passed byte-exact elsewhere. It still cannot be centralized.
+
+Two facts block it.
+
+**Retail reaches the symbol both ways.** At the time of this measurement,
+`Main_RunCredits`, `DebugMenu_UpdateCampaignEntry` and `func_8002A788`
+(now `Library_UpdateGridCursor`) were generated assembly and did not agree
+about the relocation. Their former hand-assembled C files recorded it:
+
+```
+main_run_credits.c:   .reloc .-4, R_MIPS_GPREL16, D_8009B26C
+debug_menu_campaign_entry.c:      .reloc .-4, R_MIPS_HI16,    D_8009B26C
+                      .reloc .-4, R_MIPS_LO16,    D_8009B26C
+func_8002A788.c:      .reloc .-4, R_MIPS_HI16,    D_8009B26C
+                      .reloc .-4, R_MIPS_LO16,    D_8009B26C
+```
+
+`DebugMenu_UpdateCampaignEntry` settles it from inside a single function: two instructions
+apart it takes `gDebug_nSceneOrSoundID` `GPREL16` and `D_8009B26C`
+`HI16`/`LO16`. So the absolute form is not that unit being uniformly outside
+small data; it is this symbol, at this site.
+
+**The profile does not choose the spelling.** All eight array-spelling
+consumers compile at `gcc_2_8_1_g8`. So does `main_debug.c`, which uses the
+plain scalar, as did the former `main_run_credits.c`, `debug_menu_campaign_entry.c` and
+the former `func_8002A788.c`. Same compiler, same `-G8`, opposite spellings,
+both matching.
+`func_80024DC8.c` is the control: it is `-G0` and uses the scalar, where the
+table says no lever is needed because a plain scalar already gets `%hi/%lo`.
+
+The spelling is therefore a property of the individual access site's required
+relocation, not of the symbol and not of the translation unit's profile. A
+single shared declaration cannot serve both groups. Guarded arms could hold
+both, but each consumer would still have to select its arm, so eight local
+declarations would become eight local `#define`s and one indirection -- churn
+without a reduction.
+
+Two smaller notes for anyone who picks this symbol up. It is **not** an
+unmatched symbol, so it is out of scope for the `unmatched.h` work: three
+units define it -- `main_run_two_player_duel_setup.c`, `main_mode_runners.c` and
+`main_run_animated_battle.c` -- as common symbols under the `*_comm`
+profiles. And nothing anywhere indexes above `[0]`, which is what the next
+symbol requires: `D_8009B26D` sits one byte above it in `c_symbols.ld` and is
+live in its own right, read and written by `frontend_scene_states.c` and
+[`Script_OpSavePrompt`](../src/game/script_op_save_prompt.c) behind a
+`D_8009B26D_IN_DATA` guard. `D_8009B26C` is a
+single byte with a named neighbour immediately above, so its array spelling is
+a lever and could never be a real array -- and `frontend_scene_states.c`
+demonstrates both at once, declaring `D_8009B26C[]` while separately using
+`D_8009B26D`.
+
+Its neighbour `D_8009B269` sits three bytes below `D_8009B26C` and behaves the
+same way: converting `script_control_commands.c` to the scalar spelling
+shortens the executable by eight bytes, as the section above records.
+
+### The overlay data blobs
+
+The issue's completion criterion names the game *and overlay* split templates,
+but the ranges above are all resident. The overlay side has not been measured
+before, so here it is. Every overlay carries one unowned `data` subsegment:
+
+| overlay | labels | extent | items | non-zero |
+| --- | ---: | ---: | ---: | ---: |
+| `free_duel` | 5 | 6093 | 1554 | 1299 |
+| `main_menu` | 1 | 9004 | 2251 | 681 |
+| `overworld_before_coup` | 11 | 4524 | 3940 | 3225 |
+| `overworld_after_coup` | 11 | 4524 | 3940 | 3038 |
+| `password` | 30 | 9213 | 2330 | 507 |
+
+These are the current raw tails. Unlike the resident `.data` ranges, none of
+this data is vendor code's: overlays contain no Psy-Q library.
+
+Two things in the table are worth reading rather than skimming. The two
+overworld blobs agree exactly on extent and label count but **not** on
+content -- 3225 non-zero items against 3038 -- which is what a before/after
+pair sharing one layout and differing in values should look like, and is a
+reason to treat them as two jobs rather than one. And `free_duel` has only
+five labels across six kilobytes, so the vast majority of it is unnamed.
+
+`main_menu` previously held a hazard that is now accounted for:
+`D_80185CC8` and `D_80185CC9` are adjacent bytes inside
+`gMainMenu_TradeState`, while linker aliases preserve the array view and the
+scalar neighbour used by different consumers.
+
+`free_duel` is the smallest by label count, and its named prefix is now
+C-owned. Consumer widths, rather than generated label extents, establish:
+
+- `gFreeDuel_abGridAvailable`: 40 bytes at `0x80169030`;
+- `gFreeDuel_pThumbWidget`: one pointer at `0x80169058`, followed by one
+  still-unknown word;
+- `gFreeDuel_apSparklePool`: 16 pointers at `0x80169060`;
+- `gFreeDuel_pCursorWidget`: one pointer at `0x801690A0`;
+- `gFreeDuel_bScreenFlags`: the low byte of four-byte storage at
+  `0x801690A4`.
+
+Those objects and the accounted unknown/padding bytes fill exactly
+`0x80169030-0x801690A8`, so `module_state.c` can own one exact `0x78`-byte
+`.data` section without adopting any false label extent. The screen-flags
+header exposes a byte view over its four-byte storage because old GCC aligns a
+following byte array to four bytes; spelling the padding as a second object
+would shift the raw tail.
+
+The remainder starts at `0x801690A8`, not at the end of the last generated
+label. It is 5,976 bytes and is not homogeneous data: disassembly identifies
+four internally connected MIPS routines from `0x80169138` through
+`0x80169B8C`, preceded by an orphan control-flow fragment, followed by zero
+padding and opaque asset bytes from `0x80169C04`. They have no known entry
+from the live Free Duel screen. The range stays raw until its load/ownership
+contract is established; it must not be represented as one invented array.
+
+#### Why the overlay blobs resist carving
+
+The resident ranges were blocked by placement and by byte layout. The overlay
+blobs have a different and more basic obstacle, and it took two candidates to
+see it.
+
+The password head is now mapped without accepting those misleading sparse
+extents. [`module_state.c`](../src/overlays/password/module_state.c) owns the
+complete `0x8016D400-0x8016D590` prefix as one `0x190`-byte
+`PasswordModuleState`, whose field offsets are supported by the name-entry and
+shop consumers. The remainder, `0x8016D590-0x8016F800`, stays raw.
+
+`shop.c` declares `extern u8 *D_8016D440[]` and walks it to store **four**
+objects -- sixteen bytes -- and the overlay's own function notes describe
+exactly that, four decoration objects one per password digit. But the label
+runs 144 bytes, because that is the distance to the next *named* symbol.
+`D_8016D4DC` is worse: the stored C declares it `u16`, and the label spans
+180 bytes.
+
+Those gaps are now explicit padding and later fields within the enclosing
+state record, not invented sizes for either interior object. Generated
+unmatched assembly retains the historical labels through linker aliases from
+`gPassword_ModuleState`, while matching C keeps its original symbol
+relocations and instruction bytes.
+
+That is the same shape the Free Duel prefix had before consumer widths split
+the thumb pointer from its following unknown word. One instance looked like a
+quirk; the repeated sparse-label pattern makes it the rule.
+
+The screening consequence is worth stating plainly. For resident `.sdata` a
+uniformly word-sized run was sufficient evidence to carve, and it worked
+first try. For overlay data it is **not** sufficient: a run can be uniformly
+word-sized, entirely zero, and still unsafe, because the size the label
+implies may be unrelated to the object. The extra check is to find a
+consumer's declared size and require it to agree with the label extent, or
+else to account for the unnamed remainder explicitly. Free Duel's prefix now
+passes that check because every byte through `0x10A8` is accounted for
+separately. Password's `0x190`-byte state likewise accounts for every byte
+through its current raw-tail start at `0x5590`.
+
+Two method corrections, because each cost me a wrong number in this same
+survey.
+
+Measuring a blob by the span of its **labels** understates it whenever the
+content continues past the last named symbol -- for `free_duel` that reported
+120 bytes against a true extent of 6093, out by a factor of fifty. Measure
+from the first to the last emitted datum instead.
+
+Counting non-zero content by matching `.word` lines alone is worse, because
+it fails silently in the direction that looks like good news. In the original
+survey these blobs were emitted mostly as `.byte` and `.short`: `main_menu`
+carried 9032 byte and 1480 short directives against 756 words, so a word-only
+count reported it as entirely zero when 2053 of its 11268 items were non-zero.
+It read as the easiest range in the table and was nothing of the kind. Count
+every directive kind, and treat a suspiciously clean result as a reason to
+check the mix rather than to celebrate.
+
+#### What the overlay data side actually consists of
+
+The resident `.sdata` work is nearly finished, and every overlay module header
+is now C-owned through its `<overlay>_data_c.json` manifest. The values look
+like module identifiers: `main_menu` is `0x0F`, `free_duel` is `0x13`,
+`overworld` is `0x14`, and `password` is `0x15`. The two overworld variants
+share one source and value. Nothing reads these words, so they keep
+address-based names rather than claiming module-ID semantics.
+
+`main_menu` originally appeared to be the exception. Its Trade inventory
+source declared `D_80180000[]` and read element 1 as a six-entry comparator
+table. That crossed the four-byte `.data` header boundary into the adjacent
+`.rodata`, making a C definition of the header look impossible.
+
+The generated layout already supplied the missing distinction:
+`D_80180000` is the header word and `D_80180004` is the comparator table.
+They now have separate typed owners:
+
+| Range | C owner | Contract |
+|---|---|---|
+| `0x80180000-0x80180004` | `module_header.c` | One `u32` initialized to `0x0F`. |
+| `0x80180004-0x8018001C` | `module_rodata.c` | `MainMenuComparators`, six function pointers in retail order. |
+
+`MainMenu_RefreshTradeInventory` copies `D_80180004` directly instead of
+forming an array that spans two sections. The compiled `.rodata` object is
+exactly `0x18` bytes and carries six `R_MIPS_32` relocations, in order, to
+`MainMenu_CompareCardsByName`, `MainMenu_CompareCardsByMaxStat`,
+`MainMenu_CompareCardsByAttack`, `MainMenu_CompareCardsByDefense`,
+`MainMenu_CompareCardsByType`, and `MainMenu_CompareCardsByCount`. The
+comparator definitions include their shared owning header, so the table cannot
+silently drift from their signatures.
+
+The remaining overlay data work is in the current raw tails:
+
+| overlay | raw blob | bytes |
+|---|---|---:|
+| `main_menu` | `0x5CD4-0x8000` | 9004 |
+| `password` | `0x5590-0x7800` | 8816 |
+| `free_duel` | `0x10A8-0x2800` | 5976 |
+| `overworld_before_coup` | `0x2274-0x3000` | 3468 |
+| `overworld_after_coup` | `0x2274-0x3000` | 3468 |
+
+The mapped main-menu prefix now covers `0x80184558-0x80185CD4`: three
+consecutive typed objects own frontend state, value-setup state, both
+722-card Trade inventory rows, scroll positions, offers, and interaction
+flags. Historical names remain linker aliases at their original offsets,
+including `D_801845BC[2]`/`D_801845BE`,
+`D_801845FC[1]`/`D_80185144`, and
+`D_80185CC8[1]`/`D_80185CC9`. The two nonzero loaded-image padding bytes at
+`0x8018459E-0x8018459F` are explicit rather than being silently zero-filled.
+
+The ranges in the table still require consumer-backed boundaries before they
+can be split further. The data-only overlay manifest and build path are no
+longer blockers.
+
+## Exact baseline build
+
+```sh
+make build
+make match
+```
+
+The build performs these steps:
+
+1. Regenerate the validated Splat split beneath `tmp/splat/`.
+2. Assemble unmatched resident MIPS text and exact data using the local GNU
+   assembler.
+3. Compile ordered matching-C segments using
+   `config/slus_01411/matching_c.json`, and the C translation units that own
+   initialized data using `config/slus_01411/data_c.json`, with the named
+   profiles in `config/slus_01411/compiler_profiles.json`, then normalize their
+   assembly through maspsx.
+4. Convert each classified binary region into a MIPS object.
+5. Link all text objects in manifest order with the original VRAM and file load
+   addresses.
+6. Emit `tmp/project-build/SLUS_014.11`.
+7. Compare its complete size and SHA-256 with the supplied executable.
+
+A successful run prints:
+
+```text
+MATCH  tmp/project-build/SLUS_014.11
+sha256 84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88
+```
+
+This baseline does not include the original executable as one opaque blob.
+Resident code is regenerated as MIPS assembly, known data ranges are
+regenerated as assembly, and remaining binary ranges are separately classified
+and excluded from C-decompilation progress.
+
+Current matching totals are generated in the root `README.md`. Run
+`make progress` when intentionally refreshing that project-wide snapshot;
+routine decompilation changes do not need to update it.
+
+## Incremental edit builds
+
+The clean `split`, `build`, and `match` targets remain the acceptance path.
+For repeated edits, use the separate incremental targets:
+
+```sh
+make clean
+MAKEFLAGS=-j"$(nproc)" make match
+# Seed immediately, before changing any source or build input.
+tools/environments/python/bin/python tools/project/build_incremental.py --seed-existing
+
+# After each edit:
+MAKEFLAGS=-j"$(nproc)" make match-incremental
+
+# Final acceptance:
+MAKEFLAGS=-j"$(nproc)" make match
+```
+
+Seeding is optional; without it, the first incremental build compiles its
+objects. Seeding trusts the objects from the immediately preceding, unchanged
+matching build. Do not seed after making edits. The first incremental split
+also regenerates once to establish its own validated output snapshot.
+
+`split-incremental` fingerprints the retail target, split configuration,
+inventory and mappings, compiler profiles, symbols, relocations, generators,
+installed Splat/MIPS dependency contents, and relevant interpreter/disassembler
+settings. It repeats the matching-source ownership and grouping checks on
+cache hits. It uses the pinned Splat C parser to track the function and
+`INCLUDE_ASM`/`INCLUDE_RODATA` names that splitting actually observes; ordinary
+C-body and header edits do not require another split. Source-shape, metadata,
+tool, or target changes do.
+
+The source-tree scan resolves each path once and supplies those canonical C
+paths to both matching-source ownership validation and Splat-visible function
+and include-shape parsing. Symlinks that leave the workspace are still
+rejected before either consumer runs.
+
+Generated assembly, data, assets, linker scripts, and headers must still match
+their recorded contents. Missing, modified, or extra generated files force
+regeneration. The scanner prunes `tmp/splat/build` and `tmp/splat/cache`, which
+are not split inputs. Optional generated outputs must remain in the tracked
+split tree; arbitrary Splat extensions and partial-linker layouts are not
+supported by this resident cache. Failed regeneration never publishes a valid
+stamp. The stamp lives at `tmp/incremental/split-cache.json`.
+
+The object driver memoizes resolved paths, file hashes, and parsed quoted
+includes only for the current invocation. Shared headers and compiler binaries
+are read once rather than once per unit or profile; later invocations re-read
+their contents, including when a file's timestamp has not changed.
+Workspace-validated source and tool paths seed that same canonical-path cache,
+so security validation and dependency hashing do not resolve each path
+separately. Only active compiler profiles are fingerprinted, so an unused
+profile does not require an uninstalled compiler. An already installed object
+is retained only when its contents match a valid cached object. Missing or
+altered installed objects are restored or rebuilt. The driver reports
+`rebuilt`, `reused`, `retained`, and `materialized` counts, with
+`reused = retained + materialized`. Every incremental build still relinks and
+hashes the complete executable. Run builds sequentially; neither cache is a
+concurrent-writer protocol.
+
+Warm object validation reuses the cached object's file size and stats the
+installed object once before comparing bytes. A fully unchanged build leaves
+the cache JSON untouched; stale object keys are pruned only after a successful
+relink, while rebuilt signatures remain checkpointed before linking.
+
+The first rebuilt object is checkpointed immediately. Further signature
+updates are written every 16 rebuilt objects, with any remainder flushed before
+the full relink. This avoids rewriting the complete JSON cache after every
+object while preserving immediate recovery for the common one-object edit and
+bounding interrupted bulk builds to at most 15 signatures that must be
+recomputed. Cached object files remain content-validated on the next run.
+
+The optimization targets this local worker loop, not repeated CI benchmarking.
+CI keeps its existing clean acceptance build, a small cache-regression suite,
+and a warm-loop smoke check. It does not upload build/performance artifacts.
+
+Invalidated components compile or assemble concurrently when `MAKEFLAGS`
+contains a numeric `-jN` or `--jobs=N`; direct driver invocations default to one
+worker and may pass `--jobs N` explicitly. Cache checkpoints are published as
+workers finish, while the linker still receives objects in executable order.
+A jobserver-only `-j` without a numeric count falls back to one worker rather
+than guessing or oversubscribing.
+
+Linking remains sequential. Remaining worker-loop costs include
+prerequisite/tool checks, content validation of generated output and cached
+objects, and the mandatory full relink/hash.
+
+## Full repository audit
+
+```sh
+make audit
+```
+
+The audit performs a clean exact build, reconciles the function inventory,
+reapplies ownership classifications, and checks:
+
+- Every commit attributed to Copilot uses the `Copilot` name with a
+  `+Copilot@users.noreply.github.com` e-mail address for both author and
+  committer. Commits from other contributors are accepted as they are.
+- A Copilot commit carries no `Co-authored-by` trailer other than Copilot's
+  own.
+- No supplied game file, generated output, downloaded dependency, installed
+  environment, vendor checkout, or local toolchain is tracked.
+- Tracked Markdown documentation is under `notes/`, except for per-directory
+  `README.md` files and repository guidance at
+  `.github/copilot-instructions.md`.
+- Canonical and external attempt histories satisfy the same validation
+  contracts used by their dedicated ledger tools, including historical
+  retired-profile provenance and reclassified matches.
+- The worktree is clean after deterministic regeneration.
+
+## Cleanup
+
+```sh
+make clean
+```
+
+Cleanup removes only these known generated paths when present:
+
+- `tmp/extract/`
+- `tmp/generated/`
+- `tmp/splat/`
+- `tmp/project-build/`
+- `tmp/incremental/`
+- `tmp/reports/`
+
+It does not remove downloaded tools, toolchains, user-supplied game files, or
+the separate binutils bootstrap build directory.

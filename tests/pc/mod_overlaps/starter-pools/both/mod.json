@@ -1,0 +1,7 @@
+{
+    "id": "both",
+    "name": "Both",
+    "about": "Two written decks and pools of its own: its decks win over its pools and every other mod's.",
+    "starter": [{"Kuriboh": 40}, {"weight": 2, "Mystical Elf": 40}],
+    "starter_pools": {"draws": 40, "cards": {"Kuriboh": 1}}
+}

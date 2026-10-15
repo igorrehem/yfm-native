@@ -1,0 +1,8 @@
+@bank names
+
+[8001]
+# the same words as Alpha's
+Blue-eyes
+
+[8002 8003]
+Giant

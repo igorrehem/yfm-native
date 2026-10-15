@@ -1,0 +1,94 @@
+#include "../port_ptr.h"
+#ifndef MEMORIES_DECOMP_DIALOG_CHOICE_H
+#define MEMORIES_DECOMP_DIALOG_CHOICE_H
+
+#include "../types.h"
+
+/* The dialog choice prompt's shared state.
+ *
+ * dialog_highlight_choice.h beside this one is the per-TU header for
+ * Dialog_HighlightChoice, in the shape #2495 asks for. This is the state that
+ * the three dialog sources and the two text-stream sources share.
+ *
+ *   gDialog_bChoiceEnabled  One bit per choice, tested as
+ *                           `(gDialog_bChoiceEnabled >> gDialog_bChoice) & 1`
+ *                           and set from `d & 0xF`, so four choices at most.
+ *   gDialog_bChoiceCount    How many are offered; read into an s32 and set to
+ *                           4 and 7 at different prompts.
+ *
+ * Script_OpSavePrompt also clears gDialog_bChoiceCount and needs the absolute
+ * .data addressing, so it selects GDIALOG_CHOICE_COUNT_IN_DATA below.
+ *
+ * WAS NOT HERE, AND NOW IS
+ *
+ * gDialog_bChoice used to be listed here as deliberately left out: declared
+ * eleven times in four ways, with the array spelling unexplained. It is no
+ * longer left out -- all three spellings are arms below, the last of them
+ * added for func_80024200, which was the one source still declaring it
+ * privately.
+ */
+extern u8 gDialog_bChoiceEnabled;
+#ifdef GDIALOG_CHOICE_COUNT_IN_DATA
+extern s8 gDialog_bChoiceCount PSX_SECTION(".data");
+#else
+extern s8 gDialog_bChoiceCount;
+#endif
+
+/* The selected index the other two are read against. #3149 left this out
+ * because it is declared eleven times in four spellings; sorting those into
+ * addressing groups, as #3154 sets out, reduces it to one question that has
+ * now been measured.
+ *
+ * Five sources spell it `s8` with a .data section attribute and one spells it
+ * `s8 [9]`; both of those are the lever that keeps it out of -G8 small data.
+ * The `[9]` source now includes this header and selects the arm by name;
+ * the five .data ones still do not. The card-move presentation
+ * also needs an absolute load and selects GDIALOG_CHOICE_IN_DATA here.
+ *
+ * Of the five that reach it from small data, four spelled it s8 and
+ * Dialog_ReadChoiceInput (dialog_choice_cursor.c) uses a u8 local. That was an abstention rather
+ * than a disagreement: every use there is `u8 choice = gDialog_bChoice`,
+ * assigning straight into a u8 local, so the load's signedness does not
+ * survive. Taking s8 there builds byte for byte.
+ */
+/* The sixth spelling is the array one, and it is a codegen input like the
+ * section attribute above rather than a claim about the object. Nine bytes
+ * clears the -G8 threshold, so the reference is not small data and the
+ * assembler expands it; the unit that needs it reads only [0], which is the
+ * same byte the scalar arms name. func_80024200 is its one consumer and
+ * selects GDIALOG_CHOICE_SIZED; the two arms below are untouched for the
+ * five sources that use them. */
+#ifdef GDIALOG_CHOICE_SIZED
+extern s8 gDialog_bChoice[9];
+#elif defined(GDIALOG_CHOICE_IN_DATA)
+extern s8 gDialog_bChoice PSX_SECTION(".data");
+#else
+extern s8 gDialog_bChoice;
+#endif
+
+/* The prompt's input state, the third member of that same shared set.
+ * Text_HandleChoiceCommand arms it when the command arrives -- 1 if the
+ * command byte's 0x80 bit is set, otherwise 0 -- and Dialog_UpdateChoice is
+ * the reader that spends it, clearing it back to 0.
+ *
+ * Declared u8, and one reader deliberately disagrees with that in place:
+ *
+ *     f = *(s8 *)&gDialog_bInputState;
+ *     g = gDialog_bInputState;
+ *
+ * Dialog_UpdateChoice takes the same byte twice, once through an explicit
+ * s8 cast and once plainly, and both loads are in the matched bytes. The
+ * cast is the lever that keeps retail's signed load, so it stays exactly
+ * where it is rather than being resolved into the declaration.
+ *
+ * Dialog_UpdateChoice tests DIALOG_CHOICE_INPUT_CONFIRMED before taking the
+ * choice index from the low three bits, and treats
+ * DIALOG_CHOICE_INPUT_CANCELLED as completion without selecting an index.
+ * The confirm/cancel meanings are also established by the live choice-input
+ * trace recorded in notes/research/Unchiga_Symbols/findings.md. */
+#define DIALOG_CHOICE_INPUT_CONFIRMED 0x40
+#define DIALOG_CHOICE_INPUT_CANCELLED 0x80
+
+extern u8 gDialog_bInputState;
+
+#endif

@@ -1,0 +1,77 @@
+{
+    "about": "Card packs dealt by src/pc/cards/packs.c and tools/pc/fm_editor/packs.py for the same numbers: packs_golden.txt holds what they deal (tests/pc/packs_test.c writes it with PACKS_GOLDEN_WRITE=1). Cards are named by id; past 722 they stand for a mod's.",
+    "packs": [
+        {"id": "basic", "name": "Basic", "cards": [1, 2, 3, 4, 5, 6, 7, 8]},
+        {
+            "id": "tiered", "count": 6,
+            "tiers": {
+                "common": {"odds": 800, "cards": {"10": 3, "11": 1, "12": 2}},
+                "rare": {"odds": 180, "cards": [20, 21]},
+                "ultra": {"odds": 20, "cards": [30]}
+            },
+            "guarantee": {"rare": 1},
+            "pity": {"ultra": 3}
+        },
+        {
+            "id": "slots",
+            "tiers": {
+                "common": {"odds": 70, "cards": [100, 101, 102]},
+                "rare": {"odds": 25, "cards": {"110": 2, "111": 1}},
+                "ultra": {"odds": 5, "cards": [120, 121]}
+            },
+            "slots": ["common", "common", {"tiers": {"rare": 90, "ultra": 10}}, {"cards": {"130": 1, "131": 3}}, {"card": 140}],
+            "guarantee": {"ultra": 1}
+        },
+        {"id": "unique", "count": 5, "cards": [60, 61, 62, 63, 64, 65], "duplicates": "unique_in_pack"},
+        {"id": "capped", "count": 8, "cards": {"70": 5, "71": 1, "72": 1, "73": 1}, "max_copies": 2},
+        {
+            "id": "fallback", "count": 4,
+            "tiers": {
+                "common": {"odds": 1, "cards": [80, 81]},
+                "rare": {"odds": 5, "cards": [82]},
+                "ultra": {"odds": 5, "cards": [83]}
+            },
+            "max_copies": 1,
+            "guarantee": {"ultra": 2}
+        },
+        {
+            "id": "added", "count": 3,
+            "tiers": {"low": {"odds": 3, "cards": [1, 800, 801]}, "high": {"odds": 1, "cards": [802]}},
+            "pity": {"high": 2}
+        },
+        {
+            "id": "fixed-unique",
+            "tiers": {"common": {"odds": 3, "cards": [150, 151, 152, 153]}, "rare": {"odds": 1, "cards": [154, 151]}},
+            "slots": ["common", "common", {"tiers": {"common": 1, "rare": 1}}, {"card": 151}],
+            "duplicates": "unique_in_pack"
+        },
+        {
+            "id": "capped-fixed",
+            "tiers": {"common": {"cards": [160, 161, 162]}},
+            "slots": ["common", {"cards": [160, 163]}, "common", {"card": 160}],
+            "max_copies": 2
+        },
+        {"id": "owned", "count": 3, "cards": [90, 91], "max_copies": 1, "when_nothing_left": "sell"}
+    ],
+    "cases": [
+        {"pack": "basic", "seeds": [1, 2, 3, 12345, 2147483647]},
+        {"pack": "tiered", "seeds": [1, 7, 99, 2024, 65535]},
+        {"pack": "tiered", "seeds": [1, 7, 99], "pity": {"ultra": 2}},
+        {"pack": "tiered", "seeds": [5], "pity": {"ultra": 1}},
+        {"pack": "slots", "seeds": [1, 2, 3, 4, 5, 31337]},
+        {"pack": "unique", "seeds": [1, 2, 3, 4, 5]},
+        {"pack": "capped", "seeds": [1, 2, 3]},
+        {"pack": "capped", "seeds": [1, 2, 3], "held": {"70": 1, "71": 2}},
+        {"pack": "fallback", "seeds": [1, 2, 3, 4]},
+        {"pack": "fallback", "seeds": [1, 2], "held": {"83": 1}},
+        {"pack": "added", "seeds": [1, 2, 3, 8, 13]},
+        {"pack": "added", "seeds": [1, 2, 3, 8], "pity": {"high": 1}},
+        {"pack": "fixed-unique", "seeds": [1, 2, 3, 4, 5, 6, 7, 8]},
+        {"pack": "capped-fixed", "seeds": [1, 2, 3, 4]},
+        {"pack": "capped-fixed", "seeds": [1, 2, 3], "held": {"160": 1}},
+        {"pack": "capped-fixed", "seeds": [1], "held": {"160": 2, "161": 2, "162": 2, "163": 2}},
+        {"pack": "owned", "seeds": [1, 2]},
+        {"pack": "owned", "seeds": [1, 2], "held": {"90": 1}},
+        {"pack": "owned", "seeds": [1, 2], "held": {"90": 1, "91": 1}}
+    ]
+}

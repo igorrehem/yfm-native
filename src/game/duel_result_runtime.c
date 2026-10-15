@@ -1,0 +1,638 @@
+#ifdef MEMORIES_PC
+#include "pc/mods/mods.h"
+#include "pc/free_duel/duelists.h"
+#endif
+#define D_8009B0CC_IN_DATA
+#define D_8009B362_IN_DATA
+#define GINPUT_PAD1_PRESSED_IN_DATA_VOLATILE
+#include "../types.h"
+#include "display_object.h"
+#include "display_object_core.h"
+#include "display_object_lifecycle.h"
+#include "graphics_frame.h"
+#include "../psyq/libgte.h"
+#include "../psyq/libgpu.h"
+#include "../psyq/libgs.h"
+#include "display_object_helpers.h"
+#include "display_object_layout.h"
+#include "duel_card_display_state.h"
+#include "duel_scene_state.h"
+#include "duel_check_ritual.h"
+#include "../psyq/rand.h"
+#include "display_object_motion.h"
+#include "input.h"
+#include "rand_get_interval.h"
+#include "trig_constants.h"
+#include "duel_init_scene.h"
+#include "file_transfer.h"
+#include "func_80020BE4.h"
+#include "sound.h"
+#include "sound_output.h"
+#include "fade.h"
+#include "duel_side_state.h"
+#include "ai_opponent_data.h"
+#include "duel_package.h"
+#include "duel_screen_tables.h"
+#include "duel_result_outro.h"
+#include "save_data.h"
+#include "card_constants.h"
+#include "duel_scene_state.h"
+#include "duel_grid.h"
+#include "duel_rank.h"
+#include "duel_result_display.h"
+#include "duel_rewards.h"
+#include "text_staging.h"
+#include "text_box_lifecycle.h"
+#include "text_box_runtime.h"
+#include "display_object_config.h"
+#include "../unmatched.h"
+#ifdef MEMORIES_PC
+#include "pc/cards/cards.h"
+#include "pc/cards/tables.h"
+#include "pc/cards/drops.h"
+#include "pc/cards/starchip_prize.h"
+#include "duel_effect.h"
+#endif
+
+#define DUEL_RESULT_ORBIT_ANGLE_STEP 0x30
+
+/* The complete duel-result outro, rank, drop, and award runtime.
+
+   The duel-result outro and the two update callbacks it hangs on its
+   confetti: DuelResult_UpdateOrbitSprite orbits a sprite around its spawn
+   point, func_80020EE8 sends it flying off, and
+   DuelScene_UpdateResultOutro is the outro sequence that spawns the sprites
+   on the first and retargets them at the second. The three sources were
+   recorded at gcc_2_8_1_g8_no_split,
+   gcc_2_8_1_g8 and gcc_2_8_1_g8_split, and each compiles to an identical
+   object at gcc_2_8_1_g8_split. Bounded below by the outro package's
+   transfer callback func_80020BE4, which cannot reproduce its object under
+   this unit's split profile, and above by unmatched assembly. */
+
+/* Per-frame update for an object that orbits a fixed base position
+   (field_2C/field_2E) at DUEL_RESULT_ORBIT_ANGLE_STEP per frame, with radius
+   the object's field_28 (which also serves as its countdown timer -- it decays
+   by 2/frame). When the timer reaches 0: clears field_6C/update, snaps the
+   current position (field_30/field_32) back to the base position in one 32-bit
+   copy, and returns. Otherwise, while D_8009B0CC's bit 0 is set, spawns a
+   companion slot object at the object's current position (tagged via
+   sub_table_lookup_set_flag using field_16-1), then advances the angle and
+   recomputes the orbit position from base + (rcos,rsin)*radius/ONE. */
+
+void DuelResult_UpdateOrbitSprite(DisplayObject *arg0) {
+    s16 timer;
+    u16 angle;
+    DisplayObject *slot;
+    s32 vy;
+
+    timer = (s16)arg0->position.h.field_28 - 2;
+    arg0->position.h.field_28 = timer;
+    if (timer <= 0) {
+        arg0->field_6C = 0;
+        arg0->update = 0;
+        arg0->field_30.word = arg0->field_2C.word;
+        return;
+    }
+
+    if (D_8009B0CC & 1) {
+        slot = DisplayObject_AcquireSlot(DisplayObject_FindFreeGeneralSlot(), 2);
+        if (slot != 0) {
+            DisplayObject_ConfigureSpriteAtPositionWithResource(slot, (s16)arg0->field_30.h.field_30,
+                                   (s16)arg0->field_30.h.field_32, 0,
+                                   arg0->field_68, arg0->field_69, 0x11, 9,
+                                   D_801AF000);
+            slot->field_40.h.field_40 = (u16)arg0->field_40.h.field_40 + 0x80;
+            slot->flags |= DISPLAY_OBJECT_FLAG_TEXTURE_CELL_OFFSET |
+                           DISPLAY_OBJECT_FLAG_SCREEN_SPACE;
+            slot->attribute |= (GsALON | GsAONE);
+            DisplayObject_SetDepthOffset(slot, (u8)arg0->field_16 - 1);
+            slot->field_60 = 8;
+            slot->update = (DisplayObjectCallback)DisplayObject_FadeBrightnessAndRelease;
+        }
+    }
+
+    angle = arg0->position.h.field_2A + DUEL_RESULT_ORBIT_ANGLE_STEP;
+    arg0->position.h.field_2A = angle;
+    arg0->field_30.h.field_30 =
+        (s16)arg0->field_2C.h.field_2C +
+        rcos((s16) angle) * (s16)arg0->position.h.field_28 / ONE;
+    vy = rsin((s16) arg0->position.h.field_2A) * (s16)arg0->position.h.field_28;
+    arg0->field_30.h.field_32 = arg0->field_2C.h.field_2E + vy / ONE;
+}
+
+void func_80020EE8(DuelCardDisplayObject *object)
+{
+    if (DisplayObject_MarkInitialized((DisplayObjectLifecycle *)object) == 0) {
+        object->flags |= DISPLAY_OBJECT_FLAG_CLIP_TEST;
+    }
+    object->field_21 -= 2;
+    if (object->field_21 < 0xC0) {
+        DisplayObject_ReleaseIfPresent((u8 *)object);
+    }
+}
+
+/* Duel-result outro sequence, driven from the scene state word gDuel_wSceneStateFlags.
+
+   The first call (bit 0x8000 clear) fades the BGM out, records the winning
+   side in D_8009B362/D_8009B238, requests the outro package (0x1DAB, 0x22
+   sectors) through func_80020BE4, picks the win or lose track for
+   D_8009B1E0 -- 0x72F0 only when the player won against a real opponent --
+   and hands the two banner objects D_8009B214/D_8009B21C to func_8001EC70
+   before entering step 1 of D_8009B174.
+
+   Afterwards the low nibble of D_8009B174 is the step and bit 0x80 marks
+   "step already entered":
+
+     1  wait for the DMA/queue flags to drain, then reload the selected
+        three-sector duelist data block into 0x801781D8. The adjacent
+        func_800472A8 call handles D_8009B1E0 separately; once the transfer
+        has drained, SD_BGMPlay starts that track.
+     2  spawn the seven confetti sprites from the D_80090928 (real opponent)
+        or D_80090960 (no opponent) table row for the winning side, each on
+        DuelResult_UpdateOrbitSprite with a random radius and orbit key, and
+        remember them in the gDuel_awRitualData slot table; then wait for
+        DisplayObject_FindAllocatedByTag.
+     3  hold for 0x258 frames or until the player presses one of the 0xE0
+        buttons, then retarget every spawned sprite at func_80020EE8 so it
+        flies off, and wait for DisplayObject_FindAllocatedByTag again.
+     4  once the fade at gFade_State.flags has finished, hand the scene over to
+        state 0xD.  */
+
+void DuelScene_UpdateResultOutro(void)
+{
+    DuelResultSpriteSlot *slots;
+    DisplayObject *obj;
+    DuelResultSpriteSpec *spec;
+    s32 i;
+    s32 flags;
+    s32 state;
+    s32 id;
+    s32 timer;
+    s32 mode;
+    s32 v;
+
+    slots = (DuelResultSpriteSlot *)gDuel_awRitualData;
+
+    v = gDuel_wSceneStateFlags;
+    if ((v & DUEL_SCENE_FLAG_INITIALIZED) == 0) {
+        gDuel_wSceneStateFlags = v | DUEL_SCENE_FLAG_INITIALIZED;
+        SD_BGMFadeOut();
+        id = gDuel_bWinnerSide;
+        D_8009B362 = 0;
+        if (id != 0) {
+            D_8009B362 = 1;
+        }
+        D_8009B238 = id;
+        File_RequestAsyncTransfer(
+            0, 0,
+            FILE_WA_DUEL_RESULTS_START_SECTOR,
+            FILE_WA_DUEL_RESULTS_SECTOR_COUNT,
+            func_80020BE4, 0, 0
+        );
+        mode = 0x72E0;
+        if (gDuel_bWinnerSide != 0) {
+            if (gDuel_bOpponentID >= 0) {
+                mode = 0x72F0;
+            }
+        }
+        obj = D_8009B214;
+        D_8009B1E0 = mode;
+        /* The record spells 0x28 u16 and this is the one site that puts a
+           negative value there. Through the plain member GCC materialises
+           -116 as `ori 0xff8c` where retail has `addiu -116`; the store at
+           0x198 below is unaffected, so the divergence is the constant's
+           sign, not the member. */
+        *(s16 *)&obj->position.h.field_28 = -116;
+        obj->field_2C.h.field_2C = 0x30;
+        obj->field_6C = 1;
+        obj->update = (DisplayObjectCallback)func_8001EC70;
+        obj->position.h.field_2A = (s16)obj->field_30.h.field_32;
+        obj = D_8009B21C;
+        obj->position.h.field_28 = 0x198;
+        obj->field_2C.h.field_2C = 0x30;
+        obj->field_6C = 1;
+        obj->update = (DisplayObjectCallback)func_8001EC70;
+        D_8009B174 = 1;
+        obj->position.h.field_2A = (s16)obj->field_30.h.field_32;
+        return;
+    }
+
+    if (D_8009B162 != 0) {
+        return;
+    }
+
+    flags = D_8009B174;
+    state = flags & 0xF;
+    switch (state) {
+    case 1:
+        if ((flags & 0x80) == 0) {
+            if ((D_8009B0F4_abs & FILE_TRANSFER_REQUEST_BLOCKED_MASK) |
+                D_8009B134_abs) {
+                return;
+            }
+            D_8009B174 = flags | 0x80;
+            D_8009B162 = 8;
+            id = gDuel_bOpponentID;
+            if (id < 0) {
+                id = 1;
+            }
+#ifdef MEMORIES_PC
+            /* The disc has no block for a duelist a mod added, so the block
+               read here is its base's -- the same one the duel itself read
+               (duelists.h). Reading at the raw id would seek past the
+               duelist data altogether. */
+            id = Duelists_BaseId(id);
+            if (id <= 0) {
+                id = 1;
+            }
+#endif
+            File_RequestAsyncTransfer(
+                0, 0,
+                id * DUELIST_DATA_SECTOR_COUNT + DUELIST_DATA_FIRST_SECTOR,
+                DUELIST_DATA_SECTOR_COUNT, 0, 0,
+                (s32)((u8 *)slots - 0x1800));
+            func_800472A8(D_8009B1E0);
+        } else {
+            if ((D_8009B0F4_abs & FILE_TRANSFER_REQUEST_BLOCKED_MASK) |
+                D_8009B134_abs) {
+                return;
+            }
+            D_8009B174 = 2;
+            SD_BGMPlay(D_8009B1E0);
+        }
+        break;
+    case 2:
+        if ((flags & 0x80) == 0) {
+            D_8009B174 = flags | 0x80;
+            for (i = 0; i < DUEL_RESULT_SPRITE_COUNT; i++) {
+                if (gDuel_bOpponentID >= 0) {
+                    spec = &D_80090928[gDuel_bWinnerSide][i];
+                } else {
+                    spec = &D_80090960[gDuel_bWinnerSide][i];
+                }
+                slots[i].object = 0;
+                if (spec->kind != 0) {
+                    obj = DisplayObject_AcquireSlot(DisplayObject_FindFreeGeneralSlot(), 2);
+                    DisplayObject_ConfigureSpriteAtPositionWithResource(obj, spec->x, spec->y, 0,
+                                  gDuel_bWinnerSide, spec->kind, 0x11, 9,
+                                  D_801AF000);
+                    if (obj->field_69 >= 0x1A) {
+                        obj->field_40.h.field_40 =
+                            (u16)obj->field_40.h.field_40 + 0x10;
+                    }
+                    obj->flags |= DISPLAY_OBJECT_FLAG_TEXTURE_CELL_OFFSET |
+                                  DISPLAY_OBJECT_FLAG_SCREEN_SPACE;
+                    obj->attribute |= (GsALON | GsAONE);
+                    obj->field_48.h.field_48 = spec->tag;
+                    obj->field_48.h.field_4A = 0x18;
+                    DisplayObject_SelectOrderingTable1(obj);
+                    obj->field_2C.word = obj->field_30.word;
+                    obj->position.h.field_28 = (rand() & 0x3F) + 0x140;
+                    obj->position.h.field_2A =
+                        Rand_GetInterval(TRIG_ANGLE_FULL_TURN);
+                    obj->field_6C = 1;
+                    obj->update =
+                        (DisplayObjectCallback)DuelResult_UpdateOrbitSprite;
+                    slots[i].object = obj;
+                }
+            }
+        } else {
+            if ((D_8009B0F4_abs & FILE_TRANSFER_REQUEST_BLOCKED_MASK) |
+                D_8009B134_abs) {
+                return;
+            }
+            if (DisplayObject_FindAllocatedByTag(1) == 0) {
+                D_8009B174 = 3;
+            }
+        }
+        break;
+    case 3:
+        if ((flags & 0x80) == 0) {
+            D_8009B174 = flags | 0x80;
+            D_8009B1D0 = 0x258;
+        }
+        if ((D_8009B174 & 0x40) == 0) {
+            timer = D_8009B1D0 - 1;
+            D_8009B1D0 = timer;
+            if ((s16)timer > 0) {
+                if ((gInput_wPad1Pressed &
+                     (PAD_BUTTON_CANCEL | PAD_BUTTON_CONFIRM_MASK)) == 0) {
+                    if ((SD_GetStatusFlags() & 0x80) != 0) {
+                        return;
+                    }
+                }
+            }
+            D_8009B174 = D_8009B174 | 0x40;
+            for (i = 0; i < DUEL_RESULT_SPRITE_COUNT; i++) {
+                obj = slots[i].object;
+                if (obj != 0) {
+                    obj->field_6C = 1;
+                    obj->update = (DisplayObjectCallback)func_80020EE8;
+                }
+            }
+        } else {
+            if (DisplayObject_FindAllocatedByTag(1) == 0) {
+                D_8009B174 = 4;
+            }
+        }
+        break;
+    case 4:
+        if ((flags & 0x80) == 0) {
+            D_8009B174 = flags | 0x80;
+        }
+        if ((gFade_State.flags & FADE_FLAG_ACTIVE) == 0) {
+            gDuel_wSceneStateFlags = 0xD;
+        }
+        break;
+    }
+}
+
+/* The duel's reward step: Duel_ShowResultPage shows one of the three result
+   pages and opens its text box, Duel_CalcRankScoreChange is the per-rule
+   lookup Duel_CalcRankScore sums into that display's side scores, and the
+   card drop and award follow. The first two were recorded at gcc_2_8_1_g8
+   and gcc_2_8_1_g0_split and compile to identical objects at this unit's
+   gcc_2_8_1_g8_split. */
+
+#ifdef MEMORIES_PC
+void Duel_HideStarchipCount(void)
+{
+    DuelEffectChannel *box = &D_800EB0F8[STARCHIP_PRIZE_CHANNEL];
+
+    if ((box->flags_34 & DUEL_EFFECT_CHANNEL_FLAG_ACTIVE) && box->field_36 == STARCHIP_PRIZE_TEXT_ID)
+        TextBox_Destroy(box);
+}
+#endif
+
+void Duel_ShowResultPage(s32 page)
+{
+    s32 i;
+    DisplayObject *child;
+    void *object;
+
+#ifdef MEMORIES_PC
+    /* Game > Card drops' pages (drops.h) have the SPECIAL ARTS page's
+       seven plates to write on. */
+    DisplayObject_SetResourceVariant((DisplayObjectConfig *)D_8009B1E8->root,
+                                     page < CARD_DROPS_FIRST_PAGE ? page : 2);
+#else
+    DisplayObject_SetResourceVariant((DisplayObjectConfig *)D_8009B1E8->root, page);
+#endif
+    if (page == 0) {
+        DuelResultDisplayState *state = D_8009B1E8;
+
+        for (i = 0; i < DUEL_RESULT_DISPLAY_CHILD_COUNT; i++) {
+            child = state->children[i];
+            if (child == 0) {
+                break;
+            }
+            child->flags |= DISPLAY_OBJECT_FLAG_RENDERABLE;
+        }
+    } else {
+        DuelResultDisplayState *state = D_8009B1E8;
+
+        for (i = 0; i < DUEL_RESULT_DISPLAY_CHILD_COUNT; i++) {
+            child = state->children[i];
+            if (child == 0) {
+                break;
+            }
+            child->flags &= ~DISPLAY_OBJECT_FLAG_RENDERABLE;
+        }
+    }
+#ifdef MEMORIES_PC
+    if (page >= CARD_DROPS_FIRST_PAGE) {
+        CardDrops_ComposePage(page);
+        object = TextBox_Create(0, CARD_DROPS_TEXT_ID, 0x1A, 0x28, 0x120, 0x120);
+    } else
+#endif
+    object = TextBox_Create(
+        0, D_8009B1E8->page_text_ids[page], 0x1A, 0x28, 0x120, 0x120
+    );
+    func_80039A14(object);
+#ifdef MEMORIES_PC
+    /* A prize past the eight pictures SPOILS has room for: the one picture
+       DuelScene_UpdateResultRewards drew, and its count beside it in a box
+       of its own, shown with the page's pictures (starchip_prize.h). The
+       disc's 1 to 8 never come here. */
+    Duel_HideStarchipCount();
+    if (page == 0 && D_8009B1E8->children[2] != 0 &&
+        StarchipPrize_Counted(D_8009B1E8->starchip_prize)) {
+        object = TextBox_Create(STARCHIP_PRIZE_CHANNEL, STARCHIP_PRIZE_TEXT_ID, STARCHIP_PRIZE_BOX_X,
+                                STARCHIP_PRIZE_BOX_Y, STARCHIP_PRIZE_BOX_WIDTH, STARCHIP_PRIZE_BOX_HEIGHT);
+        func_80039A14(object);
+    }
+#endif
+}
+
+s32 Duel_CalcRankScoreChange(s32 arg0, s32 arg1)
+{
+    DuelRankScoreChangeEntry *p = &gDuel_awRankScoreChange[arg0][0];
+
+#ifdef MEMORIES_PC
+    {
+        /* The rule as this opponent's mods have it (tables.h). The disc gives
+           every duelist the same forty copies of this table; "ranks" is what
+           lets one of them differ. */
+        const short *edited = Tables_Rank(arg0);
+
+        if (edited != 0) {
+            int k;
+            for (k = 0; k < TABLES_RANK_STEPS; k++) {
+                if (arg1 < edited[k * 2]) return edited[k * 2 + 1];
+            }
+            return edited[(TABLES_RANK_STEPS - 1) * 2 + 1];
+        }
+    }
+#endif
+    while (1) {
+        if (arg1 < p->threshold) {
+            return p->score_change;
+        }
+        p++;
+    }
+}
+
+/* Initializes result-message selectors at +0x34; the winner's signed
+   end-reason adjustment selects the middle variant, not a rank letter.
+   Both side scores at +0x2C start at DUEL_RANK_SCORE_INITIAL, then receive
+   the end-reason and threshold-rule adjustments. Raw statistics are also
+   copied into the separate D_801D5608[0].rank_rows[stat][side] display
+   table. */
+void Duel_CalcRankScore(void) {
+    DuelResultDisplayState *p;
+    DuelSideState *e;
+    s32 i;
+    s32 v;
+    s32 *q;
+
+    p = D_8009B1E8;
+    e = D_800E9FF0;
+    q = &D_801D5608[0].rank_rows[0][0];
+    p->page_text_ids[0] = 0x44;
+    p->page_text_ids[1] = DUEL_RESULT_TEXT_SELECTOR_DEFAULT;
+    p->page_text_ids[2] = 0x45;
+    if (D_800E9FF0[gDuel_bWinnerSide].rank.result_adjustment ==
+        DUEL_RANK_ADJUST_EXODIA_WIN) {
+        p->page_text_ids[1] = DUEL_RESULT_TEXT_SELECTOR_EXODIA;
+    }
+    if (D_800E9FF0[gDuel_bWinnerSide].rank.result_adjustment ==
+        DUEL_RANK_ADJUST_DECK_OUT_WIN) {
+        p->page_text_ids[1] = DUEL_RESULT_TEXT_SELECTOR_DECK_OUT;
+    }
+
+#ifdef MEMORIES_PC
+    /* 50, or a mod's "rank_score" "start" (tables.h). */
+    p->side_scores[1] = (s32)Tables_Value(TABLES_VALUE_RANK_START, DUEL_RANK_SCORE_INITIAL);
+    p->side_scores[0] = p->side_scores[1];
+#else
+    p->side_scores[1] = DUEL_RANK_SCORE_INITIAL;
+    p->side_scores[0] = DUEL_RANK_SCORE_INITIAL;
+#endif
+    for (i = 0; i < DUEL_SIDE_COUNT; i++, e++, q++) {
+#ifdef MEMORIES_PC
+        /* The end's tag (an Exodia or empty-deck win) stays what it is:
+           the game tells the ends apart by it. A mod's "rank_score" changes
+           only what it adds (Tables_RankAdjustment). */
+        p->side_scores[i] += Tables_RankAdjustment(e->rank.result_adjustment);
+#else
+        p->side_scores[i] += e->rank.result_adjustment;
+#endif
+        v = e->deck_draw_cursor; q[0 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_CARDS_USED, v);
+        v = e->life_points.signed_value; q[1 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_REMAINING_LP, v);
+        q[2 * DUEL_SIDE_COUNT] = e->field_0E;
+        q[3 * DUEL_SIDE_COUNT] = e->rank.field_0B;
+        v = e->rank.effective_attacks; q[4 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_EFFECTIVE_ATTACKS, v);
+        q[5 * DUEL_SIDE_COUNT] = e->field_10;
+        q[6 * DUEL_SIDE_COUNT] = e->rank.field_0C;
+        v = e->rank.defensive_wins; q[7 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_DEFENSIVE_WINS, v);
+        q[8 * DUEL_SIDE_COUNT] = e->rank.field_07;
+        v = e->rank.face_down_plays; q[9 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_FACE_DOWN_PLAYS, v);
+        v = e->rank.fusions_initiated; q[10 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_INITIATE_FUSION, v);
+        v = e->rank.equips_used; q[11 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_EQUIP_MAGIC, v);
+        q[12 * DUEL_SIDE_COUNT] = e->rank.field_0A;
+        v = e->rank.pure_magic_used; q[13 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_PURE_MAGIC, v);
+        v = e->rank.traps_triggered; q[14 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_TRAPS_TRIGGERED, v);
+        v = e->rank.turns_taken; q[15 * DUEL_SIDE_COUNT] = v;
+        p->side_scores[i] +=
+            Duel_CalcRankScoreChange(DUEL_RANK_RULE_TURNS, v);
+    }
+}
+
+s32 Duel_SelectCardDrop(s32 pool_index)
+{
+    DuelDropTable *table = &gDuel_awSaPowCardDrops[pool_index];
+    s32 threshold = (rand() & (DUEL_DROP_WEIGHT_TOTAL - 1)) + 1;
+    s32 sum = 0;
+    s32 i;
+
+#ifdef MEMORIES_PC
+    {
+        /* A pool a mod edited (tables.h), over every card this run has. */
+        const u16 *edited = Tables_Pool(TABLES_POOL_POW + pool_index, table->weights);
+
+        if (edited != 0) {
+            for (i = 1; i <= gCard_nCount; i++) {
+                sum += edited[i];
+                if (sum >= threshold)
+                    return i <= CARD_COUNT ? Cards_PickVariant(i, CARDS_USE_DROP) : i;
+            }
+            return 0;
+        }
+    }
+#endif
+    for (i = 0; i < CARD_COUNT; i++) {
+        sum += table->weights[i];
+        if (sum >= threshold)
+#ifdef MEMORIES_PC
+            /* The disc's tables are of retail cards; a copy that asked to
+               may be won in its base's place (Cards_PickVariant). */
+            return Cards_PickVariant(i + 1, CARDS_USE_DROP);
+#else
+            return i + 1;
+#endif
+    }
+    return 0;
+}
+
+#ifdef MEMORIES_PC
+static void Duel_AwardCardRetail(s32 card_id)
+#else
+void Duel_AwardCard(s32 card_id)
+#endif
+{
+    s32 i;
+    u8 *base = (u8 *)gDuel_awPlayerDeck;
+#ifdef MEMORIES_PC
+    u8 *quantity = Cards_ChestSlot(base, card_id);
+#else
+    u8 *quantity = base + (card_id + 0x4F);
+#endif
+    u16 *destination = (u16 *)(base + 0x5BC);
+    u16 *entry;
+
+    (*quantity)++;
+    if (*quantity >= CARD_CHEST_QUANTITY_MAX + 1)
+        *quantity = CARD_CHEST_QUANTITY_MAX;
+    i = DUEL_RECENT_CARD_DROP_COUNT - 2;
+    entry = destination + (DUEL_RECENT_CARD_DROP_COUNT - 2);
+    do {
+        entry[1] = entry[0];
+        entry--;
+        i--;
+    } while (i >= 0);
+    *destination = card_id;
+}
+
+#ifdef MEMORIES_PC
+void Duel_AwardCard(s32 card_id)
+{
+    MemoriesModEvent event = {MEMORIES_EVENT_REWARD, MEMORIES_BEFORE, 0, 0, 0, 0, 0};
+    event.a = card_id;
+    Mods_Dispatch(&event);
+    if (!Cards_Valid(event.a)) return;
+    if (!event.handled) {
+        /* A mod's chest may keep fewer copies, and a copy it has no room
+           for may be worth starchips (tables.h). */
+        u8 *quantity = Cards_ChestSlot(gDuel_awPlayerDeck, event.a);
+        u8 before = *quantity;
+
+        Tables_ChestOverflow(before, &((SaveDataState *)gDuel_awPlayerDeck)->starchips);
+        Duel_AwardCardRetail(event.a);
+        if (Tables_ChestFull(before)) {
+            *quantity = before;
+        } else if (before >= CARD_CHEST_QUANTITY_MAX) {
+            /* The disc's award stops at 250, and a byte past it wraps to
+               none: a mod's chest past 250 ("limits") takes the copy, and a
+               count such a mod left there, played without it, stays. */
+            *quantity = (u8)(before < Tables_ChestRoom() ? before + 1 : before);
+        }
+    }
+    event.phase = MEMORIES_AFTER; Mods_Dispatch(&event);
+
+}
+
+/* The password shop asks before it sells a copy (shop.c): a mod's chest at
+   its limit has no room for it. */
+s32 Duel_ChestFull(s32 card_id)
+{
+    return Cards_Valid(card_id) && Tables_ChestFull(*Cards_ChestSlot(gDuel_awPlayerDeck, card_id));
+}
+#endif

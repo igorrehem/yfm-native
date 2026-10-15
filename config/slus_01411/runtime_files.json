@@ -1,0 +1,78 @@
+{
+  "entries": [
+    {
+      "disc_path": "DATA/WA_MRG.MRG",
+      "filename_vram": "0x80090704",
+      "index": 0,
+      "lba": 10102,
+      "lba_slot_vram": "0x800E9EA8",
+      "msf": "02:16:52",
+      "runtime_path": "\\DATA\\WA_MRG.MRG;1",
+      "size": 37748736
+    },
+    {
+      "disc_path": "DATA/SU.MRG",
+      "filename_vram": "0x80090718",
+      "index": 1,
+      "lba": 954,
+      "lba_slot_vram": "0x800E9EAC",
+      "msf": "00:14:54",
+      "runtime_path": "\\DATA\\SU.MRG;1",
+      "size": 2537472
+    },
+    {
+      "disc_path": "DATA/MODEL.MRG",
+      "filename_vram": "0x80090728",
+      "index": 2,
+      "lba": 28534,
+      "lba_slot_vram": "0x800E9EB0",
+      "msf": "06:22:34",
+      "runtime_path": "\\DATA\\MODEL.MRG;1",
+      "size": 351019008
+    },
+    {
+      "disc_path": "DATA/MOVIE.STR",
+      "filename_vram": "0x8009073C",
+      "index": 3,
+      "lba": 202734,
+      "lba_slot_vram": "0x800E9EB4",
+      "msf": "45:05:09",
+      "runtime_path": "\\DATA\\MOVIE.STR;1",
+      "size": 35430400
+    },
+    {
+      "disc_path": "DATA/SD_SE.DAT",
+      "filename_vram": "0x80090750",
+      "index": 4,
+      "lba": 2193,
+      "lba_slot_vram": "0x800E9EB8",
+      "msf": "00:31:18",
+      "runtime_path": "\\DATA\\SD_SE.DAT;1",
+      "size": 1521664
+    },
+    {
+      "disc_path": "DATA/SD_BGM.DAT",
+      "filename_vram": "0x80090764",
+      "index": 5,
+      "lba": 2936,
+      "lba_slot_vram": "0x800E9EBC",
+      "msf": "00:41:11",
+      "runtime_path": "\\DATA\\SD_BGM.DAT;1",
+      "size": 14675968
+    },
+    {
+      "disc_path": "DATA/MASTER.XA",
+      "filename_vram": "0x80090778",
+      "index": 6,
+      "lba": 199930,
+      "lba_slot_vram": "0x800E9EC0",
+      "msf": "44:27:55",
+      "runtime_path": "\\DATA\\MASTER.XA;1",
+      "size": 5742592
+    }
+  ],
+  "entry_count": 7,
+  "filename_pointer_table_vram": "0x8009078C",
+  "runtime_lba_table_vram": "0x800E9EA8",
+  "schema": 1
+}

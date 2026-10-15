@@ -1,0 +1,32 @@
+Connecting the phone for the Android tests
+===========================================
+
+1. Developer options
+   Settings > About phone > tap "Build number" 7 times
+   (Xiaomi/MIUI/HyperOS: Settings > About phone > tap "OS version" 7 times).
+   Enter the PIN if asked.
+
+2. USB debugging
+   Settings > Additional settings (Xiaomi) or System > Developer options:
+   - turn on "USB debugging";
+   - Xiaomi only: also turn on "Install via USB" and
+     "USB debugging (Security settings)" (needs a Mi account and SIM;
+     without it, adb cannot install the APK or inject input).
+   - Optional: turn off "Turn on MIUI optimization" only if installs still fail.
+
+3. Cable
+   Use a data cable (not charge-only). When the phone asks for the USB mode,
+   "File transfer" works; "No data transfer" also works for adb on most phones.
+
+4. RSA prompt
+   The phone shows "Allow USB debugging?" with the PC's key fingerprint.
+   Tick "Always allow from this computer" and tap Allow.
+   If no prompt appears: Developer options > "Revoke USB debugging
+   authorizations", unplug, plug back in.
+
+5. Check from the PC
+   python tools/pc/android/device_check.py
+   It should print "device" (not "unauthorized") with the ABI lists.
+
+6. Keep the screen unlocked during installs; Xiaomi asks to confirm each
+   adb install on the phone.

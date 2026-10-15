@@ -1,0 +1,15 @@
+#include "../types.h"
+#include "script_state.h"
+
+int Script_ReadByte(void)
+{
+    return *D_8009B290++;
+}
+
+int Script_ReadU16LE(void)
+{
+    u8 *current = D_8009B290;
+
+    D_8009B290 = current + 2;
+    return current[0] | (current[1] << 8);
+}

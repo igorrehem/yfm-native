@@ -1,0 +1,23 @@
+#ifndef MEMORIES_DECOMP_DUEL_EFFECT_PLAY_SOUND_COMMAND_H
+#define MEMORIES_DECOMP_DUEL_EFFECT_PLAY_SOUND_COMMAND_H
+
+#include "../types.h"
+#include "duel_effect.h"
+
+/* The three D_80090EAC sound commands. All read their operand through
+ * TextStream_ReadU16LE, which is the "next word of this object's current script
+ * stream" accessor, so none of them touches the cursor arithmetic directly
+ * except DuelEffect_ProcessBgmCommand, which reads a raw opcode byte first.
+ *
+ * DuelEffect_PlaySoundCommand plays a sound effect or, with bit 15 set, routes
+ * the id through func_8003FF88 and latches a second word into D_8009B33C.
+ * DuelEffect_PlayBgmCommand is the plain BGM play.
+ * DuelEffect_ProcessBgmCommand reads the BGM control byte: a non-zero low six
+ * bits play the next stream word, otherwise bits 0, 1 and 2 replay, latch or
+ * copy the current command -- and bit 7 puts the object into wait state 0xC
+ * and raises D_8009B350. */
+void DuelEffect_PlaySoundCommand(DuelEffectChannel *object);
+void DuelEffect_PlayBgmCommand(DuelEffectChannel *object);
+void DuelEffect_ProcessBgmCommand(DuelEffectChannel *object);
+
+#endif

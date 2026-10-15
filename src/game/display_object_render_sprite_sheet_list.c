@@ -1,0 +1,48 @@
+#include "../types.h"
+#include "display_object.h"
+#include "display_object_layout.h"
+#define DISPLAY_OBJECT_UPDATE_COMMAND_STREAM_AMBIENT_ARGS
+#include "display_object_update_command_stream.h"
+#include "../unmatched.h"
+#include "display_object_render_sprite_sheet.h"
+#include "display_object_render_sprite_sheet_list.h"
+
+#include "ordering_tables.h"
+#ifdef MEMORIES_PC
+#include "pc/cards/duel_ui.h"
+#endif
+
+void DisplayObject_RenderSpriteSheetList(void) {
+    s32 i = D_800EFE3C;
+
+    if (i >= 0) {
+        DisplayObject *base = D_800EFE48;
+        GsOT *G32 *t = D_800E9D90;
+
+        do {
+            DisplayObject *p =
+                (DisplayObject *G32)(i * DISPLAY_OBJECT_RECORD_SIZE + (s32)base);
+            DisplayObjectCallback f = p->update;
+            u8 *q = (u8 *)p;
+
+            i = p->next;
+
+            if (f != 0) {
+                f(q);
+            }
+
+            if (((p->flags & DISPLAY_OBJECT_RENDERABLE_MASK) ^
+                 DISPLAY_OBJECT_RENDERABLE_MASK) == 0) {
+                DisplayObject_UpdateCommandStream((DisplayObject *)q);
+#ifdef MEMORIES_PC
+                /* A mod's "ui" draws some of the duel's pictures itself. */
+                if (!DuelUi_RenderObject((DisplayObject *)q, (s32)t[p->ot_index], (s16)p->field_14))
+#endif
+                DisplayObject_RenderSpriteSheet(
+                    (DisplayObject *)q, (s32)t[p->ot_index],
+                    (s16)p->field_14
+                );
+            }
+        } while (i >= 0);
+    }
+}

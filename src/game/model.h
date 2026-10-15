@@ -1,0 +1,728 @@
+#ifndef YUGIOH_GAME_MODEL_H
+#define YUGIOH_GAME_MODEL_H
+
+#include "../types.h"
+
+#define MODEL_OFFSET(type, member) ((u32)&(((type *)0)->member))
+
+#define MODEL_SLOT_COUNT 3
+#define MODEL_SLOT_SIZE 0xE20
+#define MODEL_SLOT_DATA_ENTRY_SIZE 80
+#define MODEL_HANDLER_REGISTRY_COUNT 80
+#define MODEL_TINT_REQUEST_COUNT 10
+#define MODEL_SLOT_SOUND_ENTRY_COUNT 64
+#define MODEL_SLOT_PART_COUNT 58
+#define MODEL_SLOT_UNIT_COUNT 60
+#define MODEL_SLOT_ROW_COUNT 10
+#define MODEL_SLOT_ROW_KEY_TABLE_OFFSET 0x2C8
+#define MODEL_SLOT_CF8_DFE_OFFSET 0x106
+#define MODEL_SLOT_CF8_DFF_OFFSET 0x107
+#define MODEL_DATA_MIN_FREE_BYTES 0x401
+#define MODEL_LIGHT_BASE_INTENSITY 128
+#define MODEL_LIGHT_DIM_INTENSITY (MODEL_LIGHT_BASE_INTENSITY / 2)
+#define MODEL_FIXED_ONE 0x1000
+#define MODEL_FIXED_HALF (MODEL_FIXED_ONE / 2)
+#define MODEL_FIXED_NEGATIVE_ONE (-MODEL_FIXED_ONE)
+#define MODEL_FIXED_THREE (MODEL_FIXED_ONE * 3)
+#define MODEL_ANGLE_FULL_TURN 0x1000
+#define MODEL_ANGLE_QUARTER_TURN (MODEL_ANGLE_FULL_TURN / 4)
+#define MODEL_ANGLE_HALF_TURN (MODEL_ANGLE_FULL_TURN / 2)
+#define MODEL_ANGLE_WRAP_THRESHOLD (MODEL_ANGLE_HALF_TURN + 1)
+#define MODEL_ANGLE_MASK (MODEL_ANGLE_FULL_TURN - 1)
+#define MODEL_DEFAULT_PROJECTION 0x12C
+#define MODEL_SPECIAL_BATTLE_ID 0x309
+#define MODEL_MRG_ID_END 0x2D2
+#define MODEL_MRG_LAST_ID (MODEL_MRG_ID_END - 1)
+#define MODEL_MRG_FIRST_GAP_START 0x12C
+#define MODEL_MRG_FIRST_GAP_END 0x15E
+#define MODEL_MRG_SECOND_GAP_START 0x28A
+#define MODEL_MRG_SECOND_GAP_END 0x2BC
+#define MODEL_MRG_SINGLE_GAP_ID 0x2D0
+#define MODEL_MRG_GAP_SIZE \
+    (MODEL_MRG_FIRST_GAP_END - MODEL_MRG_FIRST_GAP_START)
+#define MODEL_MRG_SECTOR_COUNT 0x114
+#define MODEL_SPECIAL_BATTLE_FILE_START_SECTOR 0x3B4
+#define MODEL_SPECIAL_BATTLE_FILE_SECTOR_COUNT 0x113
+#define MODEL_AUX_SECTOR_COUNT 0x74
+#define MODEL_AUX_FILE_START_SECTOR 0x88
+#define MODEL_AUX_LOOKUP_RECORD_SIZE 0xB2
+#define MODEL_AUX_LOOKUP_VALUE_OFFSET 0xA0
+
+typedef struct {
+    u32 field_00;
+    void *G32 field_04;
+} ModelSlotHeadEntry;
+
+/* One of the MODEL_SLOT_ROW_COUNT accumulator rows at slot offset 0x750.
+ * func_8004D58C's reset walks the rows and their maxima in the same loop
+ * iteration -- 58 halfwords at 0x750 + row * 0x76 and the halfword at
+ * 0x7C4 + row * 0x76 -- which is what groups `values` and `max` into one
+ * 0x76-byte record. func_8004D75C then accumulates one entry of `values`
+ * per part and leaves `max` holding the largest of them, and
+ * Model_ControlSlotAnimation, func_800556E8, func_8005106C and
+ * Model_GetSlotAnimationLength read that same `max` as the length of animation
+ * `row`. */
+typedef struct {
+    u16 values[MODEL_SLOT_PART_COUNT];
+    u16 max;
+} ModelSlotRow;
+
+/* One entry of the slot's MODEL_SLOT_PART_COUNT-wide part table at 0x1E0:
+ * the animation sequence driving one part of the model, which is libhmd's
+ * GsSEQ. func_8005C6A0 hands this table to GsLinkAnim as GsSEQ ** and the
+ * library fills it in, and every field the game touches is one GsSEQ names
+ * and uses the way libhmd does:
+ *
+ *   ii / aframe  Model_ControlSlotAnimation stores a command index into ii, and
+ *                func_80056250 clears both to 0xFFFF when it rearms a part
+ *   sid / speed  func_800528AC in model_scene_setup.c and
+ *                model_slot_state_updates.c switch
+ *                a part's sequence through sid; func_8005A468 sets speed
+ *                for every part, and the rearm resets it to 0x10
+ *   rframe..ti   func_8004DC38 seeks a part by writing the frames left,
+ *                total frames, current and target index
+ *   start /      func_8004D75C reads start as the part's first command key
+ *   start_sid    and stamps the row it resolved into start_sid, and the
+ *                rearm restarts from both: ti = start, sid = start_sid
+ *
+ * Mirrored rather than taken from libhmd.h so this header stays free of the
+ * libgte/libgpu/libgs/libhmd chain, as field_D18 below does for
+ * GsCOORDUNIT. model_slot_updates.c asserts the two layouts agree. */
+typedef struct {
+    u32 rewrite_idx;
+    u16 size;
+    u16 num;
+    u16 ii;
+    u16 aframe;
+    u8 sid;
+    s8 speed;
+    u16 srcii;
+    s16 rframe;
+    u16 tframe;
+    u16 ci;
+    u16 ti;
+    u16 start;
+    u8 start_sid;
+    u8 traveling;
+} ModelSlotPart;
+
+typedef struct {
+    u8 frame;
+    u8 id;
+    u16 flags;
+} ModelSlotSoundEntry;
+
+typedef struct {
+    s32 field_00;
+    s32 field_04;
+    s32 field_08;
+    u8 field_0C[3];
+    u8 pad_0F;
+} ModelSlotLightEntry;
+
+typedef struct {
+    s32 field_00;
+    s32 field_04;
+    s32 field_08;
+    s32 field_0C;
+} ModelSlotS32Quad;
+
+typedef union {
+    struct {
+        u8 field_00[0xA];
+        u8 field_0A[2];
+    } bytes;
+    struct {
+        u16 field_00;
+        u16 field_02;
+        u8 field_04[4];
+        u32 field_08;
+    } values;
+    /* The three per-axis minima func_80057E20 clamps an effect adjustment
+     * up to, at slot offsets 0xCFF, 0xD00 and 0xD01. Each is a byte scaled
+     * by 16, and zero means the axis is not clamped. A third arm rather than
+     * members of `bytes` because that arm's field_00 is also the base of the
+     * block move in model_slot_support.c. */
+    struct {
+        u8 pad_00[7];
+        u8 min_x;
+        u8 min_y;
+        u8 min_z;
+        u8 pad_0A[2];
+    } thresholds;
+} ModelSlotCF8Prefix;
+
+typedef struct {
+    ModelSlotCF8Prefix prefix;
+    u16 field_0C[2];
+    s32 field_10;
+    s32 field_14;
+    s32 field_18;
+} ModelSlotCF8Block;
+
+/* View rooted at the D_800F3938 interior alias and extending through the two
+ * slot property bytes at DFE/DFF. The first words are compared by
+ * func_800559D4, while func_8005A618 selects field_0A through field_106.
+ * Relative names retain the alias-rooted offsets without claiming semantics
+ * for the copied CF8 payload. */
+typedef struct {
+    ModelSlotCF8Prefix prefix;
+    u16 field_0C[2];
+    s32 field_10;
+    s32 field_14;
+    s32 field_18;
+    u8 pad_1C[0xEA];
+    u8 field_106;
+    u8 field_107;
+} ModelSlotCF8TailView;
+
+/* A ModelSlotCF8Block's worth of words, for the one place that copies a whole
+   block: file_transfer_steps.c's phase 10 fills field_CF8 straight out of the
+   staged asset.
+
+   This is a block-move spelling, not a second description of the block. The
+   element type sets the alignment and the alignment sets the move width, so
+   `u32` here and the halfword members of ModelSlotCF8Block do not lower the
+   same way and the two are deliberately not interchangeable. The assert below
+   is what ties them together. */
+typedef struct {
+    u32 value[7];
+} ModelSlotCF8BlockWords;
+
+/* The staged model metadata copied into a slot: 0x100 bytes of sound entries
+   followed by the word-aligned field_CF8 block. */
+typedef struct {
+    ModelSlotSoundEntry sound_entries[MODEL_SLOT_SOUND_ENTRY_COUNT];
+    ModelSlotCF8BlockWords field_CF8;
+} ModelTransferMetadata;
+
+/* Eight bytes moved as a block. Three units spelled this by hand over three
+   different records: func_8004E7B0 and model_scene_setup.c (that code is
+   now in func_80052D2C.c) over the view
+   snapshot pair D_8009B478/D_8009B480, which they had typed two different
+   ways for the same two symbols, and model_slot_support.c over the halfword
+   quad at ModelSlot.field_DC8.
+
+   Unlike ModelSlotCF8BlockWords above, this one is shared rather than kept
+   per site, and the element type is why. All three spellings were u8[8], so
+   all three have alignment 1 and lower to the same move; two of them said
+   __attribute__((packed)), which on a u8 array asks for the alignment it
+   already has. A block type is interchangeable with another only when the
+   element type agrees, which is what the note above is warning about. */
+typedef struct {
+    u8 bytes[8];
+} ModelBytes8;
+
+typedef struct {
+    ModelSlotHeadEntry field_000[MODEL_SLOT_UNIT_COUNT];
+    ModelSlotPart *G32 field_1E0[MODEL_SLOT_PART_COUNT];
+    /* The per-animation key table. func_8004D58C fills it with 0xFFFF at a
+     * 0x74 stride over MODEL_SLOT_ROW_COUNT rows, func_8004D75C indexes it as
+     * [row][part], and Model_ControlSlotAnimation reads the same halfword through the
+     * literal offset arithmetic 0x2C8 + current * 116 + part * 2. */
+    u16 field_2C8[MODEL_SLOT_ROW_COUNT][MODEL_SLOT_PART_COUNT];
+    ModelSlotRow field_750[MODEL_SLOT_ROW_COUNT];
+    /* The part bitfield func_8005611C's caller documents as "+0xBEC":
+     * func_8004D58C sets bit `part % 8` of byte `part / 8` from the command
+     * block, Model_ControlSlotAnimation reads it back the same way, and func_80056250
+     * widens a card from 0xC to 0x14 for the parts it flags. */
+    u8 field_BEC[8];
+    u8 field_BF4;
+    u8 field_BF5;
+    u8 field_BF6;
+    u8 field_BF7;
+    ModelSlotSoundEntry sound_entries[MODEL_SLOT_SOUND_ENTRY_COUNT];
+    ModelSlotCF8Block field_CF8;
+    u8 *G32 entries;
+    /* The slot's own placement unit: one 0x50-byte GsCOORDUNIT out of the
+     * MODEL_SLOT_DATA_ENTRY_SIZE-stride run at `entries`. Left incomplete
+     * here so this header stays free of the libgte/libgpu/libgs/libhmd
+     * chain; sources that reach through it include "../psyq/libhmd.h". */
+    struct _GsCOORDUNIT *G32 field_D18;
+    /* The coordinate func_8004CB0C selects once the units are linked; see
+     * that function's header comment. */
+    struct _GsCOORDUNIT *G32 field_D1C;
+    u8 pad_D20[0x50];
+    ModelSlotLightEntry field_D70[3];
+    s32 field_DA0[3];
+    u8 pad_DAC[4];
+    ModelSlotS32Quad field_DB0;
+    u8 field_DC0[8];
+    u16 field_DC8[4];
+    s16 field_DD0[4];
+    /* The command list and the three pointers beside it, all installed by
+     * func_8004D58C out of the two blocks it finds in the command chain.
+     * Model_ControlSlotAnimation reads field_DD8 as the base of 4-byte command records and
+     * field_DDC / field_DE0 as the source and destination of its transfers. */
+    s32 *G32 field_DD8;
+    u8 *G32 field_DDC;
+    u8 *G32 field_DE0;
+    u8 *G32 field_DE4;
+    /* The module data words D_8001001C..D_80010028 func_8004CB0C copies in
+     * for slots 0 and 1 (see high_memory_addresses.h). */
+    s32 field_DE8;
+    s32 field_DEC;
+    /* The two cursor limits func_80056250 derives, which this
+     * unit's own header already describes as "the two cursor
+     * limits at +0xDF0/+0xDF4": the first is field_DE0 plus the
+     * summed hand width, the second that plus field_E02 * 4. */
+    s32 field_DF0;
+    s32 field_DF4;
+    u16 field_DF8;
+    u16 field_DFA;
+    u16 field_DFC;
+    u8 field_DFE;
+    u8 field_DFF;
+    /* func_8004CB0C stores the two totals func_8004D134 accumulates over its
+     * unit scan here and, plus one, in field_E02; field_E04 sums the calls'
+     * return values. */
+    u16 field_E00;
+    /* Scaled by 4 into field_DF4 by func_80056250. */
+    u16 field_E02;
+    u16 field_E04;
+    u16 field_E06;
+    /* The row-table reset, func_8004D58C (src/candidates/func_8004D58C.c),
+     * clears this halfword beside
+     * field_E06, which is what says it is a field rather than the
+     * padding this record carried here. */
+    u16 field_E08;
+    /* func_8005611C seeds this halfword with 0x1000 and
+     * func_80056250 reads it back; this unit's own header describes
+     * the pair as "the halfword at +0xE0A". */
+    u16 field_E0A;
+    /* Seeded 7 beside field_E0D's 8 by func_8005611C and read back
+     * by func_80056250, which its unit calls "the pair at
+     * +0xE0C/+0xE0D". */
+    u8 field_E0C;
+    u8 field_E0D;
+    u8 field_E0E;
+    u8 field_E0F;
+    u8 field_E10;
+    u8 field_E11;
+    u8 field_E12;
+    u8 field_E13;
+    u8 field_E14;
+    u8 field_E15;
+    u8 field_E16;
+    u8 entry_count;
+    u8 field_E18;
+    u8 field_E19;
+    u8 field_E1A;
+    u8 field_E1B;
+    u8 field_E1C;
+    /* func_8005611C clears this byte and
+     * Model_LoadMonsterMerge writes its transfer flags here,
+     * reaching it as pad_E1C[1] and noting in a comment that this
+     * record still covered it with padding. */
+    u8 field_E1D;
+    u8 field_E1E;
+    u8 field_E1F;
+} ModelSlot;
+
+typedef struct {
+    s32 handler_value;
+    s32 key;
+} ModelHandlerRegistryEntry;
+
+/* The camera move record at D_800F2B20. One leg per point the move drives --
+ * the eye and the target -- and the two are laid out identically, which is
+ * what makes the two halves of func_80052D2C's setup literal copies of each
+ * other. `slot` is the model slot the end point is read from and `pair_slot`
+ * is the other slot of the pair; both are -1 when the point is not
+ * slot-driven. */
+typedef struct {
+    s16 start_x;
+    s16 start_y;
+    s16 start_z;
+    s16 pair_slot;
+    s16 end_x;
+    s16 end_y;
+    s16 end_z;
+    s16 slot;
+} ModelCameraLeg;
+
+/* `flags` bit 0 selects eye interpolation and bit 1 target interpolation;
+ * either endpoint may use explicit coordinates instead of a model slot.
+ * `duration` is twice the absolute duration the caller asked for, clamped to
+ * 0xFFFF. func_80051A48 tracks paired-slot X/Y and end-slot X/Y/Z by at most
+ * 30 per update. The 0xFFFF sentinel skips elapsed advancement, not tracking
+ * or interpolation. func_80052694 adjusts field_04 using field_06 as its
+ * baseline; func_80051A48 uses field_04 for orbit yaw and decrements field_02
+ * in follow mode. */
+typedef struct {
+    u8 mode;
+    u8 flags;
+    u16 field_02;
+    u16 field_04;
+    u16 field_06;
+    u16 elapsed;
+    u16 duration;
+    ModelCameraLeg eye;
+    ModelCameraLeg target;
+} ModelCameraMove;
+
+/* One end of a tint ramp. Model_QueueTintRequest takes a whole one by value and stores
+ * it as a single word, so all four bytes are live even though only b0..b2 are
+ * the color: func_800528AC interpolates those three and copies b3 of the
+ * start color straight through as the part id it draws with. The end
+ * color's b3 at +0x17 is written and never read, which is why it is a member
+ * here and not padding -- func_800528AC used to call it pad_17. */
+typedef struct {
+    u8 b0;
+    u8 b1;
+    u8 b2;
+    u8 b3;
+} ModelTintColor;
+
+/* One of the MODEL_TINT_REQUEST_COUNT tint requests at D_800F2B50.
+ * Model_QueueTintRequest fills a free entry in; func_800528AC walks the table once a
+ * frame, lerps `start` towards `end` by elapsed/duration, drops the result
+ * into the model slot's field_DC0, redraws through it and then restores
+ * everything it touched.
+ *
+ * bit 0 of `flags` marks the entry live, bit 1 selects the model slot and
+ * bits 3..7 carry the part id override. field_0A is the slot's field_E06 as
+ * it stood when the request was made; func_800528AC pushes it back through
+ * the part records for the duration of the redraw. */
+typedef struct {
+    u16 flags;             /* 0x00 */
+    u8 pad_02[8];          /* 0x02 */
+    u16 field_0A;          /* 0x0A */
+    u16 elapsed;           /* 0x0C */
+    u16 duration;          /* 0x0E */
+    ModelTintColor start;  /* 0x10 */
+    ModelTintColor end;    /* 0x14 */
+} ModelTintRequest;
+
+typedef char ModelSlotHeadEntry_size_must_be_0x8[
+    sizeof(ModelSlotHeadEntry) == 0x8 ? 1 : -1
+];
+typedef char ModelSlotRow_size_must_be_0x76[
+    sizeof(ModelSlotRow) == 0x76 ? 1 : -1
+];
+typedef char ModelSlotRow_max_offset_must_be_0x74[
+    MODEL_OFFSET(ModelSlotRow, max) == 0x74 ? 1 : -1
+];
+typedef char ModelSlotPart_start_offset_must_be_0x18[
+    MODEL_OFFSET(ModelSlotPart, start) == 0x18 ? 1 : -1
+];
+typedef char ModelSlot_field_2C8_offset_must_be_0x2C8[
+    MODEL_OFFSET(ModelSlot, field_2C8) ==
+        MODEL_SLOT_ROW_KEY_TABLE_OFFSET ? 1 : -1
+];
+typedef char ModelSlot_field_750_offset_must_be_0x750[
+    MODEL_OFFSET(ModelSlot, field_750) == 0x750 ? 1 : -1
+];
+typedef char ModelSlot_field_BEC_offset_must_be_0xBEC[
+    MODEL_OFFSET(ModelSlot, field_BEC) == 0xBEC ? 1 : -1
+];
+typedef char ModelSlot_field_DD8_offset_must_be_0xDD8[
+    MODEL_OFFSET(ModelSlot, field_DD8) == 0xDD8 ? 1 : -1
+];
+typedef char ModelSlot_field_E0E_offset_must_be_0xE0E[
+    MODEL_OFFSET(ModelSlot, field_E0E) == 0xE0E ? 1 : -1
+];
+typedef char ModelSlotCF8Block_size_must_be_0x1C[
+    sizeof(ModelSlotCF8Block) == 0x1C ? 1 : -1
+];
+typedef char ModelSlotCF8BlockWords_size_must_match_block[
+    sizeof(ModelSlotCF8BlockWords) == sizeof(ModelSlotCF8Block) ? 1 : -1
+];
+typedef char ModelTransferMetadata_field_CF8_offset_must_be_0x100[
+    MODEL_OFFSET(ModelTransferMetadata, field_CF8) == 0x100 ? 1 : -1
+];
+typedef char ModelBytes8_size_must_be_8[
+    sizeof(ModelBytes8) == 8 ? 1 : -1
+];
+typedef char ModelSlotCF8Block_field_0A_offset_must_be_0xA[
+    MODEL_OFFSET(ModelSlotCF8Block, prefix.bytes.field_0A) == 0xA ? 1 : -1
+];
+typedef char ModelSlotCF8Block_field_0C_offset_must_be_0xC[
+    MODEL_OFFSET(ModelSlotCF8Block, field_0C) == 0xC ? 1 : -1
+];
+typedef char ModelSlotLightEntry_size_must_be_0x10[
+    sizeof(ModelSlotLightEntry) == 0x10 ? 1 : -1
+];
+typedef char ModelSlotS32Quad_size_must_be_0x10[
+    sizeof(ModelSlotS32Quad) == 0x10 ? 1 : -1
+];
+typedef char ModelSlotSoundEntry_size_must_be_4[
+    sizeof(ModelSlotSoundEntry) == 4 ? 1 : -1
+];
+typedef char ModelSlot_size_must_be_0xE20[
+    sizeof(ModelSlot) == MODEL_SLOT_SIZE ? 1 : -1
+];
+typedef char ModelSlot_field_1E0_offset_must_be_0x1E0[
+    MODEL_OFFSET(ModelSlot, field_1E0) == 0x1E0 ? 1 : -1
+];
+typedef char ModelSlot_field_750_max_offset_must_be_0x7C4[
+    MODEL_OFFSET(ModelSlot, field_750[0].max) == 0x7C4 ? 1 : -1
+];
+typedef char ModelSlot_field_BF5_offset_must_be_0xBF5[
+    MODEL_OFFSET(ModelSlot, field_BF5) == 0xBF5 ? 1 : -1
+];
+typedef char ModelSlot_sound_entries_offset_must_be_0xBF8[
+    MODEL_OFFSET(ModelSlot, sound_entries) == 0xBF8 ? 1 : -1
+];
+typedef char ModelSlot_field_CF8_offset_must_be_0xCF8[
+    MODEL_OFFSET(ModelSlot, field_CF8) == 0xCF8 ? 1 : -1
+];
+typedef char ModelSlot_entries_offset_must_be_0xD14[
+    MODEL_OFFSET(ModelSlot, entries) == 0xD14 ? 1 : -1
+];
+typedef char ModelSlot_field_D18_offset_must_be_0xD18[
+    MODEL_OFFSET(ModelSlot, field_D18) == 0xD18 ? 1 : -1
+];
+typedef char ModelSlot_field_D1C_offset_must_be_0xD1C[
+    MODEL_OFFSET(ModelSlot, field_D1C) == 0xD1C ? 1 : -1
+];
+typedef char ModelSlot_field_D70_offset_must_be_0xD70[
+    MODEL_OFFSET(ModelSlot, field_D70) == 0xD70 ? 1 : -1
+];
+typedef char ModelSlot_field_DA0_offset_must_be_0xDA0[
+    MODEL_OFFSET(ModelSlot, field_DA0) == 0xDA0 ? 1 : -1
+];
+typedef char ModelSlot_field_DB0_offset_must_be_0xDB0[
+    MODEL_OFFSET(ModelSlot, field_DB0) == 0xDB0 ? 1 : -1
+];
+typedef char ModelSlot_field_DC0_offset_must_be_0xDC0[
+    MODEL_OFFSET(ModelSlot, field_DC0) == 0xDC0 ? 1 : -1
+];
+typedef char ModelSlot_field_DC8_offset_must_be_0xDC8[
+    MODEL_OFFSET(ModelSlot, field_DC8) == 0xDC8 ? 1 : -1
+];
+typedef char ModelSlot_field_DD0_offset_must_be_0xDD0[
+    MODEL_OFFSET(ModelSlot, field_DD0) == 0xDD0 ? 1 : -1
+];
+typedef char ModelSlot_field_DE8_offset_must_be_0xDE8[
+    MODEL_OFFSET(ModelSlot, field_DE8) == 0xDE8 ? 1 : -1
+];
+typedef char ModelSlot_field_DEC_offset_must_be_0xDEC[
+    MODEL_OFFSET(ModelSlot, field_DEC) == 0xDEC ? 1 : -1
+];
+typedef char ModelSlot_field_DF8_offset_must_be_0xDF8[
+    MODEL_OFFSET(ModelSlot, field_DF8) == 0xDF8 ? 1 : -1
+];
+typedef char ModelSlot_field_DFA_offset_must_be_0xDFA[
+    MODEL_OFFSET(ModelSlot, field_DFA) == 0xDFA ? 1 : -1
+];
+typedef char ModelSlot_field_DFC_offset_must_be_0xDFC[
+    MODEL_OFFSET(ModelSlot, field_DFC) == 0xDFC ? 1 : -1
+];
+typedef char ModelSlot_field_DFE_offset_must_be_0xDFE[
+    MODEL_OFFSET(ModelSlot, field_DFE) == 0xDFE ? 1 : -1
+];
+typedef char ModelSlot_field_DFF_offset_must_be_0xDFF[
+    MODEL_OFFSET(ModelSlot, field_DFF) == 0xDFF ? 1 : -1
+];
+typedef char ModelSlot_field_E00_offset_must_be_0xE00[
+    MODEL_OFFSET(ModelSlot, field_E00) == 0xE00 ? 1 : -1
+];
+typedef char ModelSlot_field_E04_offset_must_be_0xE04[
+    MODEL_OFFSET(ModelSlot, field_E04) == 0xE04 ? 1 : -1
+];
+typedef char ModelSlot_field_E06_offset_must_be_0xE06[
+    MODEL_OFFSET(ModelSlot, field_E06) == 0xE06 ? 1 : -1
+];
+typedef char ModelSlot_field_E0D_offset_must_be_0xE0D[
+    MODEL_OFFSET(ModelSlot, field_E0D) == 0xE0D ? 1 : -1
+];
+typedef char ModelSlot_field_E11_offset_must_be_0xE11[
+    MODEL_OFFSET(ModelSlot, field_E11) == 0xE11 ? 1 : -1
+];
+typedef char ModelSlot_field_E12_offset_must_be_0xE12[
+    MODEL_OFFSET(ModelSlot, field_E12) == 0xE12 ? 1 : -1
+];
+typedef char ModelSlot_field_E14_offset_must_be_0xE14[
+    MODEL_OFFSET(ModelSlot, field_E14) == 0xE14 ? 1 : -1
+];
+typedef char ModelSlot_field_E16_offset_must_be_0xE16[
+    MODEL_OFFSET(ModelSlot, field_E16) == 0xE16 ? 1 : -1
+];
+typedef char ModelSlot_entry_count_offset_must_be_0xE17[
+    MODEL_OFFSET(ModelSlot, entry_count) == 0xE17 ? 1 : -1
+];
+typedef char ModelSlot_field_E18_offset_must_be_0xE18[
+    MODEL_OFFSET(ModelSlot, field_E18) == 0xE18 ? 1 : -1
+];
+typedef char ModelSlot_field_E1A_offset_must_be_0xE1A[
+    MODEL_OFFSET(ModelSlot, field_E1A) == 0xE1A ? 1 : -1
+];
+typedef char ModelSlot_field_E1B_offset_must_be_0xE1B[
+    MODEL_OFFSET(ModelSlot, field_E1B) == 0xE1B ? 1 : -1
+];
+typedef char ModelSlot_field_E1C_offset_must_be_0xE1C[
+    MODEL_OFFSET(ModelSlot, field_E1C) == 0xE1C ? 1 : -1
+];
+typedef char ModelSlot_field_E1E_offset_must_be_0xE1E[
+    MODEL_OFFSET(ModelSlot, field_E1E) == 0xE1E ? 1 : -1
+];
+typedef char ModelSlot_field_E1F_offset_must_be_0xE1F[
+    MODEL_OFFSET(ModelSlot, field_E1F) == 0xE1F ? 1 : -1
+];
+
+typedef char ModelSlotCF8TailView_size_must_be_0x108[
+    sizeof(ModelSlotCF8TailView) == 0x108 ? 1 : -1
+];
+typedef char ModelSlotCF8TailView_field_0A_offset_must_be_0xA[
+    MODEL_OFFSET(ModelSlotCF8TailView, prefix.bytes.field_0A) == 0xA ? 1 : -1
+];
+typedef char ModelSlotCF8Prefix_size_must_be_0xC[
+    sizeof(ModelSlotCF8Prefix) == 0xC ? 1 : -1
+];
+typedef char ModelSlotCF8Prefix_field_08_offset_must_be_0x8[
+    MODEL_OFFSET(ModelSlotCF8Prefix, values.field_08) == 0x8 ? 1 : -1
+];
+typedef char ModelSlotCF8Block_field_10_offset_must_be_0x10[
+    MODEL_OFFSET(ModelSlotCF8Block, field_10) == 0x10 ? 1 : -1
+];
+typedef char ModelSlotCF8Block_field_14_offset_must_be_0x14[
+    MODEL_OFFSET(ModelSlotCF8Block, field_14) == 0x14 ? 1 : -1
+];
+typedef char ModelSlotCF8Block_field_18_offset_must_be_0x18[
+    MODEL_OFFSET(ModelSlotCF8Block, field_18) == 0x18 ? 1 : -1
+];
+typedef char ModelSlotCF8TailView_field_106_offset_must_be_0x106[
+    MODEL_OFFSET(ModelSlotCF8TailView, field_106) ==
+        MODEL_SLOT_CF8_DFE_OFFSET ? 1 : -1
+];
+typedef char ModelSlotCF8TailView_field_107_offset_must_be_0x107[
+    MODEL_OFFSET(ModelSlotCF8TailView, field_107) ==
+        MODEL_SLOT_CF8_DFF_OFFSET ? 1 : -1
+];
+
+typedef char ModelHandlerRegistryEntry_size_must_be_0x8[
+    sizeof(ModelHandlerRegistryEntry) == 0x8 ? 1 : -1
+];
+typedef char ModelHandlerRegistryEntry_handler_value_offset_must_be_0x0[
+    MODEL_OFFSET(ModelHandlerRegistryEntry, handler_value) == 0x0 ? 1 : -1
+];
+typedef char ModelHandlerRegistryEntry_key_offset_must_be_0x4[
+    MODEL_OFFSET(ModelHandlerRegistryEntry, key) == 0x4 ? 1 : -1
+];
+
+typedef char ModelCameraLeg_size_must_be_0x10[
+    sizeof(ModelCameraLeg) == 0x10 ? 1 : -1
+];
+typedef char ModelCameraLeg_pair_slot_offset_must_be_0x6[
+    MODEL_OFFSET(ModelCameraLeg, pair_slot) == 0x6 ? 1 : -1
+];
+typedef char ModelCameraLeg_end_x_offset_must_be_0x8[
+    MODEL_OFFSET(ModelCameraLeg, end_x) == 0x8 ? 1 : -1
+];
+typedef char ModelCameraLeg_slot_offset_must_be_0xE[
+    MODEL_OFFSET(ModelCameraLeg, slot) == 0xE ? 1 : -1
+];
+
+typedef char ModelCameraMove_size_must_be_0x2C[
+    sizeof(ModelCameraMove) == 0x2C ? 1 : -1
+];
+typedef char ModelCameraMove_duration_offset_must_be_0xA[
+    MODEL_OFFSET(ModelCameraMove, duration) == 0xA ? 1 : -1
+];
+typedef char ModelCameraMove_eye_offset_must_be_0xC[
+    MODEL_OFFSET(ModelCameraMove, eye) == 0xC ? 1 : -1
+];
+typedef char ModelCameraMove_target_offset_must_be_0x1C[
+    MODEL_OFFSET(ModelCameraMove, target) == 0x1C ? 1 : -1
+];
+
+/* One entry of the eight-byte table at D_80091570.  Every access in the tree
+ * is sixteen bits wide: func_8005F5C8 reads field_00, func_8005F27C reads
+ * field_00, angle and field_04 of one record, and func_8005A618 reads
+ * `angle` and wraps it modulo a full turn.  The retail bytes agree -- the
+ * first entries are 02BC / FE00 / FF00 / 0000 and 02BC / 0200 / FF00 / 0000,
+ * where field_00 is a constant 700 and the second halfword steps in eighths
+ * of a turn.  Nothing reads the record as two 32-bit words.
+ *
+ * The table is fifteen records: it ends at 0x800915E8, where the next object
+ * begins and has none of this pattern.  The declaration is left unsized
+ * anyway, because func_8005A618 masks its index with 0x1F and so can reach
+ * past the fifteenth -- the mask is not an entry count, and a bound here
+ * would say otherwise.
+ */
+typedef struct {
+    s16 field_00;
+    s16 angle;
+    s16 field_04;
+    s16 field_06;
+} ModelEffectCoefficient;
+
+typedef char ModelTintColor_size_must_be_0x4[
+    sizeof(ModelTintColor) == 0x4 ? 1 : -1
+];
+typedef char ModelTintRequest_size_must_be_0x18[
+    sizeof(ModelTintRequest) == 0x18 ? 1 : -1
+];
+typedef char ModelTintRequest_elapsed_offset_must_be_0xC[
+    MODEL_OFFSET(ModelTintRequest, elapsed) == 0xC ? 1 : -1
+];
+typedef char ModelTintRequest_start_offset_must_be_0x10[
+    MODEL_OFFSET(ModelTintRequest, start) == 0x10 ? 1 : -1
+];
+typedef char ModelTintRequest_end_offset_must_be_0x14[
+    MODEL_OFFSET(ModelTintRequest, end) == 0x14 ? 1 : -1
+];
+
+typedef char ModelEffectCoefficient_size_must_be_0x8[
+    sizeof(ModelEffectCoefficient) == 0x8 ? 1 : -1
+];
+typedef char ModelEffectCoefficient_angle_offset_must_be_0x2[
+    MODEL_OFFSET(ModelEffectCoefficient, angle) == 0x2 ? 1 : -1
+];
+typedef char ModelEffectCoefficient_field_04_offset_must_be_0x4[
+    MODEL_OFFSET(ModelEffectCoefficient, field_04) == 0x4 ? 1 : -1
+];
+
+#undef MODEL_OFFSET
+
+#ifndef MODEL_EFFECT_COEFFICIENT_CUSTOM_EXTERN
+extern ModelEffectCoefficient D_80091570[];
+#endif
+#ifndef MODEL_SLOT_CUSTOM_EXTERN
+extern ModelSlot D_800F2C40[MODEL_SLOT_COUNT];
+
+/* Interior names for fields of slot zero. Their types come from the asserted
+ * ModelSlot layout above; consumers still step their addresses by
+ * MODEL_SLOT_SIZE when selecting another slot, so none of these declarations
+ * claims that same-named fields from adjacent slots are contiguous arrays.
+ *
+ * 0x800F3938 = D_800F2C40[0].field_CF8
+ * 0x800F39B0 = D_800F2C40[0].field_D70
+ * 0x800F39F0 = D_800F2C40[0].field_DB0
+ * 0x800F3A10 = D_800F2C40[0].field_DD0
+ *
+ * For example, the field_DD0 consumers use the equivalent byte-stride form
+ *
+ *     entry = (u8 *)D_800F3A10 + index * MODEL_SLOT_SIZE;
+ *
+ * to reach that field of slot `index`. model_distance_queries.c reads the
+ * first three halfwords of it and differences them against D_800F56F0
+ * before SquareRoot0, so they are a position.
+ *
+ * The two names stay separate: all three matched sites reach the field
+ * through this symbol, so writing it as an offset from D_800F2C40 would
+ * change which symbol their relocations name. Unlike the selection-table case
+ * there is no assembly reader to corroborate that, but the matched C is
+ * itself the evidence. */
+extern ModelSlotCF8TailView D_800F3938;
+extern ModelSlotLightEntry D_800F39B0[3];
+extern ModelSlotS32Quad D_800F39F0;
+extern u16 D_800F3A10[];
+#endif
+#ifndef MODEL_CAMERA_MOVE_CUSTOM_EXTERN
+extern ModelCameraMove D_800F2B20;
+#endif
+#ifndef MODEL_TINT_REQUEST_CUSTOM_EXTERN
+extern ModelTintRequest D_800F2B50[MODEL_TINT_REQUEST_COUNT];
+#endif
+
+extern ModelHandlerRegistryEntry
+    D_800F5918[MODEL_HANDLER_REGISTRY_COUNT];
+
+s32 Model_LoadMonsterMerge(
+    s32 slot, s32 model, s32 p2, s32 p3, s32 p4, s32 p5, s32 arg6
+);
+void func_80059284(s32 index, s32 value);
+
+#endif

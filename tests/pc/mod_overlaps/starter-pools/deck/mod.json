@@ -1,0 +1,6 @@
+{
+    "id": "deck",
+    "name": "Deck",
+    "about": "A written starter deck: forty cards, weight 1.",
+    "starter": {"name": "Fixed", "Mystical Elf": 20, "Kuriboh": 20}
+}

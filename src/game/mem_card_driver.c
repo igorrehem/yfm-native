@@ -1,0 +1,619 @@
+#define GMEMCARD_NIORESULT_IS_VOLATILE
+#include "../types.h"
+#include "../psyq/libapi.h"
+#include "../psyq/stdio.h"
+#include "../psyq/strings.h"
+
+#include "mem_card_begin_request.h"
+#include "mem_card_directory.h"
+#include "mem_card_io_result_callbacks.h"
+#include "io_event_helpers.h"
+#include "mem_card.h"
+#include "../unmatched.h"
+
+void MemCard_ClearIOEvents(PSXLONG *handles)
+{
+    TestEvent(handles[0]);
+    TestEvent(handles[1]);
+    TestEvent(handles[2]);
+    TestEvent(handles[3]);
+    gMemCard_nIOResult = -1;
+}
+
+s32 MemCard_WaitIOEvent(PSXLONG *handles, s32 once)
+{
+    do {
+        if (TestEvent(handles[0]) == 1)
+            return 0;
+        if (TestEvent(handles[1]) == 1)
+            return 1;
+        if (TestEvent(handles[2]) == 1)
+            return 2;
+        if (TestEvent(handles[3]) == 1)
+            return 3;
+    } while (once == 0);
+    return -1;
+}
+
+void MemCard_Init(PSXLONG val)
+{
+    InitCARD(val);
+    StartCARD();
+    ChangeClearPAD(0);
+    _bu_init();
+}
+
+void MemCard_CloseIOEvents(void)
+{
+    PSXLONG *item = gMemCard_aIOEventHandles;
+    int count;
+
+    EnterCriticalSection();
+    count = 8;
+    do {
+        CloseEvent(*item++);
+        count--;
+    } while (count != 0);
+    ExitCriticalSection();
+}
+
+void MemCard_InitIOEvents(void)
+{
+    register PSXLONG *items;
+    register PSXLONG (*cb0)(void);
+    register PSXLONG (*cb1)(void);
+    register PSXLONG (*cb2)(void);
+    int count;
+    {
+        register PSXLONG *base = gMemCard_aIOEventHandles;
+        gMemCard_bRequest = -1;
+        gMemCard_bDirFlags = 0;
+        gMemCard_pDirEntries = 0;
+        items = gMemCard_aIOEventHandles;
+        EnterCriticalSection();
+        cb0 = MemCard_SetIOResultCompleteCB;
+        base[0] = OpenEvent(SwCARD, EvSpIOE, EvMdINTR, cb0);
+        cb1 = MemCard_SetIOResultTimeoutCB;
+        items[1] = OpenEvent(SwCARD, EvSpTIMOUT, EvMdINTR, cb1);
+    }
+    cb2 = MemCard_SetIOResultErrorCB;
+    items[2] = OpenEvent(SwCARD, EvSpERROR, EvMdINTR, cb2);
+    {
+        register PSXLONG (*cb3)(void) = MemCard_SetIOResultNewCardCB;
+        items[3] = OpenEvent(SwCARD, EvSpNEW, EvMdINTR, cb3);
+        items[4] = OpenEvent(HwCARD, EvSpIOE, EvMdINTR, cb0);
+        items[5] = OpenEvent(HwCARD, EvSpTIMOUT, EvMdINTR, cb1);
+        items[6] = OpenEvent(HwCARD, EvSpERROR, EvMdINTR, cb2);
+        items[7] = OpenEvent(HwCARD, EvSpNEW, EvMdINTR, cb3);
+    }
+    count = 8;
+    do {
+        EnableEvent(*items++);
+        count--;
+    } while (count != 0);
+    ExitCriticalSection();
+}
+
+void MemCard_ClearCard(int chan)
+{
+    int count = 10;
+
+    do {
+        MemCard_ClearIOEvents(gMemCard_aHwIOEventHandles);
+        _card_clear(chan);
+        while (gMemCard_nIOResult < 0) {
+        }
+        if (gMemCard_nIOResult != 1)
+            break;
+        count--;
+    } while (count > 0);
+}
+
+s32 MemCard_BeginRequest(s32 chan, s32 request)
+{
+    if (gMemCard_bRequest >= 0)
+        return 0;
+    gMemCard_bRetries = 10;
+    gMemCard_bChannel = chan;
+    gMemCard_bRequest = request;
+    gMemCard_bRequestStep = 0;
+    gMemCard_bLoadStep = 0;
+    gMemCard_nIOResult = -1;
+    return 1;
+}
+
+int MemCard_ReqCardInfo(int chan)
+{
+    int result;
+    if (MemCard_BeginRequest(chan, 1)) {
+        MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+        _card_info(chan);
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+int MemCard_ReqLoadDirectory(int chan)
+{
+    if (!MemCard_BeginRequest(chan, 2)) {
+        return 0;
+    }
+    MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+    _card_info(chan);
+    while (gMemCard_nIOResult < 0) {
+    }
+    MemCard_ClearIOEvents(gMemCard_aHwIOEventHandles);
+    _card_clear(gMemCard_bChannel);
+    while (gMemCard_nIOResult < 0) {
+    }
+    MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+    _card_load(chan);
+    while (gMemCard_nIOResult < 0) {
+    }
+    return 1;
+}
+
+int MemCard_ReqReadFile(int chan, int name, int buf, int offset, int size)
+{
+    int result;
+
+    if (MemCard_BeginRequest(chan, 3)) {
+        sprintf((char *)gMemCard_szRequestPath, (char *)D_80010538, chan, name);
+        gMemCard_wRequestOffset = offset;
+        gMemCard_pRequestBuf = buf;
+        gMemCard_wRequestSize = size;
+        MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+        _card_info(chan);
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+int MemCard_ReqReadSector(int chan, int buf, int sector)
+{
+    int result;
+
+    if (MemCard_BeginRequest(chan, 11)) {
+        gMemCard_wRequestOffset = sector;
+        gMemCard_pRequestBuf = buf;
+        MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+        _card_info(chan);
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+int MemCard_ReqWriteFile(int chan, int name, int buf, int offset, int size)
+{
+    int result;
+
+    if (MemCard_BeginRequest(chan, 4)) {
+        sprintf((char *)gMemCard_szRequestPath, (char *)D_80010538, chan, name);
+        gMemCard_wRequestOffset = offset;
+        gMemCard_pRequestBuf = buf;
+        gMemCard_wRequestSize = size;
+        MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+        _card_info(chan);
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+int MemCard_ReqWriteSector(int chan, int buf, int sector)
+{
+    int result;
+
+    if (MemCard_BeginRequest(chan, 12)) {
+        gMemCard_wRequestOffset = sector;
+        gMemCard_pRequestBuf = buf;
+        MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+        _card_info(chan);
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+int MemCard_ReqCreateFile(int chan, int name, int blocks)
+{
+    int result;
+
+    if (MemCard_BeginRequest(chan, 8)) {
+        sprintf((char *)gMemCard_szRequestPath, (char *)D_80010538, chan, name);
+        gMemCard_wRequestSize = blocks;
+        MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+        _card_info(chan);
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+s32 MemCard_FindFiles(s32 chan, const char *pattern, struct DIRENTRY *cursor,
+                      s32 *out_count)
+{
+    char work[32];
+    s32 retry;
+    s32 count;
+
+    sprintf(work, (char *)D_80010538, chan, pattern);
+    retry = MEM_CARD_DIRECTORY_RETRIES;
+    while (firstfile(work, cursor) != cursor) {
+        retry--;
+        if (retry < 0)
+            return 0;
+    }
+    retry = MEM_CARD_DIRECTORY_RETRIES;
+    count = 1;
+    cursor++;
+    do {
+        if (nextfile(cursor) != cursor) {
+            retry--;
+            if (retry < 0)
+                break;
+        } else {
+            retry = MEM_CARD_DIRECTORY_RETRIES;
+            cursor++;
+            count++;
+        }
+    } while (count < MEM_CARD_BLOCK_COUNT);
+    if (out_count != (s32 *)0)
+        *out_count = count;
+    return count;
+}
+
+s32 MemCard_CalcFreeBlocks(struct DIRENTRY *entry, s32 count)
+{
+    s32 i;
+    s32 total = 0;
+
+    for (i = 0; i < count; i++, entry++) {
+        s32 value = entry->size;
+
+        total += value / MEM_CARD_BLOCK_SIZE;
+        if (value % MEM_CARD_BLOCK_SIZE) {
+            total++;
+        }
+    }
+    return MEM_CARD_BLOCK_COUNT - total;
+}
+
+s32 MemCard_FindEntry(u8 *name, struct DIRENTRY *entry, s32 count)
+{
+    s32 i;
+
+    for (i = 0; i < count; i++, entry++) {
+        if (strcmp(entry->name, name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+s32 MemCard_DoLoadDirectory(void) {
+    s32 v0;
+    s32 one;
+    s32 v1;
+
+    v1 = gMemCard_bLoadStep;
+    if (v1 == 1) {
+        goto state1;
+    }
+    if (v1 < 2) {
+        if (v1 == 0) {
+            goto state0;
+        }
+        goto ret;
+    }
+    if (v1 == 2) {
+        goto state2;
+    }
+    goto ret;
+
+state0:
+    v1 = gMemCard_nIOResult;
+    if (v1 == 1) {
+        goto state0_info;
+    }
+    if (v1 < 2) {
+        if (v1 != 0) {
+            goto ret;
+        }
+    } else {
+        if (v1 == 2) {
+            goto ret;
+        }
+        if (v1 == 3) {
+            goto sub_poll_entry;
+        }
+        goto ret;
+    }
+    goto state0_zero;
+
+state0_info:
+    v0 = gMemCard_bRetries - 1;
+    gMemCard_bRetries = (u8)v0;
+    if ((s8)v0 == 0) {
+        goto ret;
+    }
+    MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+    _card_info(gMemCard_bChannel);
+    return -1;
+
+state0_zero:
+    if (gMemCard_bDirFlags & 0x80) {
+        if (gMemCard_bRequest != 8) {
+            goto ret;
+        }
+    }
+    gMemCard_nIOResult = 3;
+sub_poll_entry:
+    if (gMemCard_bRequest == 1) {
+        goto ret;
+    }
+    gMemCard_bRetries = 0xA;
+    gMemCard_bLoadStep = (u8)(gMemCard_bLoadStep + 1);
+sub_retry:
+    MemCard_ClearIOEvents(gMemCard_aHwIOEventHandles);
+    _card_clear(gMemCard_bChannel);
+    return -1;
+
+state1:
+    v0 = gMemCard_nIOResult;
+    if (v0 == 0) {
+        goto state1_zero;
+    }
+    v1 = gMemCard_nIOResult;
+    if (v1 != 2) {
+        goto ret;
+    }
+    v0 = gMemCard_bRetries - 1;
+    gMemCard_bRetries = (u8)v0;
+    if ((s8)v0 > 0) {
+        goto sub_retry;
+    }
+    goto ret;
+
+state1_zero:
+    gMemCard_bRetries = 0xA;
+    gMemCard_bLoadStep = 2;
+load_retry:
+    MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+    _card_load(gMemCard_bChannel);
+    return -1;
+
+state2:
+    v0 = gMemCard_nIOResult;
+    if (v0 == 2) {
+        v0 = gMemCard_bRetries - 1;
+        gMemCard_bRetries = (u8)v0;
+        if ((s8)v0 > 0) {
+            goto load_retry;
+        }
+    }
+
+    gMemCard_bDirFlags |= 0x80;
+    v1 = gMemCard_nIOResult;
+    if (v1 != 0) {
+        goto after_load;
+    }
+    gMemCard_pDirEntries = gMemCard_aDirEntries;
+    MemCard_FindFiles(gMemCard_bChannel, (const char *)D_8009AF7C,
+                      gMemCard_aDirEntries,
+                      &gMemCard_nDirEntries);
+    gMemCard_nFreeBlocks =
+        MemCard_CalcFreeBlocks(gMemCard_pDirEntries, gMemCard_nDirEntries);
+
+after_load:
+    if (gMemCard_nIOResult == 3) {
+        gMemCard_nIOResult = 4;
+    }
+ret:
+    return gMemCard_nIOResult;
+}
+
+s32 MemCard_ProcessRequest(s32 arg0, s32 *out_state, s32 *out_result)
+{
+    s32 r;
+    s32 fd;
+    s32 tries;
+    s32 mode;
+    s32 resume_step;
+
+    if (gMemCard_bRequest < 0)
+        return -1;
+    if (arg0 != 0) {
+        if ((_card_status(gMemCard_bChannel != 0) & 0xE) != 0)
+            return 0;
+    } else {
+        _card_wait(gMemCard_bChannel != 0);
+    }
+    switch ((s8)((u8)gMemCard_bRequest - 1)) {
+    case 0:
+    case 1:
+        if (MemCard_DoLoadDirectory() >= 0)
+            goto finish;
+        return 0;
+    case 10:
+    case 11:
+        resume_step = 1;
+        switch (gMemCard_bRequestStep) {
+        case 0:
+            {
+                s32 directory_result = MemCard_DoLoadDirectory();
+                if (directory_result < 0)
+                    return 0;
+                if (directory_result != 0) {
+                    gMemCard_nIOResult = 2;
+                    goto finish;
+                }
+            }
+            gMemCard_bRetries = 0xA;
+            gMemCard_bRequestStep = gMemCard_bRequestStep + 1;
+        case 1:
+            MemCard_ClearIOEvents(gMemCard_aHwIOEventHandles);
+            _new_card();
+            if (gMemCard_bRequest == 0xB) {
+                _card_read(gMemCard_bChannel, gMemCard_wRequestOffset,
+                           (u8 *G32)gMemCard_pRequestBuf);
+            } else {
+                _card_write(gMemCard_bChannel, gMemCard_wRequestOffset,
+                            (u8 *G32)gMemCard_pRequestBuf);
+            }
+            gMemCard_bRequestStep = gMemCard_bRequestStep + 1;
+            return 0;
+        case 2:
+            goto sub_two;
+        }
+        goto finish;
+    case 2:
+    case 3:
+        resume_step = 1;
+        switch (gMemCard_bRequestStep) {
+        case 0:
+            {
+                s32 directory_result = MemCard_DoLoadDirectory();
+                if (directory_result < 0)
+                    return 0;
+                if (directory_result != 0) {
+                    gMemCard_nIOResult = 2;
+                    goto finish;
+                }
+            }
+            D_8009B436 = 0x14;
+            gMemCard_bRequestStep = gMemCard_bRequestStep + 1;
+        case 1:
+            gMemCard_bRetries = gMemCard_bRetries - 1;
+            if ((s8)gMemCard_bRetries < 0) {
+                gMemCard_nIOResult = 2;
+                goto finish;
+            }
+            mode = 0x8001;
+            if (gMemCard_bRequest == 4)
+                mode = 0x8002;
+            tries = 0xA;
+            do {
+                fd = open(gMemCard_szRequestPath, mode);
+                tries--;
+                if (fd != -1)
+                    goto opened;
+            } while (tries >= 0);
+            return 0;
+opened:
+            tries = 0xA;
+            do {
+                r = lseek(fd, gMemCard_wRequestOffset, 0);
+                if (r != -1)
+                    goto seeked;
+            } while (--tries >= 0);
+            close(fd);
+            return 0;
+seeked:
+            MemCard_ClearIOEvents(gMemCard_aIOEventHandles);
+            tries = 0xA;
+            do {
+                s32 transfer_result;
+
+                if (gMemCard_bRequest == 4) {
+                    transfer_result = write(fd, (void *G32)gMemCard_pRequestBuf,
+                                            gMemCard_wRequestSize);
+                } else {
+                    transfer_result = read(fd, (void *G32)gMemCard_pRequestBuf,
+                                           gMemCard_wRequestSize);
+                }
+                if (transfer_result == 0)
+                    goto transferred;
+            } while (--tries >= 0);
+            close(fd);
+            return 0;
+transferred:
+            gMemCard_bRetries = 0x14;
+            gMemCard_bRequestStep = gMemCard_bRequestStep + 1;
+            close(fd);
+            return 0;
+        case 2:
+            goto sub_two;
+        }
+        goto finish;
+sub_two:
+        if (gMemCard_nIOResult == 0)
+            goto finish;
+        D_8009B436 = D_8009B436 - 1;
+        if ((s8)D_8009B436 < 0)
+            goto finish;
+        gMemCard_bRequestStep = resume_step;
+        return 0;
+    case 7:
+        if (gMemCard_bRequestStep == 0)
+            goto poll_write;
+        if (gMemCard_bRequestStep == 1)
+            goto reopen;
+        goto finish;
+poll_write:
+        {
+            s32 directory_result = MemCard_DoLoadDirectory();
+            if (directory_result < 0)
+                return 0;
+            if (directory_result == 0)
+                goto check_size;
+        }
+        gMemCard_nIOResult = 2;
+        goto finish;
+check_size:
+        if (gMemCard_nFreeBlocks + gMemCard_wRequestSize < 0x10)
+            goto write_dirent;
+        gMemCard_nIOResult = 7;
+        goto finish;
+write_dirent:
+        if (MemCard_FindFiles(gMemCard_bChannel, gMemCard_szRequestPath,
+                              gMemCard_pDirEntries, 0) == 0)
+            goto start_reopen;
+        gMemCard_nIOResult = 6;
+        goto finish;
+opened_ok:
+        close(fd);
+        gMemCard_nIOResult = 0;
+        goto finish;
+start_reopen:
+        gMemCard_bRetries = 0xA;
+        gMemCard_bRequestStep = gMemCard_bRequestStep + 1;
+reopen:
+        /* Ten retries after the first BIOS open attempt. */
+        for (tries = 0xA;;) {
+            fd = open(gMemCard_szRequestPath,
+                      (gMemCard_wRequestSize << 16) | 0x200);
+            if (fd != -1)
+                goto opened_ok;
+            if (--tries < 0) {
+                gMemCard_bRetries = gMemCard_bRetries - 1;
+                if ((s8)gMemCard_bRetries > 0)
+                    return 0;
+                gMemCard_nIOResult = 2;
+                goto finish;
+            }
+        }
+    }
+finish:
+    *out_result = gMemCard_nIOResult;
+    *out_state = gMemCard_bRequest;
+    gMemCard_bRequest = -1;
+    return 1;
+}
+
+/* Declared void, which is how it matched, but the index MemCard_FindEntry
+ * returns is still in $v0 on the way out and the one caller, func_8003DC1C,
+ * branches on its sign. */
+void MemCard_FindLoadedEntry(u8 *name)
+{
+    MemCard_FindEntry(name, gMemCard_pDirEntries, gMemCard_nDirEntries);
+}

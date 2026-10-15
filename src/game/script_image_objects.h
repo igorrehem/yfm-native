@@ -1,0 +1,51 @@
+#ifndef MEMORIES_DECOMP_SCRIPT_IMAGE_OBJECTS_H
+#define MEMORIES_DECOMP_SCRIPT_IMAGE_OBJECTS_H
+
+#include "../types.h"
+#include "../ygo_types.h"
+
+typedef struct {
+    ScriptImageEntry entries[3];
+    s16 image_id;
+} ScriptImageObjectSet;
+
+typedef char ScriptImageObjectSet_image_id_offset_must_be_0x3C[
+    (u32)&((ScriptImageObjectSet *)0)->image_id == 0x3C ? 1 : -1
+];
+
+/* Three of the scene script's image slots at D_800EAE98, as
+ * ScriptImage_ReleaseObjects
+ * releases them: a display-object pointer and the image id that filled it.
+ * This is not the whole slot table -- the same function writes the mode
+ * halfword in ScriptImageObjectSet after these three entries -- and the
+ * callers hold their own wider views under their own names. The shared
+ * ScriptImageEntry layout is defined in ygo_types.h. */
+/* Transfer callback for one script image. The loader supplies its
+ * FileTransferDescriptor and advances the callback stage through the setup
+ * phases. */
+void ScriptImage_TransferCallback(FileTransferDescriptor *transfer, s32 mode);
+
+/* Starts the async read of one script image. `value` is packed BCD: the low
+ * two nibbles are the index, and the third selects one of three tables with
+ * its own sector stride (0x21, 0x51 or 0x71) -- any other mode returns without
+ * requesting anything. `owner` may be null; when it is not, the id is recorded
+ * in image_id first. The parameter is volatile in the definition, so that
+ * store is not merged with the caller's own writes to the same record. */
+void ScriptImage_RequestTransfer(
+    volatile ScriptImageObjectSet *owner, s32 value);
+
+/* Releases the three image slots: each pointer goes to DisplayObject_ReleaseIfPresent and both
+ * words are zeroed, and image_id is set to -1 first so the next request
+ * treats the record as empty. */
+void ScriptImage_ReleaseObjects(ScriptImageObjectSet *set);
+
+/* Builds one display object for a script image and stores it at `owner`, a
+ * ScriptImageEntry, with `size` the object's request size and `mode`
+ * selecting the blend arms: mode 2 takes GsALON | GsAONE and sets the entry's
+ * `value` halfword to 1, anything else takes 0x01000000 and clears it. It
+ * also sets the entry's field_10. ScriptImage_RebuildObjects is the only
+ * caller outside this unit, and called it with no prototype at all before
+ * this header. */
+void ScriptImage_CreateObject(ScriptImageEntry *entry, s32 size, s32 mode);
+
+#endif

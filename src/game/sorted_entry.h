@@ -1,0 +1,99 @@
+#include "../port_ptr.h"
+#ifndef MEMORIES_DECOMP_SORTED_ENTRY_H
+#define MEMORIES_DECOMP_SORTED_ENTRY_H
+
+#include "../types.h"
+
+/* The list of pending eight-byte entries that SortedEntry_SortAndRelink sorts
+ * and whose inverse index links it rebuilds.
+ *
+ * SortedEntry_BeginCollection opens the list: it points both the base
+ * D_8009B304 and the append pointer D_8009B310 at the same address and zeroes the count
+ * D_8009B314.  func_80033CF8 appends one entry per call, advancing D_8009B310
+ * by one entry and bumping D_8009B314, so the live entries are always
+ * [D_8009B304, D_8009B310). SortedEntry_SortAndRelink sorts them, writes the
+ * inverse links, and resets D_8009B310 back to the base.
+ *
+ * SortedEntry_Compare compares the u32 at offset 0 of an entry. On
+ * this target that word holds `distance` in the high halfword and `packed` in
+ * the low one, so the order is ascending by distance, ties broken by `packed`.
+ */
+typedef struct {
+    /* ratan2(dx, dz) / 16, clamped to 255 and shifted left by 8, or'd with
+     * dy >> 4.  The two halves are never read apart, so they are not named
+     * separately here. */
+    s16 packed;
+    /* SquareRoot0(dx * dx + dz * dz). */
+    s16 distance;
+    /* The value of D_8009B314 when the entry was appended, i.e. the entry's
+     * position in append order. */
+    s16 append_index;
+    /* Written by SortedEntry_SortAndRelink, which stores each entry's sorted
+     * position into the slot named by that entry's append_index. */
+    s16 sorted_position;
+} SortedEntry;
+
+#define SORTED_ENTRY_OFFSET(member) ((u32)&(((SortedEntry *)0)->member))
+
+typedef char SortedEntry_size_must_be_8[
+    sizeof(SortedEntry) == 8 ? 1 : -1
+];
+typedef char SortedEntry_distance_must_be_at_2[
+    SORTED_ENTRY_OFFSET(distance) == 2 ? 1 : -1
+];
+typedef char SortedEntry_append_index_must_be_at_4[
+    SORTED_ENTRY_OFFSET(append_index) == 4 ? 1 : -1
+];
+typedef char SortedEntry_sorted_position_must_be_at_6[
+    SORTED_ENTRY_OFFSET(sorted_position) == 6 ? 1 : -1
+];
+
+/* The grey fill word. func_80035668 stores 0x808080 here alongside its write
+ * to D_8009B30C (src/game/text_render_state.c:8), and four sites read it back:
+ * the two palette builders take the whole word -- func_80033DB0.c:81 and :180
+ * and func_80034830.c:81 and :200 all do *(u32 *)grey = D_8009B300; -- while
+ * the card viewer's fade step reads the low byte through the address,
+ * a = *(u8 *)&D_8009B300, and writes the word back (src/game/duel_scene_field_actions.c).
+ *
+ * That byte view is why DuelScene_UpdateFieldActions wants this symbol outside
+ * small data: it defines D_8009B300_IN_DATA to take the .data arm, the same
+ * arrangement the state pointers below use. */
+#ifdef D_8009B300_IN_DATA
+extern u32 D_8009B300 PSX_SECTION(".data");
+#else
+extern u32 D_8009B300;
+#endif
+
+#ifdef SORTED_ENTRY_STATE_IN_DATA
+extern SortedEntry *G32 D_8009B304 PSX_SECTION(".data");
+#else
+extern SortedEntry *G32 D_8009B304;
+#endif
+/* The entry count, saved by SortedEntry_SortAndRelink across the sort and
+ * compared against D_8009B314 by the walk in Duel_DrawFieldCards. */
+#ifdef SORTED_ENTRY_STATE_IN_DATA
+extern u32 D_8009B308 PSX_SECTION(".data");
+#else
+extern u32 D_8009B308;
+#endif
+/* Flag word.  SortedEntry_BeginCollection sets bit 2 when it opens the list and
+ * SortedEntry_SortAndRelink clears it again. Duel_DrawFieldCards tests bit 1 and
+ * clears bits 0 and 1; nothing in the decompiled tree sets either, so what
+ * raises the flag it tests is not known here.  func_80035668 writes the word
+ * wholesale, and both of its call sites pass 0. */
+#ifdef D_8009B30C_AS_SIGNED_DATA
+extern s32 D_8009B30C PSX_SECTION(".data");
+#elif defined(SORTED_ENTRY_STATE_IN_DATA)
+extern u32 D_8009B30C PSX_SECTION(".data");
+extern SortedEntry *G32 D_8009B310 PSX_SECTION(".data");
+extern u32 D_8009B314 PSX_SECTION(".data");
+#else
+extern u32 D_8009B30C;
+extern SortedEntry *G32 D_8009B310;
+extern u32 D_8009B314;
+#endif
+
+void func_80033CF8(s32 dx, s32 dy, s32 dz);
+void SortedEntry_SortAndRelink(void);
+
+#endif

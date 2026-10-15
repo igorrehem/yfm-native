@@ -1,0 +1,75 @@
+#include "../../types.h"
+#include "../../game/graphics_frame.h"
+#include "../../game/display_object_helpers.h"
+#include "../../game/main_services.h"
+#include "../../game/two_player_save_setup.h"
+#include "../../game/save_data.h"
+#include "../../ygo_types.h"
+#include "../../psyq/qsort.h"
+#include "../../game/card_constants.h"
+#define MAIN_MENU_TRADE_STATE_BUFFER
+#include "trade_helpers.h"
+#undef MAIN_MENU_TRADE_STATE_BUFFER
+#include "../../game/display_object_config.h"
+#include "../../game/data_transfer_request.h"
+#include "../../game/duel_card_viewer.h"
+#include "../../game/duel_effect.h"
+#include "../../game/sound.h"
+#include "../../game/input.h"
+#include "../../game/text_box_lifecycle.h"
+#include "../../game/func_80061008.h"
+#include "../../game/func_800610E0.h"
+#include "../../game/func_800611D0.h"
+#ifdef MEMORIES_PC
+#include "pc/cards/cards.h"
+#endif
+
+void MainMenu_RefreshTradeInventory(s32 slot, s32 force)
+{
+    MainMenuComparators comparators;
+    u8 *row;
+    u8 *counts;
+    s32 i;
+    s32 mode;
+    s32 id;
+
+    mode = D_80185CCC[slot];
+    comparators = D_80180004;
+
+    if (force != 0 || mode == 0) {
+        row = D_801D1200 + slot * TWO_PLAYER_SAVE_SLOT_STRIDE;
+        counts = row + SAVE_DATA_CARD_QUANTITIES_OFFSET;
+        for (i = 0; i < CARD_COUNT; i++) {
+            if (counts[i] != 0) {
+                id = i + 1;
+            } else {
+                id = 0;
+            }
+            D_801845FC[slot][i].id = id;
+            D_801845FC[slot][i].count = counts[i];
+        }
+#ifdef MEMORIES_PC
+        /* The cards past the disc's, from the trunk beside the save. */
+        for (; i < CARD_COUNT_LIVE; i++) {
+            u8 held = *Cards_ChestSlot(row, i + 1);
+
+            D_801845FC[slot][i].id = held != 0 ? i + 1 : 0;
+            D_801845FC[slot][i].count = held;
+        }
+#endif
+        for (i = 0; i < 2; i++) {
+            MainMenu_ApplyTradeOfferInventoryDelta(i, -1);
+        }
+    }
+
+    if (mode != 0) {
+        qsort(
+            D_801845FC[slot],
+            CARD_COUNT_LIVE,
+            sizeof(CardCountEntry),
+            comparators.entries[mode - 1]
+        );
+    }
+
+    D_801A8000[slot].object[0x69] = mode;
+}

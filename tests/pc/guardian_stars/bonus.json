@@ -1,0 +1,7 @@
+{"id": "bonus", "guardian_stars": {
+    "default_bonus": 1000,
+    "matchups": [
+        {"attacker": "Mars", "defender": "Jupiter", "bonus": 1500},
+        {"attacker": 8, "defender": 9, "bonus": 0},
+        {"attacker": "Sun", "defender": "Mars", "bonus": -250}
+    ]}}

@@ -1,0 +1,52 @@
+{
+    "id": "tower-test",
+    "name": "Tower test",
+    "min_api": 14,
+    "version": "1.0",
+    "author": "tests",
+    "description": "The tests' tower (notes/tower-mode.md): three floors, a short story, a duelist of the tower's own.",
+    "duelists": [
+        {"id": "ghost", "copy": "Simon Muran", "name": "Ghost Simon", "tower_only": true, "ai": {"copy": "Seto 3rd"}}
+    ],
+    "tower": {
+        "name": "The Test Tower",
+        "label": "TEST TOWER",
+        "unlock": "always",
+        "on_lose": "checkpoint",
+        "intro": [
+            "Three floors stand between you and the top of the tower.",
+            {"text": "Win them all, my prince.", "portrait": 0}
+        ],
+        "ending": "The tower is yours. Its last guardian bows and steps aside.",
+        "lose": "Down you go.",
+        "floors": [
+            {
+                "duelist": "Simon Muran",
+                "checkpoint": true,
+                "life_points": {"opponent": 100},
+                "reward": {"cards": ["Kuriboh", 2, 3, 4, 5], "starchips": 25},
+                "before": "Show me what you have learned.",
+                "after": "Well fought. Climb on."
+            },
+            {
+                "duelist": "tower-test:ghost",
+                "field": "Yami",
+                "no_fusions": true,
+                "life_points": {"player": 100},
+                "deck": {"Job-change Mirror": 20, "Monster Eye": 20},
+                "before": [
+                    "Nobody fuses on this floor.",
+                    {"text": "Not even me.", "speaker": "tower-test:ghost"}
+                ],
+                "after": "You may find me in Free Duel now."
+            },
+            {
+                "duelist": "Seto",
+                "no_equips": true,
+                "life_points": {"opponent": 100},
+                "reward": {"unlock_duelist": "Nitemare"},
+                "before": "No equips here. Only your monsters."
+            }
+        ]
+    }
+}

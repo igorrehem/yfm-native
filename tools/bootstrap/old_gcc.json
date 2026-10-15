@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "name": "gcc-2.8.1-psx-probe",
+  "repository": {
+    "url": "https://github.com/decompals/old-gcc.git",
+    "commit": "3fc018e71fcbd150c0887185703f7550723189ff",
+    "tree": "42e6f7d501097920b3a4bde96a9190f3c0b8e114",
+    "destination": "tools/vendor/old-gcc"
+  },
+  "source": {
+    "url": "https://ftp.gnu.org/gnu/gcc/gcc-2.8.1.tar.gz",
+    "sha256": "3b30fbfdf93e628373d90d174243f3267b0eec9ebe792bb64fd15b8828c2ea4c",
+    "archive": "tools/downloads/gcc-2.8.1.tar.gz",
+    "destination": "tools/vendor/gcc-2.8.1-psx-source"
+  },
+  "patches": [
+    {
+      "path": "patches/obstack-2.8.1.h.patch",
+      "sha256": "6c048d1eb3efb2d1ca536c08fe59f2830be984ad5c4fddc8223c7e719b60d357",
+      "arguments": ["-u", "-p1", "obstack.h"]
+    },
+    {
+      "path": "patches/mipsel-2.8.patch",
+      "sha256": "a6200d94207ef0ba807ba65138059d5f06c5b9132f646219b6ddbbc7741bb3b2",
+      "arguments": ["-u", "-p1", "config/mips/mips.h"]
+    },
+    {
+      "path": "patches/psx.patch",
+      "sha256": "f575e1f3eb4bbd36aa90e39ce8697bce97be9ea2d818c20f2196142accdbcb5b",
+      "arguments": ["-s", "-u", "-p1"]
+    }
+  ],
+  "build": "tmp/build/gcc-2.8.1-psx",
+  "prefix": "tools/toolchains/gcc-2.8.1-psx",
+  "target": "mips-sony-psx",
+  "version": "2.8.1",
+  "host_cflags": "-std=gnu89 -O2 -fcommon",
+  "probe_flags": [
+    "-S",
+    "-O2",
+    "-G8",
+    "-mel",
+    "-mips1",
+    "-mcpu=R3000",
+    "-msoft-float",
+    "-Dpsx",
+    "-D__psx__",
+    "-D__psx"
+  ]
+}

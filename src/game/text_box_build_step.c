@@ -1,0 +1,215 @@
+#define GINPUT_PAD1_HELD_IN_DATA
+#define GINPUT_PAD1_PRESSED_IN_DATA
+#define SCRIPT_STATE_COMMAND_IN_DATA
+#include "../types.h"
+#include "text_box_wrap_line.h"
+#include "input.h"
+#include "duel_effect.h"
+#include "duel_effect_state_callbacks.h"
+#include "duel_effect_entry_control.h"
+#include "duel_effect_entry_occupancy.h"
+#include "text_constants.h"
+#include "display_object_core.h"
+#include "text_box_runtime.h"
+#include "func_80036C14.h"
+#include "menu_record_reset.h"
+#include "script_command_table.h"
+#include "script_state.h"
+#include "text_box_state_callbacks.h"
+#include "text_stream_commands.h"
+#ifdef MEMORIES_PC
+#include "dialog_choice.h"
+#include "pc/cards/cards.h"
+#include "pc/free_duel/duelists.h"
+#include "pc/text/glyphs.h"
+#include "pc/text/number_width.h"
+#include "pc/text/menu_cut.h"
+#include "text_control_commands.h"
+#include "pc/text/language.h"
+#include "pc/text/text.h"
+#include "pc/cards/duel_ui.h"
+#endif
+
+/* Defined rather than declared: the assembler only resolves a small global
+   gp-relative when the translation unit defines it, and that is what makes the
+   opcode store below a single %gp_rel instruction whose load-delay slot needs
+   the retail nop. The address comes from c_symbols.ld, which overrides this
+   common symbol, so no storage is allocated here.  volatile is what keeps the
+   read-back after the store, which retail issues at every use. */
+volatile u16 D_8009B33A;
+
+void TextBox_BuildStep(DuelEffectChannel *object)
+{
+    u16 flags;
+    s32 id;
+    u8 *text;
+    u8 *G32 *slot;
+    u8 *script;
+    DuelEffectEntry *entry;
+    s32 op;
+    void (*G32 *handlers)(u8 *);
+#ifdef MEMORIES_PC
+    int pal_shift, pal_advance, pal_done;
+#endif
+
+    flags = object->flags_34;
+    if ((flags & TEXT_BOX_FLAG_BUILD_ACTIVE) == 0) {
+        flags |= TEXT_BOX_FLAG_BUILD_ACTIVE;
+        object->flags_34 = flags;
+        if ((flags & 2) == 0) {
+            func_80039E9C();
+        }
+        if ((object->flags_34 & 0x100) != 0) {
+            object->field_5B = 8;
+            object->field_5A = 8;
+        }
+        id = object->field_36;
+        D_8009B357 = 0;
+        D_8009B340 = 0;
+        object->delay_52 = 1;
+        object->field_60 = 0;
+        object->stream_58 = 0;
+        if (id > 0xCFFF) {
+            text = (u8 *)(((u32)D_801C0000 & TEXT_BANK_ADDRESS_MASK) +
+                D_801C0000[id - 0xD000]);
+        } else if (id > (TEXT_GLOBAL_STRING_ID_BASE - 1)) {
+            text = (u8 *)(((u32)D_801D5800 & TEXT_BANK_ADDRESS_MASK) +
+                D_801D5800[id - TEXT_GLOBAL_STRING_ID_BASE]);
+        } else {
+            if (id >= 0x500) {
+                id -= 0x100;
+            }
+            text = (u8 *)(((u32)D_801B0000 & TEXT_BANK_ADDRESS_MASK) +
+                D_801C0000[id]);
+        }
+#ifdef MEMORIES_PC
+        /* A translation's string, if a mod has one (text.h); then the few
+           strings that spell out how many cards there are. */
+        text = (u8 *)Cards_Text((u16)object->field_36,
+                                 Text_Resolve((u16)object->field_36, text));
+        text = (u8 *)Duelists_Text((u16)object->field_36, text);
+#endif
+        object->text_00 = text;
+#ifdef MEMORIES_PC
+        DuelUi_NameStream(object, 0);   /* a new text: no name read yet (duel_ui.h) */
+#endif
+        object->field_56 = 0;
+        object->state_51 = 0;
+        DisplayObject_ReleaseIfPresent(object->field_30);
+        DisplayObject_ReleaseIfPresent(object->field_2C);
+        object->field_30 = (void *)0;
+        object->field_2C = 0;
+        func_800391E4(object);
+        if ((object->flags_34 & 0x40) == 0) {
+            entry = &D_800EB288[object->range_start_5C];
+            object->entry_head_24 = entry;
+            object->entry_end_20 = entry;
+            func_80035CA8(object->index_57);
+            DuelEffect_ClearMatchingMarker(object->index_57);
+        }
+        return;
+    }
+
+    if (D_8009B357 != 0) {
+        D_80090C50[*(u8 *)&D_8009B27C]();
+        if (D_8009B27C == 0) {
+            D_8009B357 = 0;
+        }
+    }
+    if (object->state_51 != 0) {
+        D_80090E64[object->state_51 & DUEL_EFFECT_STATE_INDEX_MASK](object);
+        object->flags_34 = object->flags_34 & 0xFBFF;
+        return;
+    }
+    if ((object->flags_34 & 0x1C00) == 0) {
+        if ((gInput_wPad1Held & PAD_BUTTON_SQUARE) ||
+            (gInput_wPad1Pressed & PAD_BUTTON_CONFIRM_MASK)) {
+            func_800373C8(object, 0, 0);
+            object->delay_52 = 1;
+            object->flags_34 = object->flags_34 | 0x400;
+        }
+        object->delay_52 = object->delay_52 - 1;
+        if (object->delay_52 != 0) {
+            return;
+        }
+    }
+    handlers = D_80090F18;
+    object->delay_52 = object->field_53;
+next_opcode:
+    slot = &((TextStreamOwner *)object)->streams[object->stream_58];
+    script = *slot;
+#ifdef MEMORIES_PC
+    /* A menu answered with no jump after it for the answer (a translation
+       that lost it): the text ends here, as the jump's null target ends
+       it, rather than running on into the next string's menu forever
+       (menu_cut.h). */
+    if (TextMenu_Unanswered(object->field_36, object->index_57, script)) {
+        D_8009B350 = 0;
+        Text_EndStream(object);
+        if (D_8009B350 == 1) {
+            return;
+        }
+        goto next_opcode;
+    }
+#endif
+    D_8009B33A = script[0];
+    op = (s16)D_8009B33A;
+    *slot = script + 1;
+    if (op >= 0xF0) {
+        D_8009B350 = 0;
+        CALL32(void (*)(u8 *), handlers[(s16)D_8009B33A - 0xF0])((u8 *)object);
+        if (D_8009B350 >= 0) {
+            if (D_8009B350 == 1) {
+                return;
+            }
+            goto next_opcode;
+        }
+    }
+#ifdef MEMORIES_PC
+    /* 0x1000: a menu's choices are being laid out. A line too wide for
+       the box is cut where its wrap would stop the game (text.h), and so
+       are the letters of the lines past its box (menu_cut.h). */
+    if ((object->flags_34 & 0x1000) &&
+        (TextMenu_Cutting(object->index_57) ||
+         Text_CutsMenuGlyph(object->field_36, (s16)object->field_38, object->field_3E, (s16)object->field_3A,
+                            object->field_5B, object->field_42, gDialog_bChoiceCount - object->field_56))) {
+        return;
+    }
+#endif
+    if (TextBox_WrapLineIfNeeded(object) != 0) {
+        object->state_51 = 4;
+        return;
+    }
+    D_8009B35A = D_8009B33A;
+#ifdef MEMORIES_PC
+    /* Game > Language's European text is spaced as the PAL font is: a few
+       letters narrower, drawn a little left in their cell (language.h). It
+       was written to wrap at the box's edge with that spacing. */
+    pal_advance = Language_Advance(object->flags_34, (s16)D_8009B33A, &pal_shift);
+    object->field_38 = object->field_38 + pal_shift;
+    /* Glyphs past the retail font's have words of their own (glyphs.h). */
+    func_80036C14(object, Glyphs_Word((s16)D_8009B33A) & 0x8FF0FFFF);
+    object->field_38 = object->field_38 - pal_shift;
+#else
+    func_80036C14(object, D_801D9000[(s16)D_8009B33A] & 0x8FF0FFFF);
+#endif
+    object->field_60 = object->field_60 + 1;
+#ifdef MEMORIES_PC
+    /* F8 07's limit: with the European text, pixels at the PAL's spacing
+       (language.h), as the PAL measures a name; else a count of letters. */
+    pal_done = Language_PastWidth(object->flags_34, object->index_57, object->field_60,
+                                  object->field_5A + pal_advance, object->field_5A, object->field_61);
+    if (object->field_61 != 0 && (pal_done >= 0 ? pal_done : object->field_60 >= object->field_61)) {
+#else
+    if (object->field_61 != 0 && object->field_60 >= object->field_61) {
+#endif
+        object->flags_34 = object->flags_34 | TEXT_BOX_FLAG_DONE;
+    }
+    object->field_38 = object->field_38 + object->field_5A;
+#ifdef MEMORIES_PC
+    object->field_38 = object->field_38 + pal_advance;
+    /* A digit of a number wider than its field steps less, so the field
+       keeps its width (func_80038148, number_width.h). */
+    object->field_38 = object->field_38 - NumberWidth_Take(object->index_57);
+#endif
+}

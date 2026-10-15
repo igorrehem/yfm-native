@@ -1,0 +1,256 @@
+# Data Crystal research guide
+
+The Data Crystal pages for Forbidden Memories contain useful community labels,
+enumerations, and disassembly. They should be treated as an index for local
+verification, not as authoritative build metadata. This note records how the
+three supplied pages map onto the NTSC-U repository.
+
+## Sources
+
+- [Notes](https://datacrystal.tcrf.net/wiki/Yu-Gi-Oh!_Forbidden_Memories/Notes)
+- [Text table](https://datacrystal.tcrf.net/wiki/Yu-Gi-Oh!_Forbidden_Memories/TBL)
+- [ROM map](https://datacrystal.tcrf.net/wiki/Yu-Gi-Oh!_Forbidden_Memories/ROM_map)
+
+All three pages identify the NTSC-U `SLUS-01411` release. Their contents are
+community-maintained and may combine static analysis, runtime experiments, and
+labels whose evidence is no longer available.
+
+## Address coordinate warning
+
+The ROM-map page says its addresses come from an extracted bin, but entries
+such as `0x12B50` are the low 24 bits of runtime address `0x80012B50`, not the
+byte offset of that code in `SLUS_014.11`. The local executable maps:
+
+```text
+runtime address = executable file offset + 0x8000F800
+```
+
+For example:
+
+| Data Crystal coordinate | Local runtime address | `SLUS_014.11` file offset |
+|---:|---:|---:|
+| `0x12B50` | `0x80012B50` (`Main_Init`) | `0x3350` |
+| `0x12C44` | `0x80012C44` (boot-seed argument setup) | `0x3444` |
+| `0x8E590` | `0x8008E590` (Psy-Q `rand`) | `0x7ED90` |
+
+Do not apply these coordinates directly to a raw disc image, an archive, or
+the executable file. Resolve the storage format first:
+
+- Resident code/data: use the executable image map.
+- `WA_MRG.MRG`, `MODEL.MRG`, or `SU.MRG`: use archive sector and member
+  boundaries.
+- Runtime overlays: identify the loaded module because several modules reuse
+  the same `0x801xxxxx` address.
+
+The ROM-map coordinate `0x12C44` lands on the boot-seed argument setup in
+`Main_Init`, not the call instruction itself. Retail contains
+`lui $a0, 0x5555` at `0x80012C44`, `jal srand` at `0x80012C48`
+(SLUS offset `0x3448`), and `ori $a0, $a0, 0x5555` in its delay slot.
+The annotation identifies the seed-setting sequence, but a call-site trace
+must use `0x80012C48`.
+
+## Enumerations from the Notes page
+
+The Notes page provides labels for several integer domains. These are good
+candidates for enums once their consumers are identified:
+
+### Main-menu entry and result IDs
+
+| ID | Community label |
+|---:|---|
+| `0x00` | New Game |
+| `0x01` | Load |
+| `0x02` | 2P Duel |
+| `0x03` | Trade |
+| `0x04` | Option |
+| `0x05` | Campaign |
+| `0x06` | Free Duel |
+| `0x07` | Build Deck |
+| `0x08` | Library |
+| `0x09` | Password |
+| `0x0A` | Save |
+| `0x0B` | Debug Menu |
+
+The page presents these as modes, but local code establishes them as
+main-menu entry/result IDs. The loaded menu module keeps its current entry in
+`gMain_bMenuID` (`0x80184594`); forcing that byte to `0x0B` exposes the hidden
+Debug Menu entry. They are not direct indices into the `Main_Loop` handler
+table at `0x80090B64`. `Main_ApplyMenuSelection` stores a normally selected result in
+`D_8009B26D`, accepts only values below `0x0B`, and translates several results
+to different internal handler indices:
+
+| Menu result | Community label | Internal handler index | Handler |
+|---:|---|---:|---|
+| `0x02` | 2P Duel | `0x10` | `Main_RunTwoPlayerDuelSetup` |
+| `0x03` | Trade | `0x0E` | `Main_RunTrade` |
+| `0x04` | Option | `0x0B` | `Main_RunOptionsMenu` |
+| `0x05` | Campaign | `0x02` | `Main_RunCampaign` |
+| `0x06` | Free Duel | `0x06` | `Main_RunFreeDuelMenu` |
+| `0x08` | Library | `0x04` | `Main_RunLibraryMenu` |
+| `0x09` | Password | `0x0A` | `Main_RunPasswordMenu` |
+
+New Game also enters internal index `0x02` after additional initialization.
+Load and Save leave the internal state at zero after the selection is stored;
+Build Deck instead calls `BuildDeck_EnterNarrowConfirmMode` and clears
+`D_8009B268`. None is a
+single direct nonzero handler assignment in this converter. Input `0x0B` fails
+the `selection < 0x0B` range check, so the hidden Debug Menu entry can be
+forced in the module but cannot be selected through this normal conversion
+path. Keep menu-result and runtime-handler enums separate if either domain is
+promoted into source.
+
+### Terrain
+
+| ID | Terrain |
+|---:|---|
+| `0x00` | Normal |
+| `0x01` | Forest |
+| `0x02` | Wasteland |
+| `0x03` | Mountain |
+| `0x04` | Meadow |
+| `0x05` | Sea |
+| `0x06` | Dark |
+
+Local loader evidence verifies the seven-value domain and its direct archive
+indexing. `Duel_LoadTerrainPackage` uses `gDuel_bTerrain` to select one of seven
+235-sector WA records:
+
+```text
+record sector = 5830 + gDuel_bTerrain * 235
+```
+
+The records exactly fill sectors `5830-7475`. Comparing their thirteen phases
+shows that twelve phases are identical across all seven records; only the
+final `0x10000`-byte VRAM field-picture phase differs. This confirms that IDs
+`0x00-0x06` select the seven terrain packages. The individual Normal-through-
+Dark labels still come from the community enumeration and should retain that
+attribution when used for semantic names.
+
+### Card type
+
+IDs `0x00` through `0x13` cover monster types from Dragon through Plant.
+`0x14`, `0x15`, `0x16`, and `0x17` are Magic, Trap, Ritual, and Equip. These
+values can help type card-record fields, but local table layout and consumers
+must establish the field width and ownership.
+
+Matching C verifies that this domain occupies bits 26-30 of each
+`gDuel_adwCardStats[card_id - 1]` word. `AiScript_LoadCardType` extracts the
+field with `(word >> CARD_STAT_TYPE_SHIFT) & CARD_STAT_TYPE_MASK`, equivalent
+to `(word >> 26) & 0x1F`. `AiScript_TestHighStat` and `AiScript_CalcCardPower`
+treat values below `CARD_TYPE_MAGIC` (`0x14`) as monsters.
+`func_80024C1C` uses the same boundary to select its
+non-monster icon path, independently confirming that the four Data Crystal
+values `0x14-0x17` are outside the monster range.
+
+The same packed word also stores base attack in bits 0-8, base defense in bits
+9-17, and the two guardian-star IDs in bits 18-21 and 22-25.
+`func_80027DF8` decodes all five fields together, and `Duel_SetupCardRecord`
+multiplies the two nine-bit stats by ten when initializing a duel-card record.
+This is the in-memory card-stat table layout; it does not establish the
+on-disc encoding of any archive member.
+
+### Monster attribute and level
+
+`gDuel_abCardLevelAttr` at `0x801D5332` is a separate 723-byte table indexed
+directly by card ID, with entry zero reserved. Each byte stores the attribute
+in its high nibble and level in its low nibble:
+
+| Attribute value | Monster attribute |
+|---:|---|
+| `0` | Light |
+| `1` | Dark |
+| `2` | Earth |
+| `3` | Water |
+| `4` | Fire |
+| `5` | Wind |
+
+All 621 monster records use those six values and levels 1-12. The 101
+Magic, Trap, Ritual, and Equip records use high-nibble values 6 or 7 and a
+zero level; the card catalogue leaves their attribute blank.
+
+The only identified resident reference is matching `func_800291E0`. It copies
+the high nibble to card-display record byte `+0x3B` and the low nibble to
+`+0x3A`. No duel calculation is known to read this table, so its presence
+establishes card metadata and display state, not an attribute matchup rule.
+
+### Music
+
+The page labels tracks `0x00` through `0x38`, including title/menu music,
+character and location themes, duel tiers, win/lose cues, and campaign
+cutscenes. Use these labels to annotate arguments to the sound frontend only
+after distinguishing music IDs from sound-effect IDs.
+
+### Scenes
+
+The scene list associates sparse IDs with visible text or story events. Useful
+anchors include:
+
+| ID | Community label |
+|---:|---|
+| `0x002` | Player name entry |
+| `0x040`-`0x045` | Post-duel result text |
+| `0x0BC`-`0x0E0` | Memory-card prompts and results |
+| `0x500` | Introduction |
+| `0x543` | Heishin first rematch |
+| `0x560` | Pegasus duel |
+| `0x5C8` | Heishin duel |
+| `0x5D4`-`0x5D7` | Nitemare duel through ending |
+
+Some entries are explicitly marked unknown, glitchy, or softlocking. A label
+describes observed content, not necessarily a unique game state or callable
+scene module.
+
+## What the TBL page represents
+
+The TBL page maps compact display glyph indices to characters. It is not a
+Shift-JIS byte table despite the game also using Shift-JIS for dynamic text.
+The nonalphabetical indices make this clear: uppercase `A` is glyph `0x18`,
+`B` is `0x2D`, lowercase `a` is `0x03`, and digit `0` is `0x38`.
+
+This agrees with the runtime text model:
+
+- `gText_adwGlyphCodeTable` at `0x801D9000` maps glyph indices to Shift-JIS
+  codes.
+- `Text_SjisToGlyphCodes` converts a Shift-JIS string, such as the player name,
+  into the game's glyph-code stream.
+- Stored message data can therefore use compact glyph indices while dynamic
+  input remains Shift-JIS.
+
+The resident table occupies 93 32-bit words through the word before
+`0x801D9174`. Indices `0x01`-`0x5B` are 91 nonzero Shift-JIS entries;
+indices `0x00` and `0x5C` are zero. Text-stream code `0x00` is handled as a
+space even though table entry zero has no Shift-JIS value.
+
+The matching converter also defines the encoded stream format. It searches the
+32-bit table entries by their low 16-bit Shift-JIS value, then writes:
+
+| Glyph-table index | Encoded glyph code |
+|---:|---|
+| `0x00-0xEF` | One byte containing the index |
+| `0xF0` and above | Two bytes: `0xF0 | (index >> 8)`, then the low byte |
+
+A zero input code maps directly to glyph index zero. After the requested
+Shift-JIS character slots are converted, `Text_SjisToGlyphCodes` appends
+`0xFF` as the stream terminator. The TBL values are therefore decoded glyph
+indices, not bytes that can be copied directly from a Shift-JIS string.
+
+The TBL page's apparent duplicate angle brackets and `0x55 = a` are label
+losses rather than duplicate resident glyphs. The executable maps
+`0x51`-`0x54` to `>`, `⊂`, `⊃`, `<` and maps `0x55` to Greek alpha `α`.
+The bundled community `table.tbl` omits the subset, superset, and alpha rows
+entirely. Preserve the numeric value when testing community labels and use
+the resident Shift-JIS table when an ASCII rendering is ambiguous.
+
+## Verification workflow
+
+1. Record the Data Crystal URL and exact claimed value.
+2. Convert its coordinate into the correct local address space.
+3. Locate the resident function, archive member, or overlay module.
+4. Confirm the value through local callers, table accesses, strings, or a
+   runtime trace.
+5. Add a semantic name only when the evidence meets
+   `notes/naming-conventions.md`.
+
+Large copied tables should not become a second source of truth in the
+repository. Prefer a small confirmed enum or symbol change tied to its actual
+consumer, and keep Data Crystal attribution in the semantic evidence record.

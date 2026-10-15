@@ -1,0 +1,101 @@
+#define GINPUT_PAD1_PRESSED_IN_DATA
+#define D_8009B0C1_IN_DATA
+#include "../types.h"
+#include "graphics_frame.h"
+#include "input.h"
+#include "display_effect_process_menu_records.h"
+#include "duel_effect.h"
+#include "duel_effect_process_entries.h"
+#include "sound.h"
+#include "display_object_core.h"
+#include "func_80039794.h"
+#include "text_box_runtime.h"
+#include "dialog_choice_state.h"
+#include "text_constants.h"
+#ifdef MEMORIES_PC
+#include "pc/text/glyphs.h"
+#endif
+
+/* The retail body walks two pointers over the same four records: the record
+ * base it hands to the per-record calls, and a second cursor parked on the
+ * record's 0x30 pair, so the choice object and its flags are reached at
+ * displacements 0 and 4. Folding the cursor into the base costs a register and
+ * four instructions, so the view stays. */
+void func_80039794(void)
+{
+    DuelEffectChannel *p;
+    ChoiceChannelCursor *q;
+    s32 reset_value;
+    TblEnt *table;
+    s32 n;
+    s32 cnt;
+    s32 idx;
+    s32 kind;
+    s32 arg;
+    u16 f;
+
+    p = D_800EB0F8;
+    n = 4;
+    reset_value = -1;
+    table = (TblEnt *)D_801D9000;
+    q = (ChoiceChannelCursor *)&p->field_30;
+    do {
+        if (q->choice.flags & 0x8000) {
+            D_8009B35A = 0;
+            if ((q->choice.flags & 0x2000) == 0) {
+                D_8009B35A = reset_value;
+                cnt = -1;
+                for (;;) {
+                    TextBox_BuildStep(p);
+                    cnt++;
+                    f = q->choice.flags;
+                    if (f & 0x2000) {
+                        if (f & 8) {
+                            q->choice.obj = Dialog_OpenChoice(p);
+                        }
+                        break;
+                    }
+                    if (f & 0x1C00) {
+                        goto reset;
+                    }
+                    if (cnt >= D_8009B0C1) {
+                        break;
+                    }
+                    continue;
+reset:
+                    D_8009B35A = reset_value;
+                }
+            } else {
+                if (q->choice.flags & 8) {
+                    if (gInput_wPad1Pressed & PAD_BUTTON_CONFIRM_MASK) {
+                        q->choice.flags &= 0xFFF7;
+                        DisplayObject_ReleaseIfPresent(q->choice.obj);
+                        q->choice.obj = 0;
+                        SD_SEPlayFull(0xB);
+                    }
+                }
+            }
+            arg = -1;
+            idx = D_8009B35A;
+            if (idx >= 0) {
+#ifdef MEMORIES_PC
+                /* An added glyph talks like its retail letter (glyphs.h). */
+                kind = table[Glyphs_Base(idx)].hi & 7;
+#else
+                kind = table[idx].hi & 7;
+#endif
+                if (kind == 4) {
+                    arg = D_8009B356;
+                } else {
+                    D_8009B356 = kind;
+                    arg = kind;
+                }
+            }
+            DisplayEffect_ProcessMenuRecords(arg);
+            DuelEffect_ProcessEntries(p);
+        }
+        q++;
+        n--;
+        p++;
+    } while (n != 0);
+}

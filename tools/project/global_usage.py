@@ -1,0 +1,1563 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+import ast
+import csv
+import io
+import json
+import re
+import sys
+from collections import defaultdict
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from workspace import WorkspaceError, require_workspace_root, resolve_within
+
+
+class GlobalUsageError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class Function:
+    address: int
+    size: int
+    name: str
+    status: str
+    module: str
+
+
+@dataclass(frozen=True)
+class Token:
+    value: str
+    start: int
+    end: int
+    line: int
+
+
+@dataclass(frozen=True)
+class CFunction:
+    name: str
+    tokens: tuple[Token, ...]
+
+
+@dataclass
+class Usage:
+    global_address: int
+    function: Function
+    evidence_source: str
+    evidence_path: str
+    accesses: set[str] = field(default_factory=set)
+    observed_names: set[str] = field(default_factory=set)
+    contexts: set[str] = field(default_factory=set)
+    widths: set[str] = field(default_factory=set)
+
+
+ASSIGNMENT_OPERATORS = {
+    "=",
+    "+=",
+    "-=",
+    "*=",
+    "/=",
+    "%=",
+    "<<=",
+    ">>=",
+    "&=",
+    "^=",
+    "|=",
+}
+COMPOUND_ASSIGNMENT_OPERATORS = ASSIGNMENT_OPERATORS - {"="}
+GENERATED_NAME_RE = re.compile(r"D_([0-9A-Fa-f]{8})(?:_[A-Za-z0-9_]+)?$")
+CODEGEN_ALIAS_RE = re.compile(r"Base\d+_[0-9A-Fa-f]{8}$")
+IDENTIFIER_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+SYMBOL_ASSIGNMENT_RE = re.compile(
+    r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;"
+)
+TOKEN_RE = re.compile(
+    r"[A-Za-z_][A-Za-z0-9_]*"
+    r"|0[xX][0-9A-Fa-f]+"
+    r"|(?:<<=|>>=|\+\+|--|->|==|!=|<=|>=|&&|\|\||"
+    r"\+=|-=|\*=|/=|%=|&=|\^=|\|=|<<|>>)"
+    r"|[{}()\[\];,.:?~!%^&*+\-/|<>=]"
+)
+RELOCATION_RE = re.compile(
+    r"%(hi|lo|gp_rel)\(\s*([A-Za-z_][A-Za-z0-9_]*)"
+    r"(?:\s*[+-]\s*(?:0[xX][0-9A-Fa-f]+|\d+))?\s*\)"
+)
+FUNCTION_LABEL_RE = re.compile(r"^\s*glabel\s+([A-Za-z_][A-Za-z0-9_]*)\s*$")
+LOCAL_INCLUDE_RE = re.compile(r'^\s*#\s*include\s+"([^"]+)"', re.MULTILINE)
+DEFINE_RE = re.compile(r"^\s*#\s*define\s+([A-Za-z_][A-Za-z0-9_]*)")
+UNDEF_RE = re.compile(r"^\s*#\s*undef\s+([A-Za-z_][A-Za-z0-9_]*)")
+
+TYPE_WIDTHS = {
+    "s8": "8",
+    "u8": "8",
+    "char": "8",
+    "s16": "16",
+    "u16": "16",
+    "short": "16",
+    "s32": "32",
+    "u32": "32",
+    "int": "32",
+    "long": "32",
+    "PSXLONG": "32",
+    "float": "32",
+    "s64": "64",
+    "u64": "64",
+    "double": "64",
+}
+LOAD_WIDTHS = {
+    "lb": "8",
+    "lbu": "8",
+    "lh": "16",
+    "lhu": "16",
+    "lw": "32",
+    "lwl": "32",
+    "lwr": "32",
+    "lwc1": "32",
+    "lwc2": "32",
+    "ld": "64",
+    "ldc1": "64",
+    "ldc2": "64",
+}
+STORE_WIDTHS = {
+    "sb": "8",
+    "sh": "16",
+    "sw": "32",
+    "swl": "32",
+    "swr": "32",
+    "swc1": "32",
+    "swc2": "32",
+    "sd": "64",
+    "sdc1": "64",
+    "sdc2": "64",
+}
+MIPS_OPCODE_ACCESS = {
+    0x20: ("read", "8"),
+    0x21: ("read", "16"),
+    0x22: ("read", "32"),
+    0x23: ("read", "32"),
+    0x24: ("read", "8"),
+    0x25: ("read", "16"),
+    0x26: ("read", "32"),
+    0x28: ("write", "8"),
+    0x29: ("write", "16"),
+    0x2A: ("write", "32"),
+    0x2B: ("write", "32"),
+    0x2E: ("write", "32"),
+    0x31: ("read", "32"),
+    0x32: ("read", "32"),
+    0x35: ("read", "64"),
+    0x36: ("read", "64"),
+    0x39: ("write", "32"),
+    0x3A: ("write", "32"),
+    0x3D: ("write", "64"),
+    0x3E: ("write", "64"),
+}
+
+
+def load_inventory(path: Path) -> list[Function]:
+    functions: list[Function] = []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        expected = {"address", "size", "name", "status", "module"}
+        if reader.fieldnames is None or not expected.issubset(reader.fieldnames):
+            raise GlobalUsageError(f"{path} has unexpected columns")
+        for row in reader:
+            functions.append(
+                Function(
+                    address=int(row["address"], 0),
+                    size=int(row["size"], 0),
+                    name=row["name"],
+                    status=row["status"],
+                    module=row["module"],
+                )
+            )
+    if len({function.address for function in functions}) != len(functions):
+        raise GlobalUsageError(f"{path} contains duplicate function addresses")
+    if len({function.name for function in functions}) != len(functions):
+        raise GlobalUsageError(f"{path} contains duplicate function names")
+    return functions
+
+
+def load_matching_sources(path: Path) -> dict[int, str]:
+    with path.open("r", encoding="utf-8") as handle:
+        value = json.load(handle)
+    entries = value.get("functions")
+    if not isinstance(entries, list):
+        raise GlobalUsageError(f"{path} has no functions list")
+    result: dict[int, str] = {}
+    for entry in entries:
+        address = int(entry["address"], 0)
+        source = entry["source"]
+        if address in result:
+            raise GlobalUsageError(
+                f"{path} contains duplicate matching function {address:#010x}"
+            )
+        result[address] = source
+    return result
+
+
+def load_symbols(
+    paths: list[Path],
+) -> tuple[dict[str, int], dict[int, set[str]], set[str]]:
+    by_name: dict[str, int] = {}
+    by_address: dict[int, set[str]] = defaultdict(set)
+    function_names: set[str] = set()
+    for path in paths:
+        with path.open("r", encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, 1):
+                match = SYMBOL_ASSIGNMENT_RE.match(line)
+                if match is None:
+                    continue
+                name, address_text = match.groups()
+                address = int(address_text, 0)
+                previous = by_name.get(name)
+                if previous is not None and previous != address:
+                    raise GlobalUsageError(
+                        f"{path}:{line_number}: {name} has conflicting addresses"
+                    )
+                by_name[name] = address
+                by_address[address].add(name)
+                if (
+                    "type:func" in line
+                    or name.startswith("func_")
+                    or name == "entrypoint"
+                ):
+                    function_names.add(name)
+    return by_name, by_address, function_names
+
+
+def blank_non_code(text: str) -> str:
+    output = list(text)
+    index = 0
+    state = "normal"
+    line_start = True
+    preprocessor = False
+    escaped = False
+    while index < len(text):
+        character = text[index]
+        following = text[index + 1] if index + 1 < len(text) else ""
+        if preprocessor:
+            if character == "\n":
+                preprocessor = index > 0 and text[index - 1] == "\\"
+                line_start = True
+            else:
+                output[index] = " "
+            index += 1
+            continue
+        if state == "normal":
+            if line_start and character in " \t\r":
+                index += 1
+                continue
+            if line_start and character == "#":
+                output[index] = " "
+                preprocessor = True
+                line_start = False
+                index += 1
+                continue
+            line_start = character == "\n"
+            if character == "/" and following == "/":
+                output[index] = output[index + 1] = " "
+                state = "line_comment"
+                index += 2
+                continue
+            if character == "/" and following == "*":
+                output[index] = output[index + 1] = " "
+                state = "block_comment"
+                index += 2
+                continue
+            if character == '"':
+                output[index] = " "
+                state = "string"
+                escaped = False
+            elif character == "'":
+                output[index] = " "
+                state = "character"
+                escaped = False
+            index += 1
+            continue
+        if state == "line_comment":
+            if character == "\n":
+                state = "normal"
+                line_start = True
+            else:
+                output[index] = " "
+            index += 1
+            continue
+        if state == "block_comment":
+            if character == "*" and following == "/":
+                output[index] = output[index + 1] = " "
+                state = "normal"
+                index += 2
+            else:
+                if character != "\n":
+                    output[index] = " "
+                index += 1
+            continue
+        if state in {"string", "character"}:
+            if character != "\n":
+                output[index] = " "
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif (state == "string" and character == '"') or (
+                state == "character" and character == "'"
+            ):
+                state = "normal"
+            if character == "\n":
+                line_start = True
+            index += 1
+    return "".join(output)
+
+
+def tokenize(text: str) -> list[Token]:
+    tokens: list[Token] = []
+    line = 1
+    position = 0
+    for match in TOKEN_RE.finditer(text):
+        line += text.count("\n", position, match.start())
+        tokens.append(Token(match.group(0), match.start(), match.end(), line))
+        position = match.start()
+    return tokens
+
+
+def matching_open_paren(
+    tokens: list[Token] | tuple[Token, ...], close_index: int
+) -> int | None:
+    depth = 0
+    for index in range(close_index, -1, -1):
+        value = tokens[index].value
+        if value == ")":
+            depth += 1
+        elif value == "(":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def function_name_before_body(tokens: list[Token], brace_index: int) -> int | None:
+    close_paren = brace_index - 1
+    if close_paren >= 0 and tokens[close_paren].value == ")":
+        candidates = [close_paren]
+    else:
+        candidates = [
+            index
+            for index in range(brace_index - 1, -1, -1)
+            if tokens[index].value == ")"
+        ]
+    for close_paren in candidates:
+        open_paren = matching_open_paren(tokens, close_paren)
+        name_index = None if open_paren is None else open_paren - 1
+        if (
+            name_index is None
+            or name_index < 0
+            or not IDENTIFIER_RE.fullmatch(tokens[name_index].value)
+            or tokens[name_index].value
+            in {"if", "for", "while", "switch", "sizeof"}
+        ):
+            continue
+        if close_paren == brace_index - 1:
+            return name_index
+
+        parameters = [
+            token.value
+            for token in tokens[open_paren + 1 : close_paren]
+            if IDENTIFIER_RE.fullmatch(token.value)
+        ]
+        if (
+            not parameters
+            or any(
+                token.value not in {",", *parameters}
+                for token in tokens[open_paren + 1 : close_paren]
+            )
+        ):
+            continue
+        declarations = tokens[close_paren + 1 : brace_index]
+        if not declarations or declarations[-1].value != ";":
+            continue
+        statement: list[Token] = []
+        declared: set[str] = set()
+        valid = True
+        for token in declarations:
+            statement.append(token)
+            if token.value != ";":
+                continue
+            values = {item.value for item in statement}
+            names = values.intersection(parameters)
+            if not names or "=" in values or "{" in values or "}" in values:
+                valid = False
+                break
+            declared.update(names)
+            statement = []
+        if valid and not statement and declared == set(parameters):
+            return name_index
+    return None
+
+
+def parse_c_functions(text: str) -> tuple[list[CFunction], list[Token]]:
+    cleaned = blank_non_code(text)
+    tokens = tokenize(cleaned)
+    functions: list[CFunction] = []
+    top_level_tokens: list[Token] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token.value != "{":
+            top_level_tokens.append(token)
+            index += 1
+            continue
+        name_index = function_name_before_body(tokens, index)
+        if name_index is not None:
+            depth = 1
+            end = index + 1
+            while end < len(tokens) and depth:
+                if tokens[end].value == "{":
+                    depth += 1
+                elif tokens[end].value == "}":
+                    depth -= 1
+                end += 1
+            if depth:
+                raise GlobalUsageError(
+                    f"unbalanced function body for {tokens[name_index].value}"
+                )
+            header_start = name_index
+            while (
+                header_start
+                and tokens[header_start - 1].value not in {";", "}"}
+            ):
+                header_start -= 1
+            while (
+                top_level_tokens
+                and top_level_tokens[-1].start >= tokens[header_start].start
+            ):
+                top_level_tokens.pop()
+            functions.append(
+                CFunction(
+                    name=tokens[name_index].value,
+                    tokens=tuple(tokens[index + 1 : end - 1]),
+                )
+            )
+            index = end
+            continue
+        depth = 1
+        top_level_tokens.append(token)
+        index += 1
+        while index < len(tokens) and depth:
+            top_level_tokens.append(tokens[index])
+            if tokens[index].value == "{":
+                depth += 1
+            elif tokens[index].value == "}":
+                depth -= 1
+            index += 1
+        if depth:
+            raise GlobalUsageError("unbalanced top-level braces in C source")
+    return functions, top_level_tokens
+
+
+def infer_declarations(
+    tokens: list[Token], known_names: set[str]
+) -> tuple[dict[str, str], set[str], set[str]]:
+    width_options: dict[str, set[str]] = defaultdict(set)
+    array_options: dict[str, set[bool]] = defaultdict(set)
+    statement: list[Token] = []
+    for token in tokens:
+        statement.append(token)
+        if token.value != ";":
+            continue
+        width = next(
+            (TYPE_WIDTHS[item.value] for item in statement if item.value in TYPE_WIDTHS),
+            "",
+        )
+        values = [item.value for item in statement]
+        for index, value in enumerate(values):
+            if value not in known_names:
+                continue
+            if (
+                index >= 2
+                and values[index - 1] == "("
+                and values[index - 2] == "sizeof"
+            ):
+                continue
+            following = values[index + 1] if index + 1 < len(values) else ""
+            if following == "(":
+                continue
+            declarator_start = (
+                max(
+                    (
+                        candidate + 1
+                        for candidate in range(index)
+                        if values[candidate] == ","
+                    ),
+                    default=0,
+                )
+            )
+            is_array = following == "["
+            is_pointer = "*" in values[declarator_start:index]
+            declaration_width = "32" if is_array and is_pointer else width
+            width_options[value].add(declaration_width)
+            array_options[value].add(is_array)
+        statement = []
+    widths = {
+        name: next(iter(options)) if len(options) == 1 else ""
+        for name, options in width_options.items()
+    }
+    arrays = {
+        name
+        for name, options in array_options.items()
+        if True in options
+    }
+    return widths, arrays, set(width_options)
+
+
+def load_declarations(
+    path: Path,
+    known_names: set[str],
+    defined_macros: set[str] | None = None,
+) -> tuple[dict[str, str], set[str], set[str]]:
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    if defined_macros is not None:
+        text = active_preprocessor_text(text, defined_macros)
+    _, top_level_tokens = parse_c_functions(text)
+    declaration_names = known_names | {
+        token.value
+        for token in top_level_tokens
+        if GENERATED_NAME_RE.fullmatch(token.value)
+    }
+    return infer_declarations(top_level_tokens, declaration_names)
+
+
+def simple_preprocessor_condition(
+    expression: str,
+    defined_macros: set[str] | dict[str, bool | None],
+) -> bool | None:
+    expression = expression.strip()
+    for negate, pattern in (
+        (False, r"defined\s*(?:\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)|"
+                r"\s+([A-Za-z_][A-Za-z0-9_]*))"),
+        (True, r"!\s*defined\s*(?:\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)|"
+               r"\s+([A-Za-z_][A-Za-z0-9_]*))"),
+    ):
+        match = re.fullmatch(pattern, expression)
+        if match is not None:
+            name = match.group(1) or match.group(2)
+            value = (
+                defined_macros.get(name, False)
+                if isinstance(defined_macros, dict)
+                else name in defined_macros
+            )
+            if value is None:
+                return None
+            return not value if negate else value
+    if expression in {"0", "1"}:
+        return expression == "1"
+    return None
+
+
+def active_preprocessor_text(
+    text: str, initial_macros: set[str]
+) -> str:
+    macros = set(initial_macros)
+    stack: list[tuple[bool, bool]] = []
+    active = True
+    output: list[str] = []
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        replacement = "\n" if line.endswith("\n") else ""
+        if match := re.match(r"^#\s*ifdef\s+([A-Za-z_][A-Za-z0-9_]*)", stripped):
+            condition = match.group(1) in macros
+            stack.append((active, condition))
+            active = active and condition
+            output.append(replacement)
+            continue
+        if match := re.match(r"^#\s*ifndef\s+([A-Za-z_][A-Za-z0-9_]*)", stripped):
+            condition = match.group(1) not in macros
+            stack.append((active, condition))
+            active = active and condition
+            output.append(replacement)
+            continue
+        if match := re.match(r"^#\s*if\s+(.+)$", stripped):
+            condition = simple_preprocessor_condition(match.group(1), macros)
+            if condition is None:
+                return text
+            stack.append((active, condition))
+            active = active and condition
+            output.append(replacement)
+            continue
+        if match := re.match(r"^#\s*elif\s+(.+)$", stripped):
+            if not stack:
+                return text
+            condition = simple_preprocessor_condition(match.group(1), macros)
+            if condition is None:
+                return text
+            parent_active, branch_taken = stack[-1]
+            active = parent_active and not branch_taken and condition
+            stack[-1] = (parent_active, branch_taken or condition)
+            output.append(replacement)
+            continue
+        if re.match(r"^#\s*else\b", stripped):
+            if not stack:
+                return text
+            parent_active, branch_taken = stack[-1]
+            active = parent_active and not branch_taken
+            stack[-1] = (parent_active, True)
+            output.append(replacement)
+            continue
+        if re.match(r"^#\s*endif\b", stripped):
+            if not stack:
+                return text
+            parent_active, _branch_taken = stack.pop()
+            active = parent_active
+            output.append(replacement)
+            continue
+        if match := DEFINE_RE.match(line):
+            if active:
+                macros.add(match.group(1))
+            output.append(replacement)
+            continue
+        if match := UNDEF_RE.match(line):
+            if active:
+                macros.discard(match.group(1))
+            output.append(replacement)
+            continue
+        output.append(line if active else replacement)
+    return text if stack else "".join(output)
+
+
+def preprocessor_not(value: bool | None) -> bool | None:
+    return None if value is None else not value
+
+
+def preprocessor_and(
+    left: bool | None, right: bool | None
+) -> bool | None:
+    if left is False or right is False:
+        return False
+    if left is True and right is True:
+        return True
+    return None
+
+
+def preprocessor_or(
+    left: bool | None, right: bool | None
+) -> bool | None:
+    if left is True or right is True:
+        return True
+    if left is False and right is False:
+        return False
+    return None
+
+
+def update_macro_state(
+    macros: dict[str, bool | None],
+    name: str,
+    defined: bool,
+    active: bool | None,
+) -> None:
+    if active is True:
+        macros[name] = defined
+    elif active is None and macros.get(name, False) != defined:
+        macros[name] = None
+
+
+def source_includes(
+    text: str,
+) -> list[tuple[str, set[str] | None]]:
+    macros: dict[str, bool | None] = {}
+    stack: list[tuple[bool | None, bool | None]] = []
+    active: bool | None = True
+    includes: list[tuple[str, set[str] | None]] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if match := re.match(r"^#\s*ifdef\s+([A-Za-z_][A-Za-z0-9_]*)", stripped):
+            condition = macros.get(match.group(1), False)
+            stack.append((active, condition))
+            active = preprocessor_and(active, condition)
+            continue
+        if match := re.match(r"^#\s*ifndef\s+([A-Za-z_][A-Za-z0-9_]*)", stripped):
+            condition = preprocessor_not(
+                macros.get(match.group(1), False)
+            )
+            stack.append((active, condition))
+            active = preprocessor_and(active, condition)
+            continue
+        if match := re.match(r"^#\s*if\s+(.+)$", stripped):
+            condition = simple_preprocessor_condition(match.group(1), macros)
+            stack.append((active, condition))
+            active = preprocessor_and(active, condition)
+            continue
+        if match := re.match(r"^#\s*elif\s+(.+)$", stripped):
+            if not stack:
+                raise GlobalUsageError("source has #elif without #if")
+            condition = simple_preprocessor_condition(match.group(1), macros)
+            parent_active, branch_taken = stack[-1]
+            active = preprocessor_and(
+                parent_active,
+                preprocessor_and(
+                    preprocessor_not(branch_taken),
+                    condition,
+                ),
+            )
+            stack[-1] = (
+                parent_active,
+                preprocessor_or(branch_taken, condition),
+            )
+            continue
+        if re.match(r"^#\s*else\b", stripped):
+            if not stack:
+                raise GlobalUsageError("source has #else without #if")
+            parent_active, branch_taken = stack[-1]
+            active = preprocessor_and(
+                parent_active,
+                preprocessor_not(branch_taken),
+            )
+            stack[-1] = (parent_active, True)
+            continue
+        if re.match(r"^#\s*endif\b", stripped):
+            if not stack:
+                raise GlobalUsageError("source has #endif without #if")
+            parent_active, _branch_taken = stack.pop()
+            active = parent_active
+            continue
+        if match := DEFINE_RE.match(line):
+            update_macro_state(macros, match.group(1), True, active)
+            continue
+        if match := UNDEF_RE.match(line):
+            update_macro_state(macros, match.group(1), False, active)
+            continue
+        if match := LOCAL_INCLUDE_RE.match(line):
+            if active is False:
+                continue
+            defined_macros = (
+                None
+                if active is None
+                or any(value is None for value in macros.values())
+                else {
+                    name
+                    for name, value in macros.items()
+                    if value is True
+                }
+            )
+            includes.append((match.group(1), defined_macros))
+    if stack:
+        raise GlobalUsageError("source has unbalanced preprocessor conditionals")
+    return includes
+
+
+def load_included_declarations(
+    root: Path,
+    source_path: Path,
+    text: str,
+    known_names: set[str],
+) -> tuple[dict[str, str], set[str], set[str]]:
+    declarations: list[tuple[dict[str, str], set[str], set[str]]] = []
+    for include, defined_macros in source_includes(text):
+        header_path = (source_path.parent / include).resolve()
+        try:
+            header_path.relative_to(root.resolve())
+        except ValueError:
+            continue
+        if header_path.suffix != ".h" or not header_path.is_file():
+            continue
+        declarations.append(
+            load_declarations(
+                header_path,
+                known_names,
+                defined_macros,
+            )
+        )
+    return merge_declarations(declarations)
+
+
+def merge_declarations(
+    declarations: list[tuple[dict[str, str], set[str], set[str]]],
+) -> tuple[dict[str, str], set[str], set[str]]:
+    width_options: dict[str, set[str]] = defaultdict(set)
+    array_options: dict[str, set[bool]] = defaultdict(set)
+    for widths, arrays, names in declarations:
+        for name in names:
+            width_options[name].add(widths.get(name, ""))
+            array_options[name].add(name in arrays)
+    widths = {
+        name: next(iter(options)) if len(options) == 1 else ""
+        for name, options in width_options.items()
+    }
+    arrays = {
+        name
+        for name, options in array_options.items()
+        if True in options
+    }
+    return widths, arrays, set(width_options)
+
+
+def override_declarations(
+    base_widths: dict[str, str],
+    base_arrays: set[str],
+    widths: dict[str, str],
+    arrays: set[str],
+    names: set[str],
+) -> tuple[dict[str, str], set[str]]:
+    merged_widths = dict(base_widths)
+    # A nearer declaration replaces both width and declarator shape. Conflicts
+    # within that declaration set already retain array possibility in `arrays`.
+    merged_arrays = (base_arrays - names) | arrays
+    for name in names:
+        merged_widths[name] = widths.get(name, "")
+    return merged_widths, merged_arrays
+
+
+def resolve_global(
+    name: str,
+    symbols_by_name: dict[str, int],
+    function_addresses: set[int],
+    function_names: set[str],
+) -> int | None:
+    if name in function_names:
+        return None
+    address = symbols_by_name.get(name)
+    if address is None:
+        match = GENERATED_NAME_RE.fullmatch(name)
+        if match is None:
+            return None
+        address = int(match.group(1), 16)
+    if address in function_addresses:
+        return None
+    return address
+
+
+def skip_balanced_postfix(tokens: tuple[Token, ...], index: int) -> int:
+    current = index + 1
+    while current < len(tokens):
+        if tokens[current].value == "[":
+            depth = 1
+            current += 1
+            while current < len(tokens) and depth:
+                if tokens[current].value == "[":
+                    depth += 1
+                elif tokens[current].value == "]":
+                    depth -= 1
+                current += 1
+            continue
+        if (
+            tokens[current].value in {".", "->"}
+            and current + 1 < len(tokens)
+            and IDENTIFIER_RE.fullmatch(tokens[current + 1].value)
+        ):
+            current += 2
+            continue
+        break
+    return current
+
+
+def matching_close_paren(
+    tokens: tuple[Token, ...], open_index: int
+) -> int | None:
+    depth = 0
+    for index in range(open_index, len(tokens)):
+        value = tokens[index].value
+        if value == "(":
+            depth += 1
+        elif value == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def is_type_cast(
+    tokens: tuple[Token, ...], open_index: int, close_index: int
+) -> bool:
+    contents = tokens[open_index + 1 : close_index]
+    return bool(contents) and all(
+        IDENTIFIER_RE.fullmatch(token.value) or token.value == "*"
+        for token in contents
+    )
+
+
+def is_unary_dereference(tokens: tuple[Token, ...], star_index: int) -> bool:
+    if star_index == 0:
+        return True
+    previous = tokens[star_index - 1].value
+    if previous in {")", "]"} or re.fullmatch(
+        r"(?:0[xX][0-9A-Fa-f]+|\d+)", previous
+    ):
+        return False
+    if IDENTIFIER_RE.fullmatch(previous) and previous != "return":
+        return False
+    return True
+
+
+def classify_dereferenced_access(
+    tokens: tuple[Token, ...], index: int, arrays: set[str]
+) -> str | None:
+    operand_start = index
+    operand_end = index
+    if index and tokens[index - 1].value == "(":
+        close_index = matching_close_paren(tokens, index - 1)
+        if close_index is not None and close_index >= index:
+            operand_start = index - 1
+            operand_end = close_index
+
+    cursor = operand_start - 1
+    if cursor >= 0 and tokens[cursor].value == ")":
+        cast_open = matching_open_paren(tokens, cursor)
+        if cast_open is None or not is_type_cast(tokens, cast_open, cursor):
+            return None
+        cursor = cast_open - 1
+    if (
+        cursor < 0
+        or tokens[cursor].value != "*"
+        or not is_unary_dereference(tokens, cursor)
+    ):
+        return None
+
+    if (
+        tokens[index].value not in arrays
+        or (
+            index + 1 < len(tokens)
+            and tokens[index + 1].value == "["
+        )
+    ):
+        return "read"
+
+    operator = (
+        tokens[operand_end + 1].value
+        if operand_end + 1 < len(tokens)
+        else ""
+    )
+    if operator == "=":
+        return "write"
+    if operator in COMPOUND_ASSIGNMENT_OPERATORS or operator in {"++", "--"}:
+        return "read_write"
+    return "read"
+
+
+def classify_c_access(
+    tokens: tuple[Token, ...], index: int, arrays: set[str]
+) -> str:
+    previous = tokens[index - 1].value if index else ""
+    following = tokens[index + 1].value if index + 1 < len(tokens) else ""
+    if previous == "(" and index >= 2 and tokens[index - 2].value == "sizeof":
+        return "unknown"
+    if following == "->":
+        return "read"
+    if previous == "&":
+        return "address"
+    if previous in {"++", "--"} or following in {"++", "--"}:
+        return "read_write"
+    dereferenced_access = classify_dereferenced_access(tokens, index, arrays)
+    if dereferenced_access is not None:
+        return dereferenced_access
+    postfix_end = skip_balanced_postfix(tokens, index)
+    if postfix_end < len(tokens):
+        operator = tokens[postfix_end].value
+        if operator == "=":
+            return "write"
+        if operator in COMPOUND_ASSIGNMENT_OPERATORS:
+            return "read_write"
+        if operator in {"++", "--"}:
+            return "read_write"
+    if (
+        tokens[index].value in arrays
+        and following not in {"[", ".", "->"}
+    ):
+        return "address"
+    return "read"
+
+
+def source_context(lines: list[str], line_number: int) -> str:
+    if not 1 <= line_number <= len(lines):
+        return ""
+    context = " ".join(lines[line_number - 1].strip().split())
+    if len(context) > 120:
+        return context[:117] + "..."
+    return context
+
+
+def inline_assembly_text(text: str) -> str | None:
+    if "__asm__" not in text:
+        return None
+    pieces: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not (stripped.startswith('"') and stripped.endswith('"')):
+            continue
+        try:
+            value = ast.literal_eval(stripped)
+        except (SyntaxError, ValueError) as error:
+            raise GlobalUsageError("invalid inline assembly string") from error
+        if not isinstance(value, str):
+            raise GlobalUsageError("inline assembly fragment is not a string")
+        pieces.append(value)
+    return "".join(pieces)
+
+
+def inline_assembly_function_text(text: str, function_name: str) -> str | None:
+    assembly = inline_assembly_text(text)
+    if assembly is None:
+        return None
+    lines = assembly.splitlines()
+    start = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip() == f"{function_name}:"
+        ),
+        None,
+    )
+    if start is None:
+        return None
+    end = next(
+        (
+            index + 1
+            for index, line in enumerate(lines[start + 1 :], start + 1)
+            if line.strip() == f".end {function_name}"
+        ),
+        None,
+    )
+    if end is None:
+        raise GlobalUsageError(
+            f"inline assembly for {function_name} has no matching .end"
+        )
+    return "\n".join(lines[start:end])
+
+
+def classify_relocated_word(
+    relocation: str, instruction_word: int | None
+) -> tuple[str, str]:
+    if relocation == "R_MIPS_HI16":
+        return "address", ""
+    if relocation == "R_MIPS_26":
+        return "address", ""
+    if relocation != "R_MIPS_LO16" or instruction_word is None:
+        return "unknown", ""
+    opcode = instruction_word >> 26
+    if opcode in MIPS_OPCODE_ACCESS:
+        return MIPS_OPCODE_ACCESS[opcode]
+    if opcode in {0x08, 0x09, 0x0D, 0x0F}:
+        return "address", ""
+    return "unknown", ""
+
+
+def collect_inline_assembly_c(
+    source_name: str,
+    text: str,
+    function: Function,
+    symbols_by_name: dict[str, int],
+    aliases_by_address: dict[int, set[str]],
+    function_addresses: set[int],
+    function_names: set[str],
+    usages: dict[tuple[int, int, str], Usage],
+) -> bool:
+    assembly = inline_assembly_function_text(text, function.name)
+    if assembly is None:
+        return False
+    last_word: int | None = None
+    for line in assembly.splitlines():
+        instruction = " ".join(line.strip().split())
+        word_match = re.fullmatch(r"\.word\s+(0x[0-9A-Fa-f]{1,8})", instruction)
+        if word_match is not None:
+            last_word = int(word_match.group(1), 0)
+            continue
+        relocation_match = re.fullmatch(
+            r"\.reloc\s+\.-4,\s*(R_MIPS_(?:HI16|LO16|26)),\s*"
+            r"([A-Za-z_][A-Za-z0-9_]*)",
+            instruction,
+        )
+        if relocation_match is None:
+            continue
+        relocation, name = relocation_match.groups()
+        global_address = resolve_global(
+            name,
+            symbols_by_name,
+            function_addresses,
+            function_names,
+        )
+        if global_address is None:
+            continue
+        aliases_by_address[global_address].add(name)
+        access, width = classify_relocated_word(relocation, last_word)
+        add_usage(
+            usages,
+            global_address,
+            function,
+            "C",
+            source_name,
+            access,
+            name,
+            f"{instruction} after .word 0x{last_word:08X}"
+            if last_word is not None
+            else instruction,
+            width,
+        )
+    return True
+
+
+def add_usage(
+    usages: dict[tuple[int, int, str], Usage],
+    global_address: int,
+    function: Function,
+    evidence_source: str,
+    evidence_path: str,
+    access: str,
+    observed_name: str,
+    context: str,
+    width: str = "",
+) -> None:
+    key = (global_address, function.address, evidence_source)
+    usage = usages.setdefault(
+        key,
+        Usage(
+            global_address=global_address,
+            function=function,
+            evidence_source=evidence_source,
+            evidence_path=evidence_path,
+        ),
+    )
+    usage.accesses.add(access)
+    usage.observed_names.add(observed_name)
+    if context:
+        usage.contexts.add(context)
+    if width:
+        usage.widths.add(width)
+
+
+def collect_c_usages(
+    root: Path,
+    matching_sources: dict[int, str],
+    inventory_by_address: dict[int, Function],
+    symbols_by_name: dict[str, int],
+    aliases_by_address: dict[int, set[str]],
+    function_addresses: set[int],
+    function_names: set[str],
+    shared_widths: dict[str, str],
+    shared_arrays: set[str],
+    usages: dict[tuple[int, int, str], Usage],
+) -> None:
+    addresses_by_source: dict[str, list[int]] = defaultdict(list)
+    for address, source in matching_sources.items():
+        function = inventory_by_address.get(address)
+        if function is None:
+            raise GlobalUsageError(
+                f"matching C address {address:#010x} is absent from functions.csv"
+            )
+        if function.status != "matching_c":
+            raise GlobalUsageError(
+                f"{function.name} is in matching_c.json but has status "
+                f"{function.status}"
+            )
+        addresses_by_source[source].append(address)
+
+    known_names = set(symbols_by_name)
+    for source_name in sorted(addresses_by_source):
+        source_path = resolve_within(root, source_name, must_exist=True)
+        text = source_path.read_text(encoding="utf-8")
+        lines = text.splitlines()
+        parsed_functions, top_level_tokens = parse_c_functions(text)
+        parsed_by_name = {function.name: function for function in parsed_functions}
+        if len(parsed_by_name) != len(parsed_functions):
+            raise GlobalUsageError(f"{source_name} defines duplicate function names")
+        (
+            included_widths,
+            included_arrays,
+            included_declarations,
+        ) = load_included_declarations(
+            root, source_path, text, known_names
+        )
+        local_widths, local_arrays, local_declarations = infer_declarations(
+            top_level_tokens, known_names
+        )
+        widths, arrays = override_declarations(
+            shared_widths,
+            shared_arrays,
+            included_widths,
+            included_arrays,
+            included_declarations,
+        )
+        widths, arrays = override_declarations(
+            widths,
+            arrays,
+            local_widths,
+            local_arrays,
+            local_declarations,
+        )
+        for address in sorted(addresses_by_source[source_name]):
+            function = inventory_by_address[address]
+            parsed = parsed_by_name.get(function.name)
+            if parsed is None:
+                if collect_inline_assembly_c(
+                    source_name,
+                    text,
+                    function,
+                    symbols_by_name,
+                    aliases_by_address,
+                    function_addresses,
+                    function_names,
+                    usages,
+                ):
+                    continue
+                available = ", ".join(sorted(parsed_by_name))
+                raise GlobalUsageError(
+                    f"{source_name}: could not isolate {function.name}; "
+                    f"found: {available}"
+                )
+            for index, token in enumerate(parsed.tokens):
+                if index and parsed.tokens[index - 1].value in {".", "->"}:
+                    continue
+                if (
+                    index + 1 < len(parsed.tokens)
+                    and parsed.tokens[index + 1].value == ":"
+                ):
+                    continue
+                global_address = resolve_global(
+                    token.value,
+                    symbols_by_name,
+                    function_addresses,
+                    function_names,
+                )
+                if global_address is None:
+                    continue
+                aliases_by_address[global_address].add(token.value)
+                add_usage(
+                    usages,
+                    global_address,
+                    function,
+                    "C",
+                    source_name,
+                    classify_c_access(parsed.tokens, index, arrays),
+                    token.value,
+                    source_context(lines, token.line),
+                    widths.get(token.value, ""),
+                )
+
+
+def assembly_instruction(line: str) -> str:
+    if "*/" in line:
+        line = line.split("*/", 1)[1]
+    return " ".join(line.strip().split())
+
+
+def classify_assembly_access(
+    opcode: str, relocation_kind: str | None
+) -> tuple[str, str]:
+    opcode = opcode.lower()
+    if opcode in LOAD_WIDTHS:
+        return "read", LOAD_WIDTHS[opcode]
+    if opcode in STORE_WIDTHS:
+        return "write", STORE_WIDTHS[opcode]
+    if opcode == "lui" and relocation_kind == "hi":
+        return "address", ""
+    if opcode in {"la", "li", "addiu", "addi", "ori", "addu"}:
+        return "address", ""
+    if opcode in {"j", "jal", "jr", "jalr"}:
+        return "address", ""
+    if opcode in {".word", ".4byte"}:
+        return "address", "32"
+    if opcode in {".half", ".short", ".2byte"}:
+        return "address", "16"
+    if opcode in {".byte"}:
+        return "address", "8"
+    return "unknown", ""
+
+
+def collect_assembly_usages(
+    root: Path,
+    assembly_root: Path,
+    inventory_by_name: dict[str, Function],
+    symbols_by_name: dict[str, int],
+    aliases_by_address: dict[int, set[str]],
+    function_addresses: set[int],
+    function_names: set[str],
+    usages: dict[tuple[int, int, str], Usage],
+) -> None:
+    expected = {
+        function.name
+        for function in inventory_by_name.values()
+        if function.module == "game"
+        and function.status in {"unmatched_asm", "handwritten_asm"}
+    }
+    found: set[str] = set()
+    current: Function | None = None
+    for assembly_path in sorted(assembly_root.rglob("*.s")):
+        relative_path = assembly_path.relative_to(root).as_posix()
+        with assembly_path.open("r", encoding="utf-8") as handle:
+            for line in handle:
+                label_match = FUNCTION_LABEL_RE.match(line)
+                if label_match is not None:
+                    name = label_match.group(1)
+                    function = inventory_by_name.get(name)
+                    if (
+                        function is not None
+                        and function.module == "game"
+                        and function.status
+                        in {"unmatched_asm", "handwritten_asm"}
+                    ):
+                        if name in found:
+                            raise GlobalUsageError(
+                                f"assembly function {name} appears more than once"
+                            )
+                        found.add(name)
+                        current = function
+                    else:
+                        current = None
+                    continue
+                if current is None:
+                    continue
+                stripped = line.strip()
+                if stripped.startswith("endlabel "):
+                    current = None
+                    continue
+                instruction = assembly_instruction(line)
+                if not instruction or instruction.startswith(".L"):
+                    continue
+                opcode = instruction.split(None, 1)[0]
+                relocations = {
+                    name: kind
+                    for kind, name in RELOCATION_RE.findall(instruction)
+                }
+                candidates = set(relocations)
+                for name in IDENTIFIER_RE.findall(instruction):
+                    if name in symbols_by_name or GENERATED_NAME_RE.fullmatch(name):
+                        candidates.add(name)
+                for name in sorted(candidates):
+                    global_address = resolve_global(
+                        name,
+                        symbols_by_name,
+                        function_addresses,
+                        function_names,
+                    )
+                    if global_address is None:
+                        continue
+                    aliases_by_address[global_address].add(name)
+                    access, width = classify_assembly_access(
+                        opcode, relocations.get(name)
+                    )
+                    add_usage(
+                        usages,
+                        global_address,
+                        current,
+                        "assembly",
+                        relative_path,
+                        access,
+                        name,
+                        instruction,
+                        width,
+                    )
+    missing = sorted(expected - found)
+    if missing:
+        preview = ", ".join(missing[:10])
+        raise GlobalUsageError(
+            f"generated assembly is missing {len(missing)} game functions: {preview}"
+        )
+
+
+def preferred_name(names: set[str], address: int) -> str:
+    if not names:
+        return f"D_{address:08X}"
+
+    def score(name: str) -> tuple[int, int, str]:
+        if re.match(r"^g[A-Z_]", name):
+            category = 4
+        elif CODEGEN_ALIAS_RE.fullmatch(name):
+            category = 0
+        elif GENERATED_NAME_RE.fullmatch(name):
+            category = 1
+        elif name.endswith(("_start", "_end")) or name == "runtime_gp":
+            category = 0
+        else:
+            category = 3
+        return category, -len(name), name
+
+    return max(names, key=score)
+
+
+def combined_access(accesses: set[str]) -> str:
+    if "read_write" in accesses or {"read", "write"}.issubset(accesses):
+        return "read_write"
+    if "read" in accesses:
+        return "read"
+    if "write" in accesses:
+        return "write"
+    if "address" in accesses:
+        return "address"
+    return "unknown"
+
+
+def format_context(contexts: set[str]) -> str:
+    ordered = sorted(contexts)
+    if len(ordered) > 2:
+        ordered = ordered[:2] + [f"(+{len(contexts) - 2} more)"]
+    return " | ".join(ordered)
+
+
+def render_csv(
+    usages: dict[tuple[int, int, str], Usage],
+    aliases_by_address: dict[int, set[str]],
+) -> str:
+    output = io.StringIO(newline="")
+    fieldnames = [
+        "global_address",
+        "global_name",
+        "observed_names",
+        "function_address",
+        "function_name",
+        "function_status",
+        "function_module",
+        "evidence_source",
+        "evidence_path",
+        "access",
+        "width_bits",
+        "context",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames, lineterminator="\n")
+    writer.writeheader()
+    for usage in sorted(
+        usages.values(),
+        key=lambda item: (
+            item.global_address,
+            item.function.address,
+            item.evidence_source,
+        ),
+    ):
+        writer.writerow(
+            {
+                "global_address": f"0x{usage.global_address:08X}",
+                "global_name": preferred_name(
+                    aliases_by_address[usage.global_address],
+                    usage.global_address,
+                ),
+                "observed_names": "|".join(sorted(usage.observed_names)),
+                "function_address": f"0x{usage.function.address:08X}",
+                "function_name": usage.function.name,
+                "function_status": usage.function.status,
+                "function_module": usage.function.module,
+                "evidence_source": usage.evidence_source,
+                "evidence_path": usage.evidence_path,
+                "access": combined_access(usage.accesses),
+                "width_bits": "|".join(
+                    sorted(usage.widths, key=lambda value: int(value))
+                ),
+                "context": format_context(usage.contexts),
+            }
+        )
+    return output.getvalue()
+
+
+def write_or_check(path: Path, content: str, check: bool) -> None:
+    """Write the report or verify that it is current."""
+    if check:
+        try:
+            existing = path.read_text(encoding="utf-8")
+        except FileNotFoundError as error:
+            raise GlobalUsageError(f"{path} is missing; regenerate it") from error
+        if existing != content:
+            raise GlobalUsageError(f"{path} is stale; regenerate it")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.new")
+    try:
+        temporary.write_text(content, encoding="utf-8", newline="")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def generate(root: Path) -> tuple[str, int]:
+    inventory_path = resolve_within(
+        root, "config/slus_01411/functions.csv", must_exist=True
+    )
+    matching_path = resolve_within(
+        root, "config/slus_01411/matching_c.json", must_exist=True
+    )
+    symbol_paths = [
+        resolve_within(root, "config/slus_01411/symbols.txt", must_exist=True),
+        resolve_within(root, "config/slus_01411/c_symbols.ld", must_exist=True),
+    ]
+    assembly_root = resolve_within(root, "tmp/splat/asm", must_exist=True)
+
+    inventory = load_inventory(inventory_path)
+    inventory_by_address = {
+        function.address: function for function in inventory
+    }
+    inventory_by_name = {function.name: function for function in inventory}
+    matching_sources = load_matching_sources(matching_path)
+    symbols_by_name, aliases_by_address, symbol_function_names = load_symbols(
+        symbol_paths
+    )
+    function_addresses = set(inventory_by_address)
+    function_names = set(inventory_by_name) | symbol_function_names
+    shared_widths, shared_arrays, _ = load_declarations(
+        resolve_within(root, "src/unmatched.h", must_exist=True),
+        set(symbols_by_name),
+    )
+    usages: dict[tuple[int, int, str], Usage] = {}
+
+    collect_c_usages(
+        root,
+        matching_sources,
+        inventory_by_address,
+        symbols_by_name,
+        aliases_by_address,
+        function_addresses,
+        function_names,
+        shared_widths,
+        shared_arrays,
+        usages,
+    )
+    collect_assembly_usages(
+        root,
+        assembly_root,
+        inventory_by_name,
+        symbols_by_name,
+        aliases_by_address,
+        function_addresses,
+        function_names,
+        usages,
+    )
+    csv_text = render_csv(usages, aliases_by_address)
+    return csv_text, len(usages)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Map game-global usage in matching C and remaining assembly."
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="verify that the tracked reports are up to date",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        root = require_workspace_root()
+        csv_text, row_count = generate(root)
+        csv_path = resolve_within(root, "notes/global-usage.csv")
+        write_or_check(csv_path, csv_text, args.check)
+    except (
+        GlobalUsageError,
+        WorkspaceError,
+        OSError,
+        UnicodeError,
+        ValueError,
+        KeyError,
+        TypeError,
+        json.JSONDecodeError,
+    ) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+
+    action = "verified" if args.check else "wrote"
+    print(f"{action}: notes/global-usage.csv ({row_count} rows)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

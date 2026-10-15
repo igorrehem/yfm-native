@@ -1,0 +1,5 @@
+@bank dialog
+
+[00F4]
+
+{f8 02 28}Input your PANEL NAME!{end}

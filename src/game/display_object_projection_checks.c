@@ -1,0 +1,160 @@
+#include "../types.h"
+#include "../psyq/libgte.h"
+#include "../psyq/libgpu.h"
+#include "../psyq/libgs.h"
+#include "../psyq/inline_c.h"
+#include "display_object.h"
+#include "display_object_projection.h"
+#include "model.h"
+
+/* Contiguous projection helpers sharing the scratchpad matrix/vector layout.
+ * The first clips packed rotation bytes; the second extends the same path with
+ * display-object scale, callback, and mirrored-rotation handling. */
+
+s32 func_80041E7C(u32 arg0, s32 arg1, s32 arg2, struct ProjectionOut *arg3)
+{
+    SVECTOR *v308;
+    MATRIX *mtx;
+    s32 clip_value;
+
+    arg3->f0 = arg1;
+    arg3->f2 = arg2;
+    arg3->f4 = 0;
+
+    SetGeomOffset(arg1, arg2);
+    SetGeomScreen(MODEL_DEFAULT_PROJECTION);
+
+    mtx = (MATRIX *)SCRATCHPAD_ADDR(0x1F8002D0);
+    v308 = (SVECTOR *)SCRATCHPAD_ADDR(0x1F800308);
+
+    v308->vx = (s16)((arg0 & 0xFF) * 0x10);
+    v308->vy = (s16)((arg0 >> 4) & 0xFF0);
+    v308->vz = (s16)((arg0 >> 0xC) & 0xFF0);
+
+    RotMatrixZYX_gte(v308, mtx);
+
+    mtx->t[0] = 0;
+    mtx->t[1] = 0;
+    mtx->t[2] = MODEL_DEFAULT_PROJECTION;
+
+    GsSetLsMatrix(mtx);
+
+    {
+        register SVECTOR *v318 = (SVECTOR *)SCRATCHPAD_ADDR(0x1F800318);
+        SVECTOR *v310 = (SVECTOR *)SCRATCHPAD_ADDR(0x1F800310);
+
+        v318->vx = 0;
+        v308->vx = 0;
+        v308[1].vx = 0x200;
+        v310->vy = 0;
+        v308->vy = 0;
+        v308[2].vy = 0x200;
+        v318->vz = 0;
+        v310->vz = 0;
+        v308->vz = 0;
+
+        RotAverageNclip3_nom(v308, v310, v318);
+    }
+
+    {
+        s32 *p = &clip_value;
+        /* NCLIP leaves the signed projected area in MAC0. */
+        gte_stopz(p);
+    }
+
+    return clip_value;
+}
+
+s32 func_80041F90(
+    DisplayObject *obj,
+    s32 arg1,
+    s32 arg2,
+    struct ProjectionOut *out
+)
+{
+    MATRIX *mtx = (MATRIX *)SCRATCHPAD_ADDR(0x1F8002D0);
+    SVECTOR *v308 = (SVECTOR *)SCRATCHPAD_ADDR(0x1F800308);
+    s32 otz;
+
+    out->f0 = arg1;
+    out->f2 = arg2;
+    out->f4 = obj->field_65;
+
+    SetGeomOffset(arg1, arg2);
+    SetGeomScreen(MODEL_DEFAULT_PROJECTION);
+
+    v308->vx = (s16)(obj->field_20.b.field_20 * 0x10);
+    v308->vy = (s16)(obj->field_20.b.field_21 * 0x10);
+    v308->vz = (s16)(obj->field_20.b.field_22 * 0x10);
+    RotMatrixZYX_gte(v308, mtx);
+
+    mtx->t[0] = 0;
+    mtx->t[1] = 0;
+    mtx->t[2] = MODEL_DEFAULT_PROJECTION;
+
+    if (!(obj->attribute & GsROTOFF)) {
+        VECTOR *scale = (VECTOR *)v308;
+
+        scale->vx = obj->field_44.h.field_44;
+        scale->vy = obj->field_44.h.field_46;
+        scale->vz = ONE;
+        ScaleMatrix(mtx, scale);
+    }
+
+    GsSetLsMatrix(mtx);
+
+    {
+        SVECTOR *v318 = (SVECTOR *)SCRATCHPAD_ADDR(0x1F800318);
+        SVECTOR *v310 = (SVECTOR *)SCRATCHPAD_ADDR(0x1F800310);
+        s32 *otzp;
+
+        v318->vx = 0;
+        v308->vx = 0;
+        v308[1].vx = 0x200;
+        v310->vy = 0;
+        v308->vy = 0;
+        v308[2].vy = 0x200;
+        v318->vz = 0;
+        v310->vz = 0;
+        v308->vz = 0;
+        RotAverageNclip3_nom(v308, v310, v318);
+
+        otzp = &otz;
+        gte_stopz(otzp);
+
+        {
+            s32 cb = obj->field_10;
+            if (cb != 0) {
+                /* field_10 holds either a small number or a callback; retail
+                 * tells them apart by the sign, every console address being
+                 * negative. Host code addresses are positive. */
+#ifdef MEMORIES_PC
+                if ((u32)cb >= 0x10000u) {
+#else
+                if (cb < 0) {
+#endif
+                    CALL32(void (*)(DisplayObject *, s32), ((void (*G32)(DisplayObject *, s32))cb))(obj, otz);
+                }
+                if (otz >= 0) {
+                    return otz;
+                }
+
+                mtx->m[0][0] = -mtx->m[0][0];
+                mtx->m[1][0] = -mtx->m[1][0];
+                mtx->m[2][0] = -mtx->m[2][0];
+                mtx->m[0][2] = -mtx->m[0][2];
+                mtx->m[1][2] = -mtx->m[1][2];
+                mtx->m[2][2] = -mtx->m[2][2];
+                SetRotMatrix(mtx);
+
+                RotAverageNclip3_nom(
+                    v308, v310, (SVECTOR *)SCRATCHPAD_ADDR(0x1F800318));
+
+                otzp = &otz;
+                gte_stopz(otzp);
+            }
+        }
+    }
+
+    return otz;
+}

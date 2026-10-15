@@ -1,0 +1,322 @@
+#define GINPUT_PAD1_HELD_IS_AGGREGATE
+#define GINPUT_PAD1_PRESSED_IS_AGGREGATE
+#define D_8009B0CC_IN_DATA
+#define SCRIPT_STATE_TEXT_CALLBACK_VIEWS
+#include "../types.h"
+#include "text_stream_read_u16_le.h"
+#include "../psyq/rand.h"
+#include "dialog_choice_state.h"
+#include "display_object_core.h"
+#include "display_object_helpers.h"
+#include "duel_effect_entry_control.h"
+#include "file_constants.h"
+#include "file_transfer.h"
+#define GGRAPHICS_VIEWPORT_SIZED_UNSIGNED_IN_DATA
+#include "graphics_frame.h"
+#include "input.h"
+#include "display_effect_lifecycle.h"
+#include "menu_record.h"
+#include "duel_effect.h"
+#include "duel_effect_state_callbacks.h"
+#include "script_state.h"
+#include "sound.h"
+#define SD_IS_BGM_FADE_ACTIVE_IGNORES_OBJECT
+#include "sound_sequence_state.h"
+#include "../unmatched.h"
+
+void func_800374A8(DuelEffectChannel *object)
+{
+    u8 flags = object->state_51;
+
+    if ((flags & DUEL_EFFECT_STATE_FLAG_INITIALIZED) == 0) {
+        object->state_51 = flags | DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+        func_800373C8(object, 3, 0);
+        object->state_51 = 0x82;
+    }
+}
+
+DisplayObject *Dialog_OpenChoice(DuelEffectChannel *record)
+{
+    DisplayObject *cursor = DisplayObject_AcquireSlot(
+        (s32)DisplayObject_FindFreeSlot(), 2
+    );
+
+    DisplayObject_ConfigureSpriteAtPosition(
+        cursor,
+        record->field_3C + record->field_3E - 0x10,
+        record->field_40 + record->field_42 - 0x10,
+        3,
+        0,
+        0,
+        11,
+        0x20C
+    );
+    cursor->flags |= DISPLAY_OBJECT_FLAG_TEXTURE_CELL_OFFSET |
+                     DISPLAY_OBJECT_FLAG_SCREEN_SPACE;
+    DisplayObject_SelectOrderingTable1(cursor);
+    DisplayObject_SetDepthOffset(cursor, (s8)(record->field_59 + 1));
+    return cursor;
+}
+
+void func_800375A4(DuelEffectChannel*o){unsigned char f=o->state_51;if((f&DUEL_EFFECT_STATE_FLAG_INITIALIZED)==0){o->state_51=f|DUEL_EFFECT_STATE_FLAG_INITIALIZED;D_8009B32C=10;o->field_30=Dialog_OpenChoice(o);}else{if(gInput_wPad1Held[0]&PAD_BUTTON_SQUARE){D_8009B32C--;if(D_8009B32C<0)D_8009B32C=0;}else D_8009B32C=10;if(D_8009B32C!=0&&!(gInput_wPad1Pressed[0]&PAD_BUTTON_CONFIRM_MASK))return;SD_SEPlayFull(11);o->state_51=2;DisplayObject_ReleaseIfPresent(o->field_30);o->field_30=0;}}
+
+void func_8003767C(DuelEffectChannel *state)
+{
+    s32 result;
+
+    D_8009B2AA[0] = 0;
+    D_8009B2A8[0] = 0;
+    result = TextStream_ReadU16LE(state);
+    D_8009B270[0] = result;
+
+    if (result & 0x8000) {
+        u8 *G32 *slot =
+            &((TextStreamOwner *)state)->streams[state->stream_58];
+        u8 *script = *slot;
+        s32 value = *script;
+
+        *slot = script + 1;
+        Base2_8009B2AA[0] = value;
+        Base2_8009B2A8[0] = TextStream_ReadU16LE(state);
+    }
+
+    D_8009B357 = 5;
+    D_8009B27C[0] = 5;
+    state->state_51 = 10;
+}
+
+void func_8003771C(DuelEffectChannel *object)
+{
+    s32 signed_value;
+    s32 raw_value;
+
+    object->state_51 = 0;
+    D_8009B2A8_scalar = TextStream_ReadU16LE(object);
+    D_8009B2AA_scalar = TextStream_ReadU16LE(object);
+    D_8009B29C = TextStream_ReadU16LE(object);
+
+    signed_value = D_8009B2AA_scalar;
+    raw_value = (u16)D_8009B2AA_scalar;
+    if (signed_value >= 0x1000) {
+        D_8009B2AA_scalar = raw_value - 0x1000;
+        object->state_51 = 10;
+    }
+
+    D_8009B357 = 7;
+    D_8009B27C_scalar = 7;
+}
+
+void TextBox_WaitForScriptCompletion(DuelEffectChannel *object)
+{
+    if (D_8009B357 == 0) {
+        object->state_51 = 0;
+    }
+}
+
+void func_800377C8(DuelEffectChannel *arg0) {
+    u8 v = arg0->state_51;
+    MenuRecord *p;
+
+    if (!(v & DUEL_EFFECT_STATE_FLAG_INITIALIZED)) {
+        arg0->state_51 = v | DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+    }
+
+    p = D_8009B328;
+
+    if (p->display_effect_step != 0) {
+        return;
+    }
+
+    {
+        u8 w = arg0->state_51;
+
+        if ((w & 0x40) || p->field_30 >= 0x41) {
+            arg0->state_51 = 0;
+
+            return;
+        }
+
+        arg0->state_51 = w | 0x40;
+    }
+
+    {
+        MenuRecord *q = D_8009B328;
+
+        q->display_effect_step = *(u8 *)&q->field_40;
+    }
+
+    {
+        MenuRecord *r = D_8009B328;
+
+        *(u16 *)&r->field_40 = 0x68;
+
+        if (r->field_3C != 0) {
+            *(u16 *)&r->field_40 = 0xD8;
+        }
+    }
+
+    {
+        MenuRecord *s = D_8009B328;
+
+        *(u16 *)&s->field_42 = 0xB2;
+        s->field_44 = -0x10;
+    }
+}
+
+/* Same state_51/bit80 gating as func_800378D8, but additionally calls
+   func_80039FD4(D_8009B328) before clearing state_51 when the display-effect
+   step is zero. */
+void func_8003787C(DuelEffectChannel *object)
+{
+    u8 flags;
+    MenuRecord *record;
+
+    flags = object->state_51;
+    if (!(flags & DUEL_EFFECT_STATE_FLAG_INITIALIZED)) {
+        object->state_51 = flags | DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+    }
+    record = D_8009B328;
+    if (record->display_effect_step == 0) {
+        func_80039FD4(record);
+        object->state_51 = 0;
+    }
+}
+
+void func_800378D8(DuelEffectChannel *object)
+{
+    u8 flags = object->state_51;
+
+    if ((flags & DUEL_EFFECT_STATE_FLAG_INITIALIZED) == 0) {
+        object->state_51 = flags | DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+    }
+    if (D_8009B328->display_effect_step == 0) {
+        object->state_51 = 0;
+    }
+}
+
+void func_80037914(DuelEffectChannel *object)
+{
+    u8 flags = D_8009B328->field_32;
+
+    if ((flags & 3) == 0) {
+        D_8009B328->field_32 = flags | 0x10;
+        D_8009B328->display_effect_step = 6;
+        object->state_51 = 8;
+    }
+}
+
+void func_80037950(DuelEffectChannel *object)
+{
+    u8 flags = D_8009B328->field_32;
+
+    if ((flags & 3) == 0) {
+        D_8009B328->field_32 = flags | 0x10;
+        D_8009B328->display_effect_step = 4;
+        object->state_51 = 8;
+    }
+}
+
+void func_8003798C(DuelEffectChannel *object)
+{
+    if (((D_8009B0F4_abs & FILE_TRANSFER_REQUEST_BLOCKED_MASK) |
+         D_8009B134_abs) == 0) {
+        object->state_51 = 0;
+    }
+}
+
+void func_800379C4(DuelEffectChannel *object)
+{
+    if (SD_IsBgmFadeActive(object) != 1) {
+        object->state_51 = 0;
+    }
+}
+
+void func_800379F8(DuelEffectChannel *object)
+{
+    u8 flags = object->state_51;
+
+    if ((flags & DUEL_EFFECT_STATE_FLAG_INITIALIZED) == 0) {
+        object->state_51 = flags | DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+        D_8009B322 = TextStream_ReadU16LE(object);
+    }
+    D_8009B322--;
+    if (D_8009B322 == 0) {
+        object->state_51 = 0;
+    }
+}
+
+void func_80037A58(DuelEffectChannel *object)
+{
+    u8 flags = object->state_51;
+
+    if ((flags & DUEL_EFFECT_STATE_FLAG_INITIALIZED) == 0) {
+        object->state_51 = flags | DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+        D_8009B322 = TextStream_ReadU16LE(object);
+        D_8009B348[0] = gGraphics_uViewportX[0];
+        D_8009B348[1] = gGraphics_uViewportY[0];
+    }
+    if (D_8009B0CC & 1) {
+        gGraphics_uViewportX[0] = D_8009B348[0] + ((rand() & 7) - 4);
+        gGraphics_uViewportY[0] = D_8009B348[1] + ((rand() & 3) - 2);
+    }
+    D_8009B322--;
+    if (D_8009B322 == 0) {
+        gGraphics_uViewportX[0] = D_8009B348[0];
+        gGraphics_uViewportY[0] = D_8009B348[1];
+        object->state_51 = 0;
+    }
+}
+
+/* The last of the eight, and the only one that waits on the file transfer
+   itself: it drives the sector-range request through three D_8009B335 stages
+   and, when byte 0x51 bit 0x40 was armed, repeats the whole run D_8009B33C
+   times before clearing the state. The switch falls through deliberately -
+   each stage re-arms the 0xFF countdown and drops into the next test in the
+   same call. */
+void func_80037B40(DuelEffectChannel *object)
+{
+    DuelEffectChannel *p = object;
+
+    if ((p->state_51 & DUEL_EFFECT_STATE_FLAG_INITIALIZED) == 0) {
+        p->state_51 |= DUEL_EFFECT_STATE_FLAG_INITIALIZED;
+        p->delay_52 = 0xFF;
+        D_8009B335 = 0;
+        if (D_8009B33C != 0) {
+            p->state_51 |= 0x40;
+        }
+    }
+
+    p->delay_52--;
+
+    if (p->delay_52 != 0) {
+        switch (D_8009B335) {
+        case 0:
+            if ((D_8009B0F4_abs & FILE_TRANSFER_FLAG_SECTOR_RANGE) == 0) {
+                return;
+            }
+            p->delay_52 = 0xFF;
+            D_8009B335 = 1;
+        case 1:
+            if ((D_8009B112_abs & 0x4000) == 0) {
+                return;
+            }
+            p->delay_52 = 0xFF;
+            D_8009B335 = 2;
+        case 2:
+            if ((D_8009B112_abs & 0x4000) == 0) {
+                break;
+            }
+            if ((p->state_51 & 0x40) == 0) {
+                return;
+            }
+            D_8009B33C--;
+            if (D_8009B33C > 0) {
+                return;
+            }
+            break;
+        }
+    }
+
+    p->state_51 = 0;
+    p->delay_52 = 1;
+}

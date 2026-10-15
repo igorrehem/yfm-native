@@ -1,0 +1,8 @@
+{"id": "replace", "guardian_stars": {
+    "replace": true,
+    "default_bonus": 700,
+    "stars": [{"id": 14, "name": "Vaccine", "beats": ["Venus"]}],
+    "matchups": [
+        {"attacker": 2, "defender": 3},
+        {"attacker": 10, "defender": 14, "bonus": 32767}
+    ]}}

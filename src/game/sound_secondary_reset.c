@@ -1,0 +1,18 @@
+#include "../types.h"
+#include "../psyq/libspu.h"
+#include "sound.h"
+
+s16 SD_VabTransCompleted(s16 wait)
+{
+    if (wait == 0)
+        return SpuIsTransferCompleted(SPU_TRANSFER_PEEK);
+    return SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
+}
+
+void SD_ResetVabTransferState(void)
+{
+    s16 *value = &D_8009B458->transfer.field_0000;
+
+    if (*value != SD_TRANSFER_STATE_INACTIVE)
+        *value = SD_TRANSFER_STATE_INACTIVE;
+}

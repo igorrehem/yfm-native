@@ -1,0 +1,50 @@
+#include "../port_ptr.h"
+#ifndef MEMORIES_DECOMP_HIGH_MEMORY_ADDRESSES_H
+#define MEMORIES_DECOMP_HIGH_MEMORY_ADDRESSES_H
+
+#include "../types.h"
+
+/* The first word is a reused payload pointer, not the payload itself.
+ * The indexed consumers also reach the next two bases and two primary
+ * modules; keep their D_80010000-relative relocations through a prefix view.
+ * The incomplete array prevents -G8 from treating the base as small data.
+ * See notes/high-memory-load-addresses.md for the distinct address cohorts. */
+#ifdef HIGH_MEMORY_ADDRESSES_MODEL_PREFIX
+#include "../ygo_types.h"
+extern HighMemoryModelAddressPrefix D_80010000[];
+#elif defined(HIGH_MEMORY_ADDRESSES_BASE_IN_DATA)
+extern u8 *G32 D_80010000 PSX_SECTION(".data");
+#else
+extern u8 *G32 D_80010000;
+#endif
+
+/* Independently labeled transfer destinations. Do not substitute offsets
+ * from D_80010000: the labels are part of each consumer's relocation input. */
+extern u8 *G32 D_80010004 PSX_SECTION(".data");
+extern s32 D_80010008 PSX_SECTION(".data");
+/* Primary control-module bases; the callable entry is four bytes into each. */
+extern u8 *G32 D_8001000C PSX_SECTION(".data");
+extern u8 *G32 D_80010010 PSX_SECTION(".data");
+extern s32 D_80010014 PSX_SECTION(".data");
+extern s32 D_80010018 PSX_SECTION(".data");
+extern s32 D_8001002C PSX_SECTION(".data");
+
+/* func_800507D0 passes these absolute word loads to argument 7 of
+ * File_RequestAsyncTransfer and to SD_SetMusicTrackBuffer(u16 *), respectively.
+ * The former requests SU.MRG sectors [1223, 1239); the latter is a data
+ * argument, not an overlay entry point. */
+extern s32 D_80010030 PSX_SECTION(".data");
+extern void *G32 D_80010034 PSX_SECTION(".data");
+
+/* Staging base selected by duel package stage 7. */
+extern u8 *G32 D_800101DC PSX_SECTION(".data");
+
+/* Module data arguments copied into channel +0xDE8/+0xDEC, not entry points.
+ * func_8004CB0C reads each as an absolute word under -G8, so like the
+ * destinations above they carry .data rather than a small-data view. */
+extern s32 D_8001001C PSX_SECTION(".data");
+extern s32 D_80010020 PSX_SECTION(".data");
+extern s32 D_80010024 PSX_SECTION(".data");
+extern s32 D_80010028 PSX_SECTION(".data");
+
+#endif

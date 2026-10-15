@@ -1,0 +1,110 @@
+{
+    "id": "gamma",
+    "name": "Gamma",
+    "priority": 2,
+    "after": [
+        "beta"
+    ],
+    "audio": {
+        "music": {
+            "0x10": "g.ogg"
+        }
+    },
+    "fusions": [
+        {
+            "with": [
+                "Kuriboh",
+                "Mystical Elf"
+            ],
+            "result": "Black Luster Soldier"
+        },
+        {
+            "with": [
+                "Baby Dragon",
+                "Ryu-kishin"
+            ],
+            "result": "Kuriboh",
+            "setting": "extra"
+        }
+    ],
+    "equips": [
+        {
+            "card": "Legendary Sword",
+            "replace": true,
+            "add": [
+                "Mystical Elf"
+            ]
+        }
+    ],
+    "passwords": {
+        "Kuriboh": {
+            "starchips": 99
+        },
+        "Mystical Elf": {
+            "password": "00000001"
+        }
+    },
+    "menu": {
+        "spacing": 30
+    },
+    "settings": [
+        {
+            "key": "extra",
+            "label": "Extra fusions",
+            "type": "bool",
+            "default": 0
+        },
+        {
+            "key": "mode",
+            "label": "Rituals",
+            "type": "choice",
+            "choices": [
+                "Disc",
+                "Gamma"
+            ],
+            "default": 1
+        }
+    ],
+    "rituals": [
+        {
+            "card": "Black Luster Ritual",
+            "tributes": [
+                "Kuriboh",
+                "Kuriboh",
+                "Kuriboh"
+            ],
+            "result": "Black Luster Soldier",
+            "setting": "mode",
+            "value": 1
+        }
+    ],
+    "cards": [
+        {
+            "replace": "Kuriboh",
+            "attack": 500
+        }
+    ],
+    "data": [
+        {
+            "lba": 1230,
+            "replace": "low.bin",
+            "sectors": 10
+        }
+    ],
+    "duelists": [
+        {
+            "replace": "Heishin",
+            "name": "Gamma's Heishin"
+        }
+    ],
+    "limits": {
+        "life_points": {
+            "duelists": {
+                "Heishin": {
+                    "player": 3000
+                },
+                "all": 7000
+            }
+        }
+    }
+}

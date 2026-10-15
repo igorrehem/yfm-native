@@ -1,0 +1,696 @@
+# Remaining Decompilation Campaign
+
+The dated results below retain the classifications used at their checkpoints.
+The former 63-function category was later
+[audited](function-map.md#gte-classification-correction-2026-09-08): three
+functions were reopened and 60 gained positive whole-function evidence;
+historical counts and attempt outcomes below are not rewritten as current
+progress or source-provenance claims.
+
+## First evidence batch
+
+The campaign described in `notes/remaining-decompilation-plan.md` began with
+same-address collaborator evidence and the newly exposed zero-attempt
+function.
+
+### Accepted pure-C matches
+
+| Address | Result |
+|---|---|
+| `0x800240B0` | Unchiga's cursor callback source matches under `gcc_2_8_1_g8_split`. Three isolated absolute C stores preserve the retail `$at` address materialization. |
+| `0x80070AC0` | `AiScript_JumpEqual` matches after introducing a local AI-state pointer and updating the existing offset variable in place; the GCC register roles then match without asm. |
+
+### Later-resolved terminal refinements
+
+| Address | Result |
+|---|---|
+| `0x8005C4F0` | The original pure-C campaign stopped two register-allocation words away under GCC 2.8.1, while the retired legacy compiler changed a branch displacement. A later register-local reconstruction produced the current exact `File_Exists` C under `gcc_2_8_1_g0`; it now shares `file_cd_helpers.c` with the two immediately following file/display wrappers. |
+| `0x8003CE74` | The original pure-C campaign stopped one commutative operand-order word from retail. Explicit register roles later preserved that ordering. #3859 re-measured those roles as inert, and the current `SaveData_NextMaskWord` C matches without them under `gcc_2_8_1_g8`. |
+
+### Preserved partial histories
+
+| Address | Current residual |
+|---|---|
+| `0x80020BE4` | At this snapshot, the exact-size candidate differed in 21 words from store scheduling and a removed register pin. A later post-terminal pass preserved the volatile display-state reloads and matched all `0x168` bytes under `gcc_2_8_1_g0_no_split`. |
+| `0x80050584` | Exact 0x24C-byte size; two documented register-role blocks account for 24 differing words. Four canonical attempts remain. |
+
+### Newly exposed callback
+
+`ScriptImage_TransferCallback` (`0x8002DDFC`) received six ordinary GCC 2.8.1
+G0 variants using local
+assembly, GMS pseudocode, and explicit target-order labels. The closest source
+is 300/304 bytes but its event-1 branch target is four instructions early.
+The function is terminally deferred and remains exact assembly.
+
+A later post-terminal pass resolved the function completely. A direct
+three-case object-mode switch, together with a `volatile` declaration for
+the two independent `D_8009B0F4` read-modify-write sequences, matches all
+304 bytes and relocations under `gcc_2_8_1_g0`. The accepted source now lives
+in `src/game/script_image_objects.c`; the paragraph above remains the original
+campaign result.
+
+## Preserved-candidate profile sweep
+
+`tools/project/run_remaining_profile_pass.py` tests exactly one untried
+default/split/no-split profile for a preserved pure-C candidate. It is
+single-worker and writes review artifacts under
+`tmp/agents/remaining-profile-pass/`.
+
+`tools/project/import_remaining_profile_results.py` imports a reviewed pass
+atomically into `attempts.csv`; exact results are deliberately rejected so
+they must be integrated manually.
+
+Results:
+
+| Pass | Tested | Exact | Nonmatch | Tool errors |
+|---|---:|---:|---:|---:|
+| Split | 72 | 0 | 62 | 10 |
+| No-split | 71 | 0 | 71 | 0 |
+| Default after explicit profiles | 9 | 0 | 9 | 0 |
+| **Total** | **152** | **0** | **142** | **10** |
+
+The tool errors are preserved evidence, mostly G8 small-data relocation
+overflows or unresolved m2c pseudo-symbols. They show that those candidates
+need declaration/source repair rather than another profile.
+
+After the sweep:
+
+- 218 unmatched game functions have six recorded deferral measurements;
+- 145 unmatched game functions remain nonterminal;
+- their canonical attempt counts are 26 at one, 44 at two, 69 at three, five
+  at four, and one at five.
+
+The sweep demonstrates that compiler split/no-split selection alone is not the
+remaining blocker. Further progress must use better source structure,
+declaration repair, GMS semantics, or collaborator residual notes.
+
+## Inline-assembly completion pass
+
+The preserved pure-C refinement candidates were tested sequentially under
+untried compiler profiles:
+
+| Pass | Tested | Exact | Nonexact/error |
+|---|---:|---:|---:|
+| GCC 2.8.1 split | 71 | 19 | 52 |
+| GCC 2.8.1 no-split | 57 | 0 | 57 |
+| GCC 2.8.1 default | 14 | 0 | 14 |
+| Retired legacy compiler | 58 | 0 | 58 |
+| GCC 2.8.1 no second scheduler pass | 49 | 0 | 49 |
+| GCC 2.8.1 O1 final variant | 47 | 1 | 46 |
+
+Together with the earlier `AiScript_JumpEqual` source-shape fix, this campaign
+replaced 21 matching inline-assembly sources with exact pure C.
+
+The 59 matching sources that still contain GCC assembly now each have a
+six-row `inline_refinement` campaign history. They remain exact current
+sources, while further pure-C investigation may continue from the recorded
+compiler and source evidence.
+
+The profile pass also showed why declaration repair must be separated from
+profile variation: recurrent errors include invalid G8 small-data placement,
+incomplete m2c pointer types, unresolved `.rodata`/pseudo-register symbols, and
+missing global declarations.
+
+## Canonical profile completion
+
+Preserved pure-C unmatched candidates received the same bounded fallback
+profiles:
+
+| Pass | Tested | Exact |
+|---|---:|---:|
+| Retired legacy compiler | 72 | 0 |
+| GCC 2.8.1 no second scheduler pass | 71 | 0 |
+| GCC 2.8.1 O1 terminal variant | 66 | 0 |
+
+Sixty-six preserved-source histories reached attempt six and were deferred.
+
+Ten additional candidates whose prior G8 attempts failed only through
+out-of-range small-data relocations were repaired by forcing G0:
+
+| G0 repair pass | Tested | Exact |
+|---|---:|---:|
+| Default | 10 | 0 |
+| Split | 10 | 0 |
+| No-split | 10 | 0 |
+| Retired legacy compiler | 10 | 0 |
+| No second scheduler pass | 5 | 0 |
+
+All ten GPREL-repair histories ended the recorded campaign as deferred. The source repair was
+successful—the candidates compile and link—but their C structure still does
+not reproduce retail code.
+
+`func_80058938` was manually reconstructed from GMS after m2c failed on two
+unaligned 32-bit copies. Pure-C `memcpy`, packed-pointer assignment, and
+packed-parameter forms all trigger a GCC `cc1` signal-11 internal compiler
+error under 2.8.1 and under the retired legacy compiler. Its six-attempt history is terminal with the
+record layout and compiler blocker documented; further source investigation
+remains open.
+
+Current canonical state:
+
+- all unmatched game functions have terminal canonical histories;
+- 59 retained matching inline-assembly sources have terminal refinement
+  histories;
+- the manual batches recovered exact C for `0x8002A9C0`, `0x800336F0`, and
+  `0x8006041C`, while terminally documenting the remaining large functions.
+
+The decompilation completion gate is therefore satisfied. Post-campaign naming
+adds thirteen conservative mechanical names; ambiguous matches remain
+address-based.
+
+## Final campaign outcome
+
+The remaining campaign accepted:
+
+- four new canonical matching functions:
+  - `Duel_UpdateCardPickCursor` (`0x800240B0`);
+  - `0x8002A9C0`;
+  - `0x800336F0`;
+  - `Model_GetPrimitiveHandler` (`0x8006041C`);
+- 21 exact pure-C replacements for matching inline-assembly sources.
+
+Final game-function state:
+
+| State | Count |
+|---|---:|
+| Matching C | 773 |
+| Terminal unmatched assembly | 360 |
+| Intentional handwritten assembly | 63 |
+
+The 59 matching sources that retain GCC assembly are terminally documented
+after six pure-C refinement attempts. No canonical unmatched function or
+inline-refinement history remains active.
+
+Post-campaign work then followed the required gate order:
+
+1. Semantic registry expanded to 189 accepted names.
+2. Source grouping expanded to 681 translation units, with 135 functions in
+   43 grouped units.
+3. `notes/global-usage.csv` recorded 3,356 function/global relationships for
+   784 globals across 923 game functions.
+4. Shared layouts were added for:
+   - AI active cards, interpreter state, and duelists;
+   - primary and secondary sound-driver state;
+   - DuelEffect channels and entries;
+   - model slots and handler registry;
+   - duel-card records;
+   - fade/transition state.
+
+Each structure note records exact-safe migrations, remaining assembly users,
+and raw code-generation exceptions.
+
+## Continuous campaign restart
+
+The completion target was reopened after terminal histories were explicitly
+reclassified as research indexes rather than project completion. The first
+continuous wave recovered exact C from previously rejected relocation-only
+results:
+
+| Address | Semantic name | Resolution |
+|---|---|---|
+| `0x8003D0F4` | `SaveData_ApplyRuntimeState` | Collaborator C already emitted the retail instructions. Three verified absolute store literals preserve `$at` address materialization; the full executable matches. |
+| `0x8003D46C` | `DuelEffect_CreateChannel` | Shared `DuelEffectChannel` C already emitted the retail instructions. One verified absolute byte store preserves `$at` materialization; the full executable matches. |
+| `0x8004545C` | `SD_ArmBusyCallback` | Replaced register-pinned matching C with two ordinary C absolute-address stores, eliminating one GCC asm-bearing source while retaining the exact executable. |
+
+The historical six-row campaign records remain unchanged. Each accepted later
+result is recorded as `post_terminal_resolution` evidence after a deferred
+canonical or inline-refinement history and only for an exact pure-C result.
+
+State after this wave:
+
+| State | Count |
+|---|---:|
+| Matching C | 775 |
+| Terminal unmatched assembly | 358 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 193 |
+
+`GMS` in historical notes refers to **GenericMadScientist**, whose `gms.c` IDA
+decompilation is used as supporting evidence rather than ground truth.
+
+### Continuous wave 2
+
+The second continuous wave promoted three more terminal functions:
+
+| Address | Semantic name | Resolution |
+|---|---|---|
+| `0x8002892C` | `DuelEffect_UpdateState` | The preserved pure-C candidate was already 128/128 byte-identical. Two symbolic `gDuel_bActiveEffectState` GPREL16 relocations correspond to raw `$gp+0x342` target accesses omitted by the relocation oracle; the complete executable confirms the match. |
+| `0x800356A0` | `Util_CopyWords` | Reproducing separate `case 1` and `case 2` bodies yields the retail switch layout. The self-contained locally typed source matches 168/168 bytes with no relocations. |
+| `0x80035748` | `Util_FillMemory` | The same duplicated-case source distinction yields a strict 160/160-byte match for the repeated-byte fill counterpart. |
+
+The utility pair is contiguous, uses `gcc_2_8_1_g8`, and now shares
+`src/game/util_memory.c`.
+
+Two new evidence-backed scheduler experiments did not match and remain under
+`tmp/candidates/continuous-wave-2/`:
+
+- `0x8003C628`: an oversized signed output-mode declaration fixed the absolute
+  relocation form but scheduled its `lui` one word too early.
+- `0x8004A6F8`: splitting `0x60100` into a high-half value plus a later OR
+  retained exact size but did not move the high-half materialization ahead of
+  table addressing.
+
+State after wave 2:
+
+| State | Count |
+|---|---:|
+| Matching C | 778 |
+| Terminal unmatched assembly | 355 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 195 |
+
+### Continuous wave 3
+
+`SD_ProcessSequenceTracks` (`0x8004C8C8`) matched as pure C after correcting
+one control-flow scope in the closest preserved candidate. Retail skips the
+entire command-processing and accumulation block while a track timer is below
+`0x100`; the previous source skipped only the wrap-counter update. Removing
+the candidate's register pins and expressing that scope directly produced an
+exact 408-byte function with exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 779 |
+| Terminal unmatched assembly | 354 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 196 |
+
+### Continuous wave 4
+
+`DuelEffect_UpdateObjectLayout` (`0x80036DBC`) matched after correcting a
+double-scaled halfword-table index. The candidate declared `D_80090E58` as
+`u16[]` but also multiplied `p[0x57]` by two before indexing, producing
+`sll ...,2`; direct halfword indexing produces the retail `sll ...,1`.
+The corrected source matches 452/452 bytes with exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 780 |
+| Terminal unmatched assembly | 353 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 197 |
+
+### Continuous wave 5
+
+`SD_ResetSequenceTracks` (`0x8004CA60`) matched after replacing raw parallel
+pointer arithmetic with a typed array of 16 `0x2C`-byte sequence-track
+records. The typed `tracks[i].flag` and `tracks[i].value` expressions preserve
+the retail `root + offset` operand order, resolving the two commutative `addu`
+words in the previous candidate. The function matches 92/92 bytes with exact
+relocations.
+
+It is contiguous with `SD_ProcessSequenceTracks` and uses the same
+`gcc_2_8_1_g0` profile, but compiling both in one translation unit changes the
+resident text size. They remain separate exact objects.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 781 |
+| Terminal unmatched assembly | 352 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 198 |
+
+### Continuous wave 6
+
+`DuelEffect_PlaySoundCommand` (`0x80038798`) matched after recovering the
+callee argument contract visible in both GenericMadScientist's pseudocode and
+the target registers. Keeping the script value as a 32-bit local, explicitly
+masking it to 16 bits, and passing it to both sound wrappers preserves the
+retail `andi $a0,$v0,0xffff` followed by `andi $v0,$a0,0x8000` sequence
+without register pins. The result matches 104/104 bytes and exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 782 |
+| Terminal unmatched assembly | 351 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 199 |
+
+### Continuous wave 7
+
+`Text_EncodeDecimalNoPadding` (`0x800358A0`) matched after expressing the
+backward scan's decrement in its original source order. The scan decrements
+unconditionally after loading each byte, branches back with that decrement in
+the delay slot for digit bytes, and restores the index only before clearing a
+non-digit marker. This produces exact 92/92-byte code and relocations without
+register pins.
+
+The function follows `Text_EncodeDecimalDigits` contiguously but remains a
+separate object because the base encoder uses `gcc_2_8_1_g0_split` and this
+wrapper uses `gcc_2_8_1_g0`.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 783 |
+| Terminal unmatched assembly | 350 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 200 |
+
+### Continuous wave 8
+
+`File_ActivateTransfer` (`0x800143DC`) matched after correcting the width of
+`D_8009B112`. Target instructions use `lhu`/`sh`, proving a 16-bit flag; the
+previous local candidate declared it as `u8` and differed only at those two
+accesses. The corrected source matches 220/220 bytes with exact relocations.
+
+The function copies the queued `FileTransfer` at
+`gFile_SecondaryTransferDescriptor` to the active descriptor at
+`gFile_PrimaryTransferDescriptor`, rotates an eight-word shared buffer half, and
+propagates the active-state flags.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 784 |
+| Terminal unmatched assembly | 349 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 201 |
+
+### Continuous wave 9
+
+`Model_HasInsufficientBufferSpace` (`0x8005A8C4`) matched after correcting the
+storage class of `D_800FE240`. Declaring it as a direct `s32` scalar forced to
+`.data` preserves the target's self-referential `$a0` address/load sequence
+while avoiding the G8 small-data relocation overflow. The function matches
+200/200 bytes with exact relocations.
+
+The cursor contract is now centralized in `gpu_packets.h`. The three packet
+builders use its default `u32 *` view, while the capacity query selects the
+guarded integer-address view above. The two forms retain the same forced
+`.data` storage class. `GRAPHICS_PACKET_BUFFER_SIZE` also replaces the decimal
+140000 stride in `Graphics_BeginFrame` and the equivalent hexadecimal
+`0x222E0` capacity in the query, recording that both calculations describe
+one active packet-buffer half.
+
+The predicate accounts for the current model-data heap pointer, bank base,
+loaded-bank count, and the selected model slot's `0xE00` size field; it returns
+true when less than `0x401` bytes would remain.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 785 |
+| Terminal unmatched assembly | 348 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 202 |
+
+### Continuous wave 10
+
+`Main_RunCampaign` (`0x8002CE64`) matched after correcting two absolute-address
+forms. `gCampaignSceneIndex` is declared as an absolute `.data` scalar so GCC loads it
+directly into `$a0`; the write-only `gDuel_bEffectState` clear uses the documented
+absolute C literal exception to preserve retail `$at` materialization. Linked
+text is byte-identical, and the complete executable remains the acceptance
+authority for the omitted literal-store relocation.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 786 |
+| Terminal unmatched assembly | 347 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 202 |
+
+### Continuous wave 11
+
+`func_8002EDB0` matched after separating the masked call argument from the raw
+command byte saved across either callback. Forming the `0x7F` mask first keeps
+the loaded byte in `$v1`; copying it afterward places the required move to
+`$s0` in the conditional-branch delay slot. The function matches 112/112 bytes
+with exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 787 |
+| Terminal unmatched assembly | 346 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 202 |
+
+### Continuous wave 12
+
+`SaveData_RequestLoad` (`0x8003F7D4`) matched by combining split-address call
+setup with the documented absolute C literal exception for the isolated
+write-only
+`D_8009B0D1` clear. The split profile interleaves the destination and source
+address pairs exactly; the literal preserves the retail `$at` clear before the
+four-argument call. The function matches 60/60 bytes, with the complete
+executable serving as the authority for the omitted literal-store relocation.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 788 |
+| Terminal unmatched assembly | 345 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 207 |
+
+### Continuous wave 13
+
+`DisplayObject_SetDepthOffset` matched after declaring only the four-entry halfword lookup
+table volatile. The object remains nonvolatile, preserving the retail object
+byte store before the indexed table load while keeping the original argument
+normalization and result store schedule. The function matches 44/44 bytes
+with exact relocations and no allocated non-text sections.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 789 |
+| Terminal unmatched assembly | 344 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 207 |
+
+### Continuous wave 14
+
+`SD_GetSequenceStatus` matched after expressing its object scan as a direct `for`
+loop over the loaded halfword count. That form preserves the retail zero-count
+exit, counter increment, object-pointer stride, loop branch, and return paths
+without asm or register bindings. The function matches 80/80 bytes with exact
+relocations and no allocated non-text sections.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 790 |
+| Terminal unmatched assembly | 343 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 207 |
+
+### Continuous wave 15
+
+`AiScript_PushComboEmpty` matched after retesting the collaborator's direct
+count/filter `for` loop under `gcc_2_8_1_g8_split`. The split-address pipeline
+preserves the retail state-base register role, output index, loop bounds, and
+delay-slot scheduling. The function matches 96/96 bytes with exact
+relocations and no allocated non-text sections.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 791 |
+| Terminal unmatched assembly | 342 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 210 |
+
+### Continuous wave 16
+
+`GameOver_LoadPackageStage` matched after importing the collaborator's typed
+three-mode
+object initializer under `gcc_2_8_1_g0_no_split`. The structure layout and
+switch preserve the retail case dispatch, shared state stores, and mode-two
+callback sequence without asm or register bindings. The function matches
+368/368 bytes with exact relocations and no allocated non-text sections.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 792 |
+| Terminal unmatched assembly | 341 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 213 |
+
+### Continuous wave 17
+
+`Options_LoadPackageStage` matched after importing the collaborator's typed
+four-mode
+object initializer under `gcc_2_8_1_g0_no_split`. The structure layout and
+switch preserve the retail case dispatch, nested shared tails, and mode-two
+callback sequence without asm or register bindings. The function matches
+404/404 bytes with exact relocations and no allocated non-text sections.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 793 |
+| Terminal unmatched assembly | 340 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 213 |
+
+### Continuous wave 18
+
+`func_80058624` matched after replacing the final conditional magnitude copy
+with `__builtin_abs`. The previous source was already exact except for one
+word: GCC copied the quotient to `$v1` but negated the original `$v0`.
+The explicit signed absolute-value operation emits the retail in-place
+`negu $v1,$v1` while preserving all other instructions and relocations. The
+function matches 532/532 bytes with exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 794 |
+| Terminal unmatched assembly | 339 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 213 |
+
+### Continuous wave 19
+
+`Duel_UpdateLifePointDisplay` matched after declaring the step before the magnitude and
+computing the magnitude with `__builtin_abs`. The preserved source already
+matched control flow and size, but GCC assigned those values to `$a1`/`$a2`
+in the opposite order and propagated the difference register into the
+negation. The combined discriminator reproduces the retail register roles and
+in-place negation. The function matches 148/148 bytes with exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 795 |
+| Terminal unmatched assembly | 338 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 214 |
+
+### Continuous wave 20
+
+`DebugMenu_UpdateBustUpEntry` matched after combining the collaborator's corrected
+`D_8009B2DE` halfword declaration with `gcc_2_8_1_g8_split`. The non-split
+profile kept the far `D_800EB184` load as one compiler pseudo-instruction and
+left the preceding branch delay slot empty. Split-address compilation exposes
+the load's high half to the scheduler, placing it in that delay slot and
+producing exact 148/148-byte text and relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 796 |
+| Terminal unmatched assembly | 337 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 219 |
+
+### Continuous wave 21
+
+`AiScript_PlayFieldCard` (`0x80070F1C`) matched after enabling split addresses
+on the mixed G0-compile/G8-assemble profile. Compiling at G0 preserves the
+retail absolute accesses to the far AI state, while split address formation
+reproduces the target's instruction scheduling and frame size. The normalized
+pure-C source matches 220/220 bytes and exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 797 |
+| Terminal unmatched assembly | 336 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 221 |
+
+### Continuous wave 23
+
+`DisplayObject_Release` matched after enabling split addresses on the
+collaborator's typed slot-linking implementation. The split profile exposes the
+`D_800EFE48` and `D_800EFE38` address halves to the scheduler, removing the
+non-split extra instruction while preserving the branch-specific slot updates.
+The normalized pure-C source matches 148/148 bytes and exact relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 799 |
+| Terminal unmatched assembly | 334 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 221 |
+
+### Continuous wave 24
+
+`DisplayObject_AcquireSlot` matched after correcting the signedness of the slot record's
+two leading link fields and enabling split addresses. Declaring both offsets
+`0x00` and `0x02` as `s16` lets GCC reuse one signed `-1` constant for their
+initialization instead of materializing unsigned `0xFFFF` separately. With the
+split G8 profile, the normalized pure-C source matches 352/352 bytes and exact
+relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 800 |
+| Terminal unmatched assembly | 333 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 221 |
+
+### Continuous wave 22
+
+`AiScript_AddType` (`0x800733A8`) matched after enabling split addresses on
+the collaborator's direct table-and-scan implementation. Split address
+formation exposes the `gAiScript_aMemory` base before `AiScript_ReadByte`, so
+GCC retains it in `$s0` and fills the call delay slot with the low-half
+addition. The normalized pure-C source matches 120/120 bytes and exact
+relocations.
+
+State after this one-function checkpoint:
+
+| State | Count |
+|---|---:|
+| Matching C | 798 |
+| Terminal unmatched assembly | 335 |
+| Intentional handwritten assembly | 63 |
+| Matching sources retaining GCC asm | 58 |
+| Accepted semantic mappings | 221 |

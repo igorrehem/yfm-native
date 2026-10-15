@@ -1,0 +1,370 @@
+/* Exercise manager transactions and dependency ordering against real manifests. */
+#define main original_mods_test
+#include "pc/compat/fs.h"
+#include "mods_test.c"
+#undef main
+#include "pc/mods/events.h"
+
+static int calls[8], call_count;
+static void low(MemoriesModEvent *e)
+{
+    calls[call_count++] = 1;
+    e->b += 2;
+}
+static void high(MemoriesModEvent *e)
+{
+    calls[call_count++] = 2;
+    e->b *= 3;
+}
+static void replace(MemoriesModEvent *e)
+{
+    calls[call_count++] = 3;
+    e->handled = 1;
+    e->result = 17;
+}
+/* A texture pack loader that records what it is asked, in order, and what
+ * pack-a's parts read: its declared "card_art", and "nope" it lacks. */
+static char pack_calls[512], pack_parts[32];
+static int fake_pack_load(const char *directory, unsigned rank, int (*part)(const char *, void *), void *context,
+                          char *problems, size_t size)
+{
+    size_t length = strlen(pack_calls);
+    if (strstr(directory, "pack-a"))
+        snprintf(pack_parts, sizeof(pack_parts), "%d,%d", part("card_art", context), part("nope", context));
+    snprintf(pack_calls + length, sizeof(pack_calls) - length, "%s:%u ", strstr(directory, "/mods/") + 6, rank);
+    if (problems && size) snprintf(problems, size, "%s", strstr(directory, "pack-b") ? "1 image could not be read" : "");
+    return 1;
+}
+static void fake_pack_unload(void) { strcat(pack_calls, "unload "); }
+static int fake_assets_load(const char *directory, const JsonValue *assets, unsigned rank,
+                            int (*part)(const char *, void *), void *context, char *problems, size_t size)
+{
+    assert(Json_TypeOf(assets) == JSON_OBJECT);
+    assert(Json_Member(assets, "monster_type/dragon"));
+    snprintf(pack_parts, sizeof(pack_parts), "%d", part("pictures", context));
+    return fake_pack_load(directory, rank, part, context, problems, size);
+}
+static char folder_seen[1024];
+static int fake_asset_folder_load(const char *directory, unsigned rank, int (*part)(const char *, void *),
+                                  void *context, char *problems, size_t size)
+{
+    snprintf(folder_seen, sizeof(folder_seen), "%s", directory);
+    return fake_pack_load(directory, rank, part, context, problems, size);
+}
+
+int main(void)
+{
+    char path[1024], error[256];
+    int enabled[MODS_MAX] = {0}, order[MODS_MAX], a, b, partial;
+    unsigned char sector[2048] = {0};
+    MemoriesModEvent event = {MEMORIES_EVENT_DAMAGE, MEMORIES_BEFORE, 0, 4, 0, 0, 0};
+    assert(scratch_dir(root, sizeof(root), "memories-manager"));
+    make_dir("mods");
+    make_dir("mods/a");
+    write_text(
+        "mods/a/mod.json",
+        "{\"id\":\"a\",\"version\":\"1.2\",\"settings\":[{\"key\":\"speed\",\"default\":5,\"min\":1,\"max\":10}]}");
+    make_dir("mods/b");
+    write_text("mods/b/mod.json",
+               "{\"id\":\"b\",\"requires\":[{\"id\":\"a\",\"min_version\":\"1.1\"}],\"after\":[\"a\"]}");
+    make_dir("mods/partial");
+    write_text("mods/partial/mod.json", "{\"id\":\"partial\",\"enabled\":true,\"data\":[{\"lba\":5000,\"patch\":[{"
+                                        "\"at\":0,\"bytes\":\"AA\"},{\"at\":1,\"bytes\":\"ZZ\"}]}]}");
+    make_dir("mods/cycle-a");
+    make_dir("mods/invalid-data");
+    write_text("mods/invalid-data/mod.json",
+               "{\"id\":\"invalid-data\",\"enabled\":true,\"data\":[{\"lba\":5001,\"patch\":{}}]}");
+    write_text("mods/cycle-a/mod.json", "{\"id\":\"cycle-a\",\"after\":[\"cycle-b\"]}");
+    make_dir("mods/cycle-b");
+    write_text("mods/cycle-b/mod.json", "{\"id\":\"cycle-b\",\"after\":[\"cycle-a\"]}");
+    /* A data mod, so applied at the next launch, and a live mod needing it. */
+    make_dir("mods/later");
+    write_text("mods/later/mod.json", "{\"id\":\"later\",\"data\":[{\"lba\":6000,\"patch\":[{\"at\":0,\"bytes\":\"11\"}]}]}");
+    make_dir("mods/needs-later");
+    write_text("mods/needs-later/mod.json", "{\"id\":\"needs-later\",\"requires\":[\"later\"]}");
+    /* Two folders of one directory with one id: the first, sorted, stays. */
+    make_dir("mods/dup-b");
+    write_text("mods/dup-b/mod.json", "{\"id\":\"dup\",\"name\":\"second\"}");
+    make_dir("mods/dup-a");
+    write_text("mods/dup-a/mod.json", "{\"id\":\"dup\",\"name\":\"first\"}");
+    /* A live data mod whose replacement file is missing until later. */
+    make_dir("mods/missing");
+    write_text("mods/missing/mod.json",
+               "{\"id\":\"missing\",\"restart\":false,\"data\":[{\"lba\":7000,\"sectors\":1,\"replace\":\"late.bin\"}]}");
+    /* Typos in a manifest: warned about, and the mod still loads. */
+    make_dir("mods/typo");
+    write_text("mods/typo/mod.json", "{\"id\":\"typo\",\"libary\":\"x\",\"Name\":\"T\",\"zzzzzz\":1,"
+                                     "\"enabled\":\"yes\",\"restart\":0,\"audio\":{}}");
+    /* Two texture packs; pack-a loads first (lower priority number). */
+    make_dir("mods/pack-a");
+    write_text("mods/pack-a/mod.json", "{\"id\":\"pack-a\",\"textures\":\"images\",\"priority\":-5,"
+                                       "\"settings\":[{\"key\":\"card_art\",\"type\":\"bool\",\"default\":1}]}");
+    make_dir("mods/pack-b");
+    write_text("mods/pack-b/mod.json", "{\"id\":\"pack-b\",\"textures\":\"images\",\"priority\":5}");
+    make_dir("mods/invalid-schema");
+    write_text("mods/invalid-schema/mod.json",
+               "{\"id\":\"invalid-schema\",\"settings\":[{\"key\":\"oops\",\"default\":99,\"max\":10}]}");
+    /* A mod that requires itself, over and over, and a cycle of requires:
+     * looking for what they wait on must finish at once. */
+    make_dir("mods/self");
+    write_text("mods/self/mod.json", "{\"id\":\"self\",\"requires\":[\"self\",\"self\",\"self\",\"loop-b\",\"self\"]}");
+    make_dir("mods/loop-b");
+    write_text("mods/loop-b/mod.json", "{\"id\":\"loop-b\",\"requires\":[\"self\",\"self\",\"loop-b\",\"self\"]}");
+    /* Saved by a Windows editor, with a byte order mark. */
+    make_dir("mods/bom");
+    write_text("mods/bom/mod.json", "\xEF\xBB\xBF{\"id\":\"bom\",\"name\":\"Marked\"}");
+    /* One made for a later release, one for another game: told apart. */
+    make_dir("mods/newer");
+    write_text("mods/newer/mod.json", "{\"id\":\"newer\",\"name\":\"Newer\",\"min_api\":999}");
+    make_dir("mods/elsewhere");
+    write_text("mods/elsewhere/mod.json", "{\"id\":\"elsewhere\",\"name\":\"Elsewhere\",\"game\":\"slus_00000\"}");
+    make_dir("mods/named");
+    write_text("mods/named/mod.json", "{\"id\":\"named\",\"priority\":1,"
+               "\"assets\":{\"monster_type/dragon\":{\"image\":\"portrait.png\",\"setting\":\"pictures\"}},"
+               "\"settings\":[{\"key\":\"pictures\",\"type\":\"bool\",\"default\":1}]}");
+    make_dir("mods/bad-assets");
+    write_text("mods/bad-assets/mod.json", "{\"id\":\"bad-assets\",\"assets\":[]}");
+    make_dir("mods/shipped");
+    write_text("mods/shipped/mod.json", "{\"id\":\"shipped\",\"assets\":\"pictures\"}");
+    make_dir("mods/escaping");
+    write_text("mods/escaping/mod.json", "{\"id\":\"escaping\",\"assets\":\"../elsewhere\"}");
+    snprintf(path, sizeof(path), "%s/mods", root);
+    assert(!setenv("MEMORIES_MODS_DIR", path, 1));
+    snprintf(path, sizeof(path), "%s/settings.txt", root);
+    assert(!setenv("MEMORIES_SETTINGS", path, 1));
+    assert(!setenv("MEMORIES_USER_DIR", root, 1));
+    Settings_Load();
+    Mods_SetTexturePack(fake_pack_load, fake_pack_unload);
+    Mods_SetAssets(fake_assets_load, fake_asset_folder_load);
+    Mods_Load();
+    a = find("a");
+    b = find("b");
+    partial = find("partial");
+    assert(a >= 0 && b >= 0 && partial >= 0);
+    assert(Mods_Failed(partial) && !Mods_Active(partial));
+    assert(!Mods_DiscSector(5000, sector) && sector[0] == 0);
+    assert(Mods_Failed(find("invalid-schema")));
+    {
+        /* Texture packs load in the mods' order whichever is applied first:
+         * the later one ranks higher, and its problems show beside it. */
+        int pack_a = find("pack-a"), pack_b = find("pack-b");
+        pack_calls[0] = 0;
+        Mods_SetEnabled(pack_b, 1);
+        assert(!strcmp(pack_calls, "pack-b/images:1 "));
+        assert(strstr(Mods_Status(pack_b), "texture pack: 1 image could not be read") && !Mods_Failed(pack_b));
+        pack_calls[0] = 0;
+        Mods_SetEnabled(pack_a, 1);
+        assert(!strcmp(pack_calls, "unload pack-a/images:1 pack-b/images:2 "));
+        pack_calls[0] = 0;
+        Mods_SetEnabled(pack_a, 0);
+        assert(!strcmp(pack_calls, "unload pack-b/images:1 "));
+        pack_calls[0] = 0;
+        Mods_SetEnabled(pack_a, 1);   /* not last in the order: everything again */
+        assert(!strcmp(pack_calls, "unload pack-a/images:1 pack-b/images:2 "));
+        assert(!strcmp(pack_parts, "1,-1"));
+        /* A setting of an applied pack changed: the packs load again, with
+         * the part it switches off; unchanged, nothing reloads. */
+        pack_calls[0] = 0;
+        assert(Mods_OptionSet(pack_a, 0, 0));
+        assert(!strcmp(pack_calls, "unload pack-a/images:1 pack-b/images:2 ") && !strcmp(pack_parts, "0,-1"));
+        pack_calls[0] = 0;
+        assert(Mods_OptionSet(pack_a, 0, 0) && !pack_calls[0]);
+        assert(Mods_OptionSet(pack_a, 0, 1));
+        Mods_SetEnabled(pack_b, 0);
+        pack_calls[0] = 0;
+        Mods_SetEnabled(pack_b, 1);   /* last: on top of what is loaded */
+        assert(!strcmp(pack_calls, "pack-b/images:2 "));
+        Mods_SetEnabled(pack_a, 0);
+        Mods_SetEnabled(pack_b, 0);
+    }
+    {
+        int named = find("named"), pack_b = find("pack-b");
+        assert(Mods_Failed(find("bad-assets")));
+        assert(!strstr(Mods_Status(named), "unknown key"));
+        pack_calls[0] = 0;
+        Mods_SetEnabled(named, 1);
+        assert(Mods_Active(named) && !strcmp(pack_calls, "named:1 ") && !strcmp(pack_parts, "1"));
+        Mods_SetEnabled(pack_b, 1);
+        pack_calls[0] = 0;
+        assert(Mods_OptionSet(named, 0, 0));
+        assert(!strcmp(pack_calls, "unload named:1 pack-b/images:2 ") && !strcmp(pack_parts, "0"));
+        pack_calls[0] = 0;
+        Mods_SetEnabled(named, 0);
+        assert(!strcmp(pack_calls, "unload pack-b/images:1 "));
+        Mods_SetEnabled(pack_b, 0);
+        Mods_SetAssets(NULL, NULL);
+        Mods_SetEnabled(named, 1);
+        assert(Mods_Failed(named) && !Mods_Active(named));
+        assert(strstr(Mods_Status(named), "no named asset replacements"));
+        Mods_SetEnabled(named, 0);
+        Mods_SetAssets(fake_assets_load, fake_asset_folder_load);
+    }
+    {   /* "assets": "<directory>": the mod ships the pictures, unlisted. */
+        int shipped = find("shipped");
+        assert(Mods_Failed(find("escaping")));
+        assert(strstr(Mods_Status(find("escaping")), "outside the mod"));
+        folder_seen[0] = pack_calls[0] = 0;
+        Mods_SetEnabled(shipped, 1);
+        assert(Mods_Active(shipped));
+        assert(strstr(folder_seen, "shipped/pictures"));
+        Mods_SetEnabled(shipped, 0);
+    }
+    {
+        int typo = find("typo");
+        const char *status = Mods_Status(typo);
+        assert(typo >= 0 && !Mods_Failed(typo));
+        assert(strstr(status, "unknown key 'libary' (did you mean 'library'?)"));
+        assert(strstr(status, "unknown key 'Name' (did you mean 'name'?)"));
+        assert(strstr(status, "unknown key 'zzzzzz'") && !strstr(status, "zzzzzz' (did"));
+        assert(strstr(status, "\"enabled\" should be true or false") && strstr(status, "\"restart\" should be"));
+        assert(!strstr(status, "audio"));
+    }
+    {
+        /* A failed mod is tried again once the player removes and reapplies
+         * it, and goes in place when what it lacked is there. */
+        int missing = find("missing"), wanted[MODS_MAX] = {0};
+        Mods_SetEnabled(missing, 1);
+        assert(Mods_Failed(missing) && !Mods_Active(missing) && strstr(Mods_Status(missing), "late.bin"));
+        wanted[missing] = 1;
+        assert(!Mods_Validate(wanted, error, sizeof(error)));
+        Mods_SetEnabled(missing, 0);
+        assert(!Mods_Failed(missing) && Mods_Validate(wanted, error, sizeof(error)));
+        write_text("mods/missing/late.bin", "late");
+        Mods_SetEnabled(missing, 1);
+        assert(!Mods_Failed(missing) && Mods_Active(missing));
+        memset(sector, 0xEE, sizeof(sector));
+        assert(Mods_DiscSector(7000, sector) && !memcmp(sector, "late", 4) && !sector[4]);
+        Mods_SetEnabled(missing, 0);
+        assert(!Mods_DiscSector(7000, sector));
+        /* Raw extents cannot grow into the neighboring file. */
+        {
+            static char big[2050];
+            memset(big, 'x', sizeof(big) - 1);
+            write_text("mods/missing/late.bin", big);
+        }
+        Mods_SetEnabled(missing, 1);
+        assert(!Mods_Active(missing) && Mods_Failed(missing) && strstr(Mods_Status(missing), "capacity"));
+        assert(!Mods_DiscSector(7000, sector));
+        Mods_SetEnabled(missing, 0);
+    }
+    {
+        int dup = find("dup"), copies = 0;
+        for (int i = 0; i < Mods_Count(); i++) copies += !strcmp(Mods_Id(i), "dup");
+        assert(dup >= 0 && copies == 1 && !strcmp(Mods_Name(dup), "first") && !Mods_Failed(dup));
+        assert(strstr(Mods_Status(dup), "dup-b was left out: same id as") && strstr(Mods_Status(dup), "dup-a"));
+        /* The warning outlasts applying the mod, which resets its status. */
+        Mods_SetEnabled(dup, 1);
+        assert(Mods_Active(dup) && strstr(Mods_Status(dup), "same id as"));
+        Mods_SetEnabled(dup, 0);
+    }
+    assert(Mods_Failed(find("invalid-data")) && !Mods_Active(find("invalid-data")));
+    enabled[find("cycle-a")] = enabled[find("cycle-b")] = enabled[a] = 1;
+    assert(Mods_Order(enabled, order, error, sizeof(error)) < 0);
+    assert(order[0] == a && order[1] == -1); /* the mods outside the cycle still load */
+    enabled[find("cycle-a")] = enabled[find("cycle-b")] = enabled[a] = 0;
+    enabled[b] = 1;
+    assert(!Mods_Validate(enabled, error, sizeof(error)));
+    assert(strstr(error, "requires a"));
+    enabled[a] = 1;
+    assert(Mods_Validate(enabled, error, sizeof(error)));
+    assert(!Mods_Compatible(find("newer"), enabled, error, sizeof(error)));
+    assert(strstr(error, "Newer needs a newer game: mod API 999, this one has") && strstr(error, "Update the game"));
+    assert(!Mods_Compatible(find("elsewhere"), enabled, error, sizeof(error)));
+    assert(!strcmp(error, "Elsewhere is made for another game (slus_00000)"));
+    Settings_SetNamed("mod.b.order", -100);
+    assert(Mods_Order(enabled, order, error, sizeof(error)) == 2 && order[0] == a && order[1] == b);
+    /* The keys a mod may write with host->set_setting, as a declared one. */
+    assert(Mods_SettingKeyValid("speed") && Mods_SettingKeyValid("turn_left-2"));
+    assert(!Mods_SettingKeyValid("order") && !Mods_SettingKeyValid("") && !Mods_SettingKeyValid(NULL));
+    assert(!Mods_SettingKeyValid("a.b") && !Mods_SettingKeyValid("a b") && !Mods_SettingKeyValid("x=1"));
+    assert(!Mods_OptionSet(a, 0, 99));
+    assert(Mods_OptionSet(a, 0, 7));
+    assert(Mods_OptionValue(a, 0) == 7);
+    {
+        int self = find("self"), bom = find("bom"), wanted[MODS_MAX] = {0};
+        assert(bom >= 0 && !Mods_Failed(bom) && !strcmp(Mods_Name(bom), "Marked"));
+        wanted[self] = wanted[find("loop-b")] = 1;
+        assert(Mods_WaitsForRestart(self, wanted) == -1);
+    }
+    /* Applying writes only the mods the player changed: one whose stored
+     * choice differs from this run's (an environment override) keeps it. */
+    Settings_SetNamed("mod.pack-a", 1);
+    assert(!Mods_Enabled(find("pack-a")));
+    assert(Mods_Apply(enabled, error, sizeof(error)));
+    assert(Mods_Active(a) && Mods_Active(b));
+    assert(Settings_GetNamed("mod.pack-a", -1) == 1 && Settings_GetNamed("mod.a", 0) == 1);
+    Settings_SetNamed("mod.pack-a", 0);
+    assert(Mods_ProfileSave("Test profile"));
+    enabled[a] = enabled[b] = 0;
+    assert(Mods_ProfileRead("Test profile", enabled));
+    assert(enabled[a] && enabled[b]);
+    assert(Mods_ProfileValue("Test profile", "mod.a.speed", 0) == 7);
+    assert(!Mods_ProfileSave("../escape"));
+    int h1 = Mods_Subscribe(a, MEMORIES_EVENT_DAMAGE, 0, low), h2 = Mods_Subscribe(b, MEMORIES_EVENT_DAMAGE, 10, high);
+    assert(h1 && h2);
+    Mods_Dispatch(&event);
+    assert(call_count == 2 && calls[0] == 2 && calls[1] == 1 && event.b == 14);
+    call_count = 0;
+    event.phase = MEMORIES_AFTER;
+    Mods_Dispatch(&event);
+    assert(event.b == 14); /* observers cannot change result */
+    int h3 = Mods_Subscribe(b, MEMORIES_EVENT_DAMAGE, 20, replace);
+    assert(h3);
+    call_count = 0;
+    event.phase = MEMORIES_BEFORE;
+    Mods_Dispatch(&event);
+    assert(call_count == 1 && event.result == 17 && event.handled);
+    Mods_Unsubscribe(b, h3);
+    Mods_SetEnabled(b, 0);
+    call_count = 0;
+    event.handled = 0;
+    Mods_Dispatch(&event);
+    assert(call_count == 1 && calls[0] == 1);
+    Mods_ClearHooks(a);
+    call_count = 0;
+    Mods_Dispatch(&event);
+    assert(call_count == 0);
+
+    /* Reload settings records a restart-only mod without putting it in
+     * place, and a live mod requiring it waits for the same restart. */
+    {
+        int later = find("later"), needs = find("needs-later"), all[MODS_MAX] = {0};
+        assert(later >= 0 && needs >= 0 && Mods_RequiresRestart(later) && !Mods_RequiresRestart(needs));
+        Settings_SetNamed("mod.later", 1);
+        Mods_Load();
+        assert(Mods_Enabled(later) && !Mods_Active(later));
+        memset(sector, 0, sizeof(sector));
+        assert(!Mods_DiscSector(6000, sector) && sector[0] == 0);
+        all[later] = all[needs] = 1;
+        assert(Mods_Validate(all, error, sizeof(error)));
+        assert(Mods_WaitsForRestart(needs, all) == later);
+        Mods_SetEnabled(needs, 1);
+        assert(Mods_Enabled(needs) && !Mods_Active(needs) && strstr(Mods_Status(needs), "restart"));
+        Settings_SetNamed("mod.needs-later", 1);
+        Mods_Load();
+        assert(!Mods_Active(needs) && strstr(Mods_Status(needs), "restart"));
+        Mods_SetEnabled(needs, 0);
+        assert(!Mods_Status(needs)[0]);
+        Mods_SetEnabled(later, 0);
+        assert(!Mods_Active(later));
+        all[later] = 0;
+        assert(Mods_WaitsForRestart(needs, all) < 0);
+    }
+    assert(!setenv("MEMORIES_SETTINGS", "/dev/null/settings", 1));
+    enabled[b] = 1;
+    assert(!Mods_Apply(enabled, error, sizeof(error)));
+    assert(!Mods_Enabled(b));
+    /* Once the mods are shut down no event reaches them: VBlank input could
+     * otherwise call into a mod whose shutdown hook freed its memory. */
+    assert(Mods_Active(a) && Mods_Subscribe(a, MEMORIES_EVENT_DAMAGE, 0, low));
+    call_count = 0;
+    event.handled = 0;
+    event.phase = MEMORIES_BEFORE;
+    Mods_Dispatch(&event);
+    assert(call_count == 1);
+    Mods_Shutdown();
+    call_count = 0;
+    Mods_Dispatch(&event);
+    assert(call_count == 0);
+    return 0;
+}

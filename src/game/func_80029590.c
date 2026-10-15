@@ -1,0 +1,25 @@
+#include "../types.h"
+#include "display_object.h"
+#include "display_object_core.h"
+#include "display_object_layout.h"
+#include "display_object_helpers.h"
+#include "func_8002A3CC.h"
+#include "func_80029590.h"
+
+void func_80029590(void)
+{
+    s32 i = 0;
+    LibraryMotionState *state = &D_800EA1E8;
+    for (; i < 8; i++) {
+        DisplayObject *object = DisplayObject_AcquireSlot(DisplayObject_FindFreeGeneralSlot(), 2);
+        DisplayObject_ConfigureSpriteAtPosition(object, 8, (i >> 1) * 178 + 8,
+                      0, 3, i, 25, 262);
+        if (i & 1)
+            object->field_30.h.field_30 = 168;
+        object->attribute |= DISPLAY_OBJECT_ATTRIBUTE_8BPP;
+        object->flags &= ~DISPLAY_OBJECT_FLAG_SCREEN_SPACE;
+        DisplayObject_SelectOrderingTable3(object);
+        DisplayObject_SetDepthOffset(object, 0);
+        state->slots[i] = object;
+    }
+}

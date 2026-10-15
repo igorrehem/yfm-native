@@ -1,0 +1,46 @@
+{
+    "id": "example-starter-deck",
+    "name": "Starter deck example",
+    "version": "1.0",
+    "author": "DecompRecomp",
+    "description": "Two decks a new game may be dealt in place of the disc's weighted pools, the first three times as often as the second. Start a new game to be dealt one.",
+    "enabled": false,
+    "starter": [
+        {
+            "name": "Spellbinder",
+            "weight": 3,
+            "Mystical Elf": 3,
+            "Time Wizard": 3,
+            "Curtain of the Dark Ones": 3,
+            "White Magical Hat": 3,
+            "Kageningen": 3,
+            "Monster Egg": 3,
+            "Hard Armor": 3,
+            "Supporter in the Shadows": 3,
+            "Yami": 3,
+            "Forest": 3,
+            "Dark Hole": 3,
+            "Raigeki": 3,
+            "M-warrior #1": 2,
+            "M-warrior #2": 2
+        },
+        {
+            "name": "Stone Wall",
+            "weight": 1,
+            "Battle Warrior": 3,
+            "Dragon Statue": 3,
+            "M-warrior #1": 3,
+            "M-warrior #2": 3,
+            "Hard Armor": 3,
+            "Monster Egg": 3,
+            "Mountain": 3,
+            "Kageningen": 3,
+            "Supporter in the Shadows": 3,
+            "Mystical Elf": 3,
+            "Time Wizard": 3,
+            "Curtain of the Dark Ones": 3,
+            "Dark Hole": 2,
+            "Raigeki": 2
+        }
+    ]
+}

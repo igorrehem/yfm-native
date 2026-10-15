@@ -1,0 +1,12 @@
+{"id": "new-stars", "guardian_stars": {
+    "stars": [
+        {"id": 11, "name": "Fire", "beats": ["Grass"]},
+        {"id": 12, "name": {"en-us": "Grass", "fr": "Plante"}, "beats": [13]},
+        {"id": 13, "name": "Water", "beats": ["Fire"]},
+        {"id": 1, "name": "Ares"}
+    ],
+    "matchups": [
+        {"attacker": "Fire", "defender": "Water", "bonus": -300},
+        {"attacker": "Ares", "defender": 11, "bonus": 1000, "mirror": true},
+        {"attacker": 15, "defender": 14}
+    ]}}

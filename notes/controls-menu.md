@@ -1,0 +1,276 @@
+# Controls
+
+On a phone or tablet (Android) this is a panel inside the game's window
+(`panel.h`; [Android](pc-build.md#mods-and-controls-as-panels-inside-the-window)):
+one page that a drag scrolls, between a fixed header (Keyboard/Controller,
+Player 1/2) and a fixed footer (Clear, Rebind, Cancel, Apply, OK over the
+message line), with rows and buttons 48 dp tall. Tap a binding, then Rebind,
+and press the key or the controller's button; a second tap on a binding also
+starts listening. Back is Escape. Everything below holds there too.
+
+Open **Game > Controls...**. The header holds the window title, the Player 1 /
+Player 2 segmented control, the Keyboard and Controller tabs and an "Unsaved
+changes" marker. Below it the Controller row holds the device list and a state
+badge (Connected, Not connected, Switched off, or "Choose again after a
+restart" for two identical pads). Choose Player 1 or Player 2, then choose an
+actual controller from that list. Automatic fills free ports while preserving
+connected assignments; None disables that port's controller. Keyboard and mouse
+continue to belong to Player 1. A connected third controller can be selected.
+
+Double-click a binding cell or a PS1 diagram button to start the 10-second rebind timer.
+You can also select a binding cell and choose Rebind (or press Enter). Release held inputs,
+then press the new key, controller button, D-pad direction, trigger or stick
+direction. Escape cancels; capture also cancels on focus loss, disconnection or
+a ten-second timeout. Repeated keyboard events do not create bindings. Esc,
+F10 and modifier chords are reserved. Right Shift alone remains
+available for Select. If the input belongs to another action (a pad button
+or a Game list row, such as F5 for Save state), choose Move binding
+or Cancel. Clear unbinds the selected slot. Controller rows have two slots so
+D-pad and stick directions can both control the same PS1 direction.
+
+Both tabs show the PlayStation pad picture beside the binding table. The
+picture always shows a PS1 controller using the supplied cyan outline artwork
+on a transparent background, regardless of the connected hardware; its buttons
+highlight the mapped PlayStation output, and the panel header names whatever is
+held. Clicking a button in the picture selects that PS1 action, and
+double-clicking it starts a rebind. The selected button wears a
+three-pixel grey-green ring drawn over the artwork; pressed buttons are filled
+green underneath it so the outlines stay readable. Each button has two rectangles, both derived from
+ps1-controller.png: the drawn button, which is what the ring encloses and a
+press fills, and a larger mouse target. The targets tile the picture and never
+overlap - the D-pad and the face cluster are split four ways along the lines
+between their buttons, the shoulders split just under the L2/R2 strip, and
+Select/Start take the space around them - so a click always means one button
+even though the drawn buttons (the D-pad arrows, the few-pixel L2/R2 strips)
+are small. The window test checks that the targets stay disjoint and that a
+click on any drawn button selects it. Stick clicks (L3/R3) have no place on the
+artwork and are edited in the list. The Controller dropdown lists the actual
+connected PC controllers by name; it chooses the input device, not a diagram
+style.
+
+The table lists the 16 destinations in reading order under group headings
+(D-pad, Face buttons, Shoulders and triggers, Stick clicks, System), with
+column headings above them; the keyboard tab has one binding column, the
+controller tab a main and an alternate column. That order is presentation only:
+the stored file, the destination indices and the wire bits keep the order of
+`Controls_Actions`.
+
+### The Game list
+
+The port's own actions are a second list, **Game**, under the pad picture
+(under the pad list when the window is too small for the picture), with the
+same columns: Exit game, Fullscreen, Screenshot, Mute, Volume up and down
+(Program); Save state, Load state, State slot 1 to 4 (Save states); Pause,
+Frame step and Turbo (Speed); Debug HUD and Deck slots (Tools). They
+default to the keys the port always had (Esc, F11, F12, M, keypad + and -,
+F5, F7, F1, F2, none, F4, P, `.`, Tab, F3, F6) and to nothing on
+controllers, where either slot takes any button, trigger, stick or D-pad
+direction. They are kept out of the pad bits the game reads
+(`Controls_HostActions`, rows 16 onward, `CTRL_ROW_*`), and the menus show
+the keys bound now. A source still belongs to one row per profile, pad and
+Game alike, so moving X to Exit game takes it off Cross and moving F5 to
+Cross leaves Save state unbound. Most fire once per press; Turbo lasts
+while held and the volume repeats while held (`host_actions.c`). The
+arrows stay in the list that has the selection; Tab moves between the two,
+and the wheel scrolls the one under the pointer.
+
+Exit game quits, as File > Exit does, asking first while **File > Confirm
+before quitting** is on (`quit_prompt.c`). Esc is always Exit game in a
+window, whatever the row holds: it is reserved everywhere else, and in this
+window it cancels a capture, so it cannot be pressed in, but clearing or
+replacing the row only adds or drops the other key, never Esc's way out.
+The window says so when the slot is cleared, while the row is selected and
+while it listens for that row.
+
+Below the Game list, **Fixed keys** lists for reference what no binding
+changes: F10 opens the menu bar, Alt+Enter switches fullscreen, Shift with
+the Screenshot key saves the whole window, and Esc leaves fullscreen and
+closes menus, dialogs and this window. It is text only and drops out first
+when the window is short. Below the table the selected binding is named in full, with
+Clear and Rebind beside it, then a hint line (or the capture countdown) and the
+message line.
+
+The window is resizable, with a minimum size of 560x440. As it shrinks, the
+table scrolls, then the pad picture drops out, and under 560 logical rows of
+height the hint line goes too (the capture countdown moves to the message line); the menu scale drops towards 1 rather than clipping the
+layout. Tab/Shift+Tab move focus, arrows navigate rows and lists, Enter
+activates, Delete clears the focused slot, and Page Up/Page Down scroll.
+The pointer highlights whatever it is over. Menu navigation uses mouse and
+keyboard only. Controller inputs are used for binding capture and live previews;
+they cannot move focus, activate menu buttons or close the window.
+
+Apply saves and activates the draft. OK also closes. Cancel discards changes
+since the last Apply. Closing a dirty window offers Apply, Discard and Keep
+editing. Restore keyboard/controller defaults changes only the current
+tab/profile after confirmation. Apply carries an accent outline while the draft differs
+from the saved configuration and drops to a flat, disabled face when there is
+nothing to save (the same disabled face Clear uses on an empty slot), and
+the dialogs (unsaved changes, restore defaults, input already in use) dim the
+window behind them. A save failure leaves both the active mapping and existing file
+unchanged. Live gameplay input is suppressed while this window is open, and held
+inputs must be released before gameplay resumes. Scripted `MEMORIES_INPUT` still
+works. Capture and device discovery work while the game is paused.
+
+Explicit device selections remain disconnected if the selected device is absent;
+they do not silently take another controller. Stable Linux device identities use
+vendor/product/bus plus serial or physical path. SDL and evdev share these
+identities where SDL supplies an accessible evdev path. Devices without a stable
+identity can be selected for the current session; the UI warns that selection
+must be repeated after restart. Transport or USB-port changes can also require
+reselection. Previous profiles remain in the file. Discovery supports 32 devices
+and storage supports 16 device profiles. Physical hardware/driver-specific naming
+and reconnect behavior should still be checked with the user's controllers.
+
+## Controller compatibility
+
+The default SDL3 backend is shared by Linux and Windows. It uses SDL's mappings
+for Xbox, PlayStation, Switch Pro/Joy-Con and generic gamepads. Face bindings are
+positional: the bottom button defaults to PS1 Cross. The window labels this A on
+Xbox, Cross on PlayStation and B on Switch; unknown families keep South/East/West/North.
+These display labels do not change saved binding tokens or the PS1 diagram.
+
+Touchpad clicks, four rear paddles and SDL's six miscellaneous buttons can be
+rebound when the device/driver exposes them independently. Touch gestures, motion
+sensors, rumble and adaptive-trigger effects are not implemented. Digital triggers
+and hat D-pads are handled by SDL's mapping layer as well as analog triggers.
+
+For a pad SDL does not recognize, provide a mapping for that device and platform
+using `SDL_GAMECONTROLLERCONFIG_FILE` before starting the game
+([SDL documentation](https://wiki.libsdl.org/SDL3/SDL_HINT_GAMECONTROLLERCONFIG_FILE)).
+The Controls window edits recognized gamepad inputs; it does not create raw
+joystick mappings. USB and Bluetooth may require different mapping entries.
+
+The optional Linux X11/evdev backend uses kernel button/axis conventions rather
+than SDL's device database. It accepts analog Z/RZ triggers, with HAT2Y/HAT2X as
+fallbacks per the [kernel gamepad specification](https://kernel.org/doc/html/latest/input/gamepad.html),
+and digital TL2/TR2. Use the default SDL backend for controllers needing device
+mapping quirks or the extra buttons above.
+
+Compatibility regression checks (after building the platform dependencies):
+
+```sh
+python3 tools/pc/test_controls_backend.py --target linux
+python3 tools/pc/test_controls_backend.py --target windows --software
+```
+
+The Windows command runs natively on Windows or through Wine on Linux. Omit
+`--software` where OpenGL is available to include context-ownership checks.
+The fixtures exercise PS5, Switch Pro, Xbox One and generic mappings with
+nonstandard raw button order, digital/analog triggers, hats, extra buttons,
+rebinding/applying, removal, input gating and window resizing. They are virtual
+devices, not certification of physical USB/Bluetooth or native Windows drivers.
+Linux OpenGL and Windows/Wine software rendering were checked for this change;
+Wine OpenGL was unavailable on the test host (no matching GL pixel format).
+
+## Storage
+
+Controls live outside guest saves and save states. The default file is
+`controls.txt` in the user directory (`src/pc/platform/paths.h`).
+`MEMORIES_CONTROLS` overrides it; otherwise an explicit `MEMORIES_SETTINGS`
+places `controls.txt` beside that settings file. Apply writes a temporary
+file in the same directory, checks flush/close and atomically renames it. Missing files use defaults. Invalid files fall back to defaults
+with a diagnostic. Unsupported versions are preserved and cannot be overwritten
+by Apply: a release from before version 2 plays with default controls beside a
+version 2 file and leaves it as it is.
+
+Version 2 is ASCII with newline-terminated records:
+
+```text
+controls 2 <device-profile-count>
+port <0|1> <mode> <icon-style> <hex-identity-or-dash>
+device <profile-index> <icon-style> <hex-identity>
+bind <map-index> <slot-index> <source-token>
+host <map-index> <action-token> <slot> <source-token>
+```
+
+Both port records are required. Mode 0 means None, 1 Automatic, 2 explicit.
+The legacy icon-style field (0–4) is retained for file compatibility and ignored
+by the fixed PS1 diagram. Identities
+are hex-encoded bytes; `-` is the empty identity. Profile indices start at zero.
+Map 0 is the keyboard, maps 1 and 2 are per-port controller defaults, and maps
+3 onward are stored device profiles. Each map has exactly 32 binding records:
+slot index = PS1 bit index × 2 + binding slot, and a host record per Game list
+action and binding slot, named by the action's token (`host 0 exit 0 key.esc`
+is the default Exit game, `host 1 save_state 1 button.guide` a controller's
+alternate Save state). Host records are optional: a missing one is its
+default, left unbound when the file gave that key to another row, and a token
+this build does not know (a later build's action) is skipped. The keyboard's
+second slots are always `unbound`. `key.esc` is valid only as the keyboard's
+Exit game. Version 1 is the same without host records; it still loads, with
+the Game list at its defaults, and the next Apply writes version 2. An entire default file is produced by Apply; the example above
+is a grammar, not a complete usable configuration.
+
+Source examples: `key.x`, `key.rshift`, `button.south`, `button.l-shoulder`,
+`axis.l-stick_y_-`, `axis.r-stick_x_+`, `trigger.r-trigger`, `hat.dpad_up`,
+`unbound`. Tokens use canonical physical names, independently of the current
+keyboard layout's display labels. No SDL enum values, X keycodes or event-node
+numbers are persisted. Duplicate records/sources, invalid ranges, missing records,
+excessive lines and long identities are rejected. The existing default mapping
+is listed in [pc-build.md](pc-build.md).
+
+## Implementation and verification
+
+The window redesign of 2026-09-21 kept every rule above and changed the
+presentation: the menu.c palette so the game menu, Mods and Controls match,
+grouped table rows with column headings, tabs and a segmented player control,
+pointer highlighting, a device state badge, a capture countdown, dimmed
+dialogs, and Delete/Page Up/Page Down. `ControlsWindow_MinSize` feeds the
+backends' minimum window size, and `ControlsWindow_Locate` returns where the
+last draw put a widget, so tests address controls by the
+`CONTROLS_UI_*` ids in `controls_window.h` instead of by pixel. Both backends
+create the window resizable (SDL `SDL_WINDOW_RESIZABLE` plus
+`SDL_SetWindowMinimumSize`; X11 `PMinSize` with `StructureNotifyMask`) and
+rebuild the canvas and texture/XImage on resize, keeping the old pair when the
+new one cannot be made.
+
+Shared modules are `controls` (mapping/capture), `controls_config` (persistence),
+`controls_runtime` (device registry, assignments, published input),
+`controls_window` (drawing and interaction), and `controls_linux` (Linux device
+identity). SDL and X11 own their native windows and normalize input into the
+shared types. Gamepad/keyboard getters read cached words; mapping, I/O, allocation
+and UI work run on the main thread. Secondary SDL renderers restore the game GL
+context before returning. The controller PNG is embedded in the executable and
+alpha-blended by `controls_art`; see [artwork and edit prompt](../src/pc/assets/README.md).
+The artwork has no analog sticks, so L3/R3 are edited in the binding list.
+
+The initial partial implementation had out-of-bounds axis/trigger indexing, a
+button mask too narrow for its enum, colliding source identities, and incomplete
+neutral capture. These were corrected before backend integration.
+
+Validation on 2026-09-21 (re-run after the window redesign):
+
+- `tmp/pc-controls`: all 13 CTests passed, including mapping, config, runtime,
+  window, evdev, existing settings/Mods, and portable game core tests.
+- `tmp/pc-controls-sanitize`: the five controls CTests passed with AddressSanitizer
+  and UndefinedBehaviorSanitizer.
+- Native 32-bit SDL (`./build-pc.sh`) and X11 (`--backend x11`) builds succeeded.
+- `tools/pc/test_controls_backend.sh` passed using real SDL3 virtual controllers
+  and the offscreen OpenGL driver: three devices, explicit third-device selection,
+  buttons/sticks/triggers, removal, suppression/release gating, actual secondary
+  window event dispatch/rebinding, and repeated Controls/Mods GL context checks.
+- `tools/pc/test_mods_context.sh` passed.
+- Native SDL headless screenshot smoke fixtures (main-menu cursor, options and
+  title) matched their existing hashes; fixture hashes were not changed.
+- `tools/pc/preview_controls.sh` renders review images under `tmp/pc/controls-*.ppm`
+  using the actual menu text renderer: keyboard and controller tabs, the device
+  list, capture, both dialogs, a disconnected controller, the minimum window
+  size, menu scale 2 and the bitmap fallback font. It drives the window through
+  its own key API, so the pictures survive layout changes. All were inspected.
+- The window CTest also covers reading-order navigation, Delete, pointer
+  highlighting, wheel clamping and the minimum-size layout; the SDL backend test
+  covers a resize down to the minimum size.
+
+The evdev test uses synthetic reads/ioctls, including `SYN_DROPPED`, range
+normalization, paused polling and EOF removal. No physical controller was used
+for this change. X11 native compilation and its shared UI/evdev tests are covered;
+interactive X11 window-manager behavior remains a manual check.
+
+Re-run the five controls tests with:
+
+```sh
+cmake -S . -B tmp/pc-controls -DCMAKE_BUILD_TYPE=Debug
+cmake --build tmp/pc-controls
+ctest --test-dir tmp/pc-controls --output-on-failure -R '^pc_controls'
+tools/pc/test_controls_backend.sh
+tools/pc/preview_controls.sh
+```

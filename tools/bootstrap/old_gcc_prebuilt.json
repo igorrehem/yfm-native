@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "release": "0.17",
+  "url": "https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.1.tar.gz",
+  "archive": "tools/downloads/gcc-2.8.1-0.17.tar.gz",
+  "sha256": "2421097de375a67939713480ea2aa17ce4df6c92cf0c476e68e9ac08c09c759e",
+  "target": "mips-linux-gnu",
+  "files": {
+    "gcc": "83546c0696f06367259e3ab8f9628d28b0ec233e6b2c4cdadf5207a9328a39f5",
+    "cc1": "692758e42ff5e47d750df078dc708a8424f138d3616dc580ad9b38914a27081b",
+    "cpp": "02b748d1bc84ce9502cc19e49954147a8d254f3ee424d9a74023aaa83e117abe"
+  }
+}

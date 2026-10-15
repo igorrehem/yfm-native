@@ -1,0 +1,196 @@
+# Semantic Naming Pass
+
+Initial pass date: 2026-09-01
+
+## Result
+
+The initial evidence-backed naming pass applied:
+
+| Kind | Applied names |
+|---|---:|
+| Functions | 136 |
+| Globals | 53 |
+| **Total** | **189** |
+
+These counts are the preserved result of that dated pass, not current totals.
+Later semantic work continues to extend the machine-readable
+`notes/semantic-symbol-map.csv`, which is the authority for the current
+accepted set. Each row records the address, accepted name, confidence,
+evidence, and caveat. `tools/project/apply_semantic_names.py` applies and
+checks the registry across:
+
+- `config/slus_01411/functions.csv`;
+- `config/slus_01411/matching_c.json`;
+- `config/slus_01411/symbols.txt`;
+- tracked resident C declarations, definitions, and call sites;
+- semantic source filenames for matching C functions.
+
+The automated pass still excludes `src/overlays/`, whose modules have
+independent linker namespaces. Several module configs now publish selected
+resident aliases through the `linker_symbols` paths in
+`config/slus_01411/overlays.json`; this is not a blanket import of the
+resident symbol map. Overlay naming changes must update the applicable
+module definitions or linker aliases and preserve the complete overlay
+match. Module-scoped overlay symbols must not become unconditional resident
+symbols.
+
+Confirmed Psy-Q CRT/SDK function names may also use the registry. Lower
+confidence non-game function mappings remain rejected.
+
+These are semantic project names, not claims that the original Forbidden
+Memories symbols have been recovered.
+
+## Code-generation aliases are not additional semantic objects
+
+`gDuel_bTerrain` is the canonical name for the byte at `0x8009B364`.
+`Duel_GetTerrainBoost` also needs a separate compiler identity for that
+address to preserve its two address materializations. The descriptive
+`gDuel_bTerrainCodegenAlias` is therefore defined in `c_symbols.ld`, not as
+a second primary entry at the same address in `symbols.txt` or the semantic
+registry. Both identifiers resolve to the same byte; they do not describe
+different terrain values.
+
+Keeping the alias explicitly named also prevents the ordinary
+`D_<address>` replacement pass from silently merging the two compiler
+identities. Other terrain users keep the canonical name and their existing
+declaration shapes, including the eight-byte view used to preserve the
+assembler's small-data choice in `func_80024E58`.
+
+## Module-scoped function records
+
+The six-column registry keeps the existing `function` and `global` kinds
+for resident naming. An overlay function instead uses the qualified kind
+`overlay/<module>/function`, for example
+`overlay/free_duel/function` for `FreeDuel_UpdateCursorTween` at
+`0x80168A9C`. This preserves the legacy schema while distinguishing symbols
+whose virtual addresses are reused by different overlays.
+
+The resident naming tool validates these records against the corresponding
+`config/slus_01411/overlays/<module>_functions.csv`: the address, accepted
+name and namespace must agree, and confidence must be `confirmed` or
+`high`. It does not turn them into resident token replacements, source moves
+or `symbols.txt` entries. Apply the actual overlay source, caller, manifest
+and module-symbol changes through the module-specific workflow first.
+
+An address or name may be reused in different overlay namespaces, but a
+duplicate within one namespace remains an error. Unknown scopes, absent
+addresses and not-yet-applied names are rejected rather than silently
+ignored. A scoped-only no-op does not rewrite unrelated resident files.
+
+## Evidence coverage
+
+All nonambiguous descriptive function labels in `tmp/references/gms.c` were
+reviewed against the current inventory and translated into the DOTR-style
+subsystem form documented in `notes/naming-conventions.md`.
+
+Major function families documented by the initial pass:
+
+| Prefix | Count | Scope |
+|---|---:|---|
+| `AiScript_` | 65 | AI bytecode readers, dispatcher, commands, searches, and actions |
+| `Main_` | 18 | initialization, top-level loop, menus, campaign, duel, and credits states |
+| `Duel_` | 15 | card statistics, fusion, ritual, guardian stars, rank, drops, and deck work |
+| `Ai_` | 7 | AI range/set helpers and fusion completion |
+| `File_` | 3 | disc position and existence helpers |
+| `SD_` | 6 | sound state, output mode, effect playback, initialization, and termination |
+| `Library_` | 2 | card-used/owned library state |
+| `Util_` | 2 | behavior-established generic helpers |
+| Other | 4 | `BuildDeck_`, `Text_`, `Rand_`, and `Model_` |
+
+The global pass applies all sufficiently specific entries from
+`tmp/references/ram_map.txt`, corroborated GMS data labels, and key AI/sound
+state:
+
+- exact cross-game sound root: `g_SDValue`;
+- player/opponent life points, deck state, terrain, opponent ID, card drops,
+  fusion data, rank data, starchips, and menu state;
+- AI script state, command table, operand memory, best-action results, active
+  cards, and packed card statistics.
+
+The model loader at `0x80056504` is named `Model_LoadMonsterMerge`, using the
+local `MODEL.MRG`/`SU.MRG` behavior and DOTR's `LoadMerge` terminology.
+
+## Unchiga corroboration pass
+
+Unchiga's live traces, static recompilation, symbol catalogue, and matching
+sources were checked against local code before accepting another 19 names:
+
+- `SD_SEPlay`, `SD_SEPlayFull`, and `SD_SetOutputType` are directly supported
+  by reversible menu traces and local call/body behavior.
+- `SD_Init` and `SD_Term` are the locally matched initialization and mirrored
+  cleanup chains.
+- `0x80046768` is named `SD_InitState`, not the proposed `SD_LoadData`.
+  Its local body initializes `g_SDValue`, work buffers, callbacks, and default
+  fields but does not itself read `SD_BGM.DAT`, `SD_SE.DAT`, or `MASTER.XA`.
+- `gSD_bOutputType` records the signed-byte `-1` initialization sentinel and
+  the live-confirmed stereo/mono values `0` and `1`.
+- File-name/LBA tables, card-grid and Free Duel cursor pairs, password digits,
+  terrain, ritual, rank-score, equip, and card-name sort-key data received
+  subsystem names only where local data shape or live behavior corroborated
+  the imported label.
+
+The Unchiga SDK catalogue was not bulk-imported: it relies partly on a Psy-Q
+4.7 identification that conflicts with this project's independently
+established Psy-Q 4.6 toolchain, and Psy-Q functions remain outside the game
+decompilation scope.
+
+The recomp's independently instrumented reward path confirms
+`Duel_AwardCard` at `0x80021894`: it saturates the awarded card's chest count
+and updates the sixteen-entry recent-award history.
+
+## Remaining-campaign naming
+
+After all canonical and inline-refinement histories became terminal, thirteen
+newly matched functions received mechanical, evidence-backed names:
+
+- `Duel_UpdateCardPickCursor`;
+- `Duel_ApplyCardObjectFlags`;
+- six `DuelEffect_` table/entry maintenance helpers;
+- `Model_CopySlotU16Values`;
+- `Model_InitLightTriplet`;
+- `Model_RegisterHandlerKey`;
+- `Model_FindHandlerKey`;
+- `Model_GetPrimitiveHandler`.
+
+Larger render/state functions whose purpose remains ambiguous were deliberately
+left address-based.
+
+## Deliberately deferred labels
+
+Five GMS labels remain address-based because the available label is explicitly
+uncertain, personal, or describes only an unknown flag:
+
+| Address | GMS label | Reason |
+|---|---|---|
+| `0x800218F0` | `u_maybe_endOfDuel` | The label itself is uncertain and the large routine needs caller/state analysis. |
+| `0x8002D7C4` | `hirataLoop` | Personal/opaque label with no stable behavior name. |
+| `0x80073464` | `aiInstUnkOn` | Sets a second unidentified AI flag. |
+| `0x80073474` | `aiInstUnkOff` | Clears a second unidentified AI flag. |
+| `0x8007368C` | `AiScript_LoadGuardianStarChoice` | Loads the selected card's guardian-star-2 choice from the low byte of one AI register. |
+
+These should be named only after the consuming state or flag semantics are
+established.
+
+The former `0x80071510`, `0x80073448`, and `0x80073458` entries are no longer
+deferred. All three access byte `0x08` of the shared `AiSelection` record:
+`ai_turn_action.c` writes `rand() & 1` there while choosing an action, the two
+state opcodes set and clear it, and the load opcode copies it into the VM
+register selected by its stream operand. They are therefore named as the
+load/set/clear `SelectionRandom` family without assigning a narrower gameplay
+meaning to the consumer branches.
+
+## Validation
+
+The project inventory regenerates without losing any accepted names:
+
+```sh
+make classify-functions
+tools/environments/python/bin/python \
+  tools/project/apply_semantic_names.py --check
+```
+
+The final clean executable rebuild remains byte-identical:
+
+```text
+SHA-256 84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88
+```

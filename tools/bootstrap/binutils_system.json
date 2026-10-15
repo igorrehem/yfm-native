@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "package": "binutils-mips-linux-gnu",
+  "package_version": "2.38-1ubuntu1cross2",
+  "program_prefix": "mips-linux-gnu-",
+  "version": "2.38",
+  "target": "mips-linux-gnu"
+}

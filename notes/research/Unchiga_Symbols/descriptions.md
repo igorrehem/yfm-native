@@ -1,0 +1,773 @@
+# Symbol descriptions — the naming gate
+
+> **External-reference provenance.** This file originated in
+> Unchiga/ygofm-decomp and retains its upstream evidence. Memories-decomp may
+> add local reconciliations and corrections; upstream-only paths, tools, and
+> rules are not this repository's policy. See [`README.md`](README.md).
+
+Operator rule (2026-08-31): every properly named function and variable gets a
+short description (a couple of sentences max) BEFORE its name is considered
+done. Descriptions are written 10 at a time, grounded in the matched body /
+live trace, and the operator corrects them in review. Format: address, name,
+description. Batches are numbered; a symbol without a row here is not fully
+named yet.
+
+## Batch 1 (game-meaningful functions, address order)
+
+| address | name | description |
+|---|---|---|
+| 0x80012B50 | `Main_Init` | One-time boot setup: brings up the core subsystems, installs the vblank callback, then hands off to `Main_Loop`. Never returns to its caller. |
+| 0x80012CD4 | `Main_VBlankCB` | The VSync interrupt callback. Ticks the per-frame counters and flags that the game's pacing and update loops read. |
+| 0x800136E4 | `File_SetPositionTable` | Boot-time init that also sets up the draw environment: installs the per-frame pump callback, then resolves each name in `gFile_apszName[]` to its disc location, building the file-position table (with debug prints). |
+| 0x800138F4 | `File_GetPosition` | Looks up a file's disc location in the table `File_SetPositionTable` built at boot and returns that entry for the requested file. |
+| 0x800176D0 | `Duel_ClearHandSlots` | Clears both display-object pointers and the active byte in each of the five duel hand slots. |
+| 0x8001EE44 | `Duel_CalcGuardianStarBonus` | Guardian-star advantage between two monsters, in ATK/DEF points. Reads each side's two 4-bit star ids out of the packed `gDuel_adwCardStats` word and returns the resulting bonus. |
+| 0x8001EF1C | `Duel_CalcBattleAttack` | A monster's effective ATK for battle resolution: base stat plus every applicable bonus (guardian star, terrain, equips). |
+| 0x8001EF78 | `Duel_CalcBattleDefense` | Same as `Duel_CalcBattleAttack`, but for DEF. |
+| 0x80021558 | `Duel_CalcRankScoreChange` | Scores one duel statistic: walks row `a0` of the `gDuel_awRankScoreChange` {threshold, value} pairs and returns the value paired with the first threshold the statistic falls under. |
+| 0x80021598 | `Duel_CalcRankScore` | Computes the end-of-duel rank score: feeds each tracked duel statistic through `Duel_CalcRankScoreChange` and accumulates the total that decides the POW/TEC grade. |
+| 0x80021810 | `Duel_SelectCardDrop` | Rolls the reward card: rolls a threshold in [1, 2048] and walks a 722-entry weight table (one drop-pool row) accumulating weights until the threshold is reached; returns that card's 1-based index (0 = none). |
+
+## Batch 2 (functions, address order — approved batch 1 precedes)
+
+(0x800218F0 and 0x8002CEE8 are excluded: their IDB names dispute the
+matched bodies — tracked in suspects.md, not here, until 100%.)
+
+| address | name | description |
+|---|---|---|
+| 0x800243F4 | `Duel_ShuffleDeck` | Shuffles one deck. Called per side with the deck, a slot in `gDuel_awPlayerShuffledDeck`, and a permutation buffer (the RAM map's 40-byte "deck shuffle permutation" arrays). |
+| 0x800245A0 | `Duel_ShuffleBothDecks` | Duel-start convenience: calls `Duel_ShuffleDeck` once for the player and once for the CPU, handing each its own temp/permutation buffers. |
+| 0x8002497C | `Duel_GetTerrainBoost` | Terrain bonus lookup with a range guard: requires the `gDuel_bTerrain` flag byte nonzero and monster type < 20, then falls through into the table-lookup body at 0x800249A4 (not a standalone function). |
+| 0x8002BF3C | `Library_MarkOwnedCards` | Marks a card as owned/seen: sets the card's byte in the 722-entry `gLibrary_abCardChest` flag table and runs the change-notify path shared with the deck table. |
+| 0x8002CB80 | `Duel_CalcGuardianStarMatchup` | The guardian-star wheel: given two star ids, returns +500 / -500 / 0. Ids 1-6 form a 6-star advantage cycle, 7-10 a 4-star cycle; across the two cycles the result is 0. Its matching source is `duel_calc_guardian_star_matchup.c`. |
+| 0x8002CBF4 | `Duel_GetBaseCardStat` | Reads card record `gDuel_adwCardStats[idx-1]`, extracts ATK (low 9 bits) or DEF (bits 9-17) per the `shift` arg, multiplies by 10, adds `Duel_GetTerrainBoost` for the card's type, and clamps to 0-9999. |
+| 0x8002CCE4 | `Library_UpdateCardUsedFlag` | Flips a card's seen-flag byte in the `gLibrary_abCardChest` table (the inverse partner of `Library_MarkOwnedCards`), with the same notify path. |
+| 0x8002D0E0 | `Main_RunLibraryMenu` | Mode tick for the card Library screen, per the loop-family pattern (`Main_Loop` dispatches one `*Loop` per mode). Not yet live-confirmed the way `Main_RunOptionsMenu` was. |
+
+**Local reconciliation (2026-09-08):** the `0x8002CCE4` row above is retained
+as upstream evidence, but its byte-toggle/notify description does not match
+the current [matching source](../../../src/game/library_update_card_used_flag.c).
+The helper sets or clears one bit in the shared save flag bank at
+`0x801D0618`; modifier `0x8000` selects clear, and there is no notification
+call. The tester at `0x8002CCA8` normally returns the selected mask or zero,
+while a clear-request test returns normalized `0` or `1`. See the
+[shared flag contract](../../overlays/password-save-block.md#request-modifiers-and-return-values);
+these helpers are not limited to Library flags or to story-only storage.
+
+## Batch 3 (functions — the mode-loop family)
+
+| address | name | description |
+|---|---|---|
+| 0x8002D180 | `Main_RunAnimatedBattle` | Mode tick for the 3D battle animation. First call sets up the screen geometry and dispatches on the fusion recipe id (special-casing recipe 0x309); later calls poll the animation handlers until done. |
+| 0x8002D2D8 | `Main_RunCampaignMap` | Mode tick for the campaign map. Standard shape for this family: one-shot init gated on the D_8009B26C 0x40 flag, then per-frame polling until the mode ends. |
+| 0x8002D370 | `Main_RunBuildDeckMenu` | Mode tick for the deck-building screen; works directly against `gDuel_awPlayerDeck` and the build-deck helpers. |
+| 0x8002D3F8 | `Main_RunFreeDuelMenu` | Mode tick for the Free Duel opponent-select screen (same one-shot-init + poll family shape). |
+| 0x8002D588 | `Main_RunMenu` | Mode tick for the title/main menu — live-confirmed ambient. Delegates the actual menu logic to the disc-loaded menu module (calls into 0x8018001C / polls 0x80180390) and advances `rand()` every frame. |
+| 0x8002D62C | `Main_RunNameEntry` | Mode tick for the name-entry screen: registers its input handler on first call, then polls the entry module until the name is committed. |
+| 0x8002D6C8 | `Main_RunOptionsMenu` | Mode tick for the OPTION screen — live-confirmed ambient. Sibling of `Main_RunNameEntry`; calls `Options_Init` once, then polls `Options_Update`. |
+| 0x8002D730 | `Main_RunGameOver` | Mode tick for the game-over screen; registers its handler and polls, same family shape. |
+| 0x8002D7C4 | `Main_RunUnusedDeveloperMode` | An empty function in the retail build — the compiled-out developer mode slot. The external `Main_RunHirata` label and surviving `src\hirata\` debug paths establish its provenance; the accepted local name states behavior without retaining a personal name. |
+| 0x8002DA1C | `Main_RunCredits` | Mode tick for the credits roll (loop-family pattern; body not yet studied in detail). |
+
+**Local reconciliation (2026-09-08):** the `0x8002D180` row is retained as
+upstream evidence, not a recovered fusion-recipe field identity. The retail
+Exodia sequencer `func_80018FEC` stores `0x309` in `D_800EF658` at
+`0x800193D8`, then requests main mode `1` with return mode `3`. Matching
+`Main_RunAnimatedBattle` recognizes that selector and chooses its special
+initialization/polling path; it also sets the GTE projection on every call,
+not only initialization. See the
+[caller-side evidence](../the-game.md#510-winning-and-losing).
+This establishes an Exodia-presentation use, not a fusion-recipe index,
+exclusive use of the selector, or a decoded model/asset representation.
+
+## Batch 4 (functions)
+
+(0x80056504 `Model_LoadMonsterMerge` skipped: hedged name, not 100% — stays
+on the suspects side until proven.)
+
+| address | name | description |
+|---|---|---|
+| 0x8002DD74 | `Main_Loop` | The game's infinite task-dispatch loop; never returns. Each pass runs the four update funcs, then dispatches the current mode through the `D_80090B64[]` function-pointer table indexed by the low 5 bits of the mode flag byte — that table is where every `*Loop` lives. |
+| 0x80032B60 | `BuildDeck_CompareCard` | Card comparator for sorting deck/trunk lists: compares a primary key first, then breaks ties through a secondary-key translation table (`gCard_asNameSortKey`, indexed by secondary−1) — alphabetical order. |
+| 0x80046768 | `SD_InitState` | Sound-state bootstrap: initializes the sound-state struct at `g_SDValue`, its work buffers, callbacks and defaults. The sound file names `sd_bgm.dat`, `sd_se.dat` and `master.xa` are its own strings, but the disc reads themselves happen in the request path, not in this body (memories-decomp analysis; formerly `SD_LoadData`). |
+| 0x80048658 | `SD_SEPlay` | Plays sound effect `id` at volume `vol` (`SD_SE_VOLUME_MAX`, 0xFF, is full). Live-proven: every menu blip is a call here; the chain bottoms out in PsyQ `_spu_note2pitch` / `SpuGetVoiceEnvelope`. Body itself not yet matched. |
+| 0x800492D8 | `SD_Init` | Sound-system init: runs two internal setup calls, then disables SPU reverb via the BIOS (`SpuSetReverbModeType`). |
+| 0x80049694 | `SD_Term` | Sound-system shutdown: two internal cleanup calls, then the BIOS `SpuQuit()`. Mirror of `SD_Init`. |
+| 0x8005C4F0 | `File_Exists` | Thin wrapper around PsyQ `DsSearchFile` with the two args swapped, mapping the library result to a simple status (−1 = not found or error). |
+| 0x8007058C | `AiScript_ReadByte` | AI interpreter fetch: reads the next byte operand from the opponent's AI script stream and advances the VM's read position. |
+| 0x800705AC | `AiScript_ReadShort` | Same fetch, but a 16-bit operand — used by the jump/compare instructions that carry immediate values. |
+| 0x800705D8 | `AiScript_Init` | Resets the AI VM's state block (`gAiScript_State`) before a decision pass; defined alongside the duel-buffer init. |
+
+## Batch 5 (functions — AI interpreter core, 20 rows)
+
+| address | name | description |
+|---|---|---|
+| 0x80070650 | `AiScript_Run` | The AI VM's interpreter loop: fetches the next opcode from the opponent's script and dispatches it through `gAiScript_apfnCommand[opcode]` (jalr), until an end instruction stops the pass. |
+| 0x80070710 | `Ai_GetHandSize` | Returns the opponent's hand-size parameter: byte 0 of their 9-byte `gDuel_aOpponentData` record, indexed by `gDuel_bOpponentID`. A configured value, not a live count. |
+| 0x80070738 | `Ai_GetWinningCardRange` | Maps a range-category code to card-id bounds via a 10-entry jump table — the "winning cards" flavor of the range pair. |
+| 0x800707C4 | `Ai_GetCardRange` | Direct sibling of `Ai_GetWinningCardRange` with the same jump-table shape: category code in, card-id range out. |
+| 0x80070870 | `Ai_IsCardInSet` | Membership test: scans the script's current CARD set (12-byte records, leading id field) for a given card id. |
+| 0x800708C4 | `Ai_IsTypeInSet` | Same membership test against the script's TYPE set. |
+| 0x80070920 | `Ai_IsCardInSets` | Combined membership check across both the card set and the type set. |
+| 0x80070988 | `AiScript_Jump` | Opcode: unconditional jump — reads a target from the stream and seeks the VM's read position there. |
+| 0x800709C0 | `AiScript_JumpGreaterEqual` | Opcode: conditional jump, taken when the compared value is >= the script operand. |
+| 0x80070A40 | `AiScript_JumpGreater` | Opcode: conditional jump, taken on strictly-greater comparison. |
+| 0x80070AC0 | `AiScript_JumpEqual` | Opcode: conditional jump on equality. |
+| 0x80070B3C | `AiScript_JumpNotEqual` | Opcode: conditional jump on inequality. |
+| 0x80070BB8 | `AiScript_JumpBetween` | Opcode: range jump — reads a [lo, hi] pair and jumps when the tested `gAiScript_aMemory` value falls inside it. |
+| 0x80070C60 | `AiScript_JumpRandom` | Opcode: probabilistic jump — rolls `rand() % 100` against a script threshold. |
+| 0x80070D00 | `AiScript_Call` | Opcode: subroutine call — pushes the return position onto the VM stack (asserting via the "error sub routine" path on overflow) and jumps. |
+| 0x80070DA8 | `AiScript_Return` | Opcode: return — pops the VM stack back to the pushed position (asserting on underflow). |
+| 0x80070E20 | `AiScript_SetRandom` | Opcode: reads a [lo, hi] bound pair from the stream and stores a random value in that range into an `gAiScript_aMemory` slot. |
+| 0x80070EB4 | `AiScript_Subtract` | Opcode: subtracts one `gAiScript_aMemory` entry from another and stores the difference into a third slot. |
+| 0x80070F1C | `AiScript_PlayFieldCard` | Opcode: emits the chosen FIELD play — pulls four script-selected `gAiScript_aMemory` values and stamps them into the play-command record at `D_800EAE88` (slot, card, position, category). |
+| 0x80070FF8 | `AiScript_EndHand` | Opcode: end-of-hand-script marker — an empty function; the dispatch loop reacts to the opcode itself. (First matched by MaChInEgUn3's independent decomp.) |
+
+## Batch 6 (functions — AI opcodes, board queries & pickers)
+
+| address | name | description |
+|---|---|---|
+| 0x80071000 | `AiScript_EndField` | Opcode: end-of-field-script marker — empty function, the loop reacts to the opcode itself. (First matched by MaChInEgUn3's independent decomp.) |
+| 0x80071008 | `AiScript_CalcCardPower` | Opcode: stores a monster's ATK, DEF, or higher stat according to the scripted mode; mode 0 instead maps non-monster cards 343–347 to their 50–1000 direct-damage values and gives other non-monsters zero. |
+| 0x80071194 | `AiScript_TestHighStat` | Opcode: reads a card id from `gAiScript_aMemory`, checks its 5-bit type field in `gDuel_adwCardStats` (bits 26-30); for monster types (< 20) evaluates `Duel_GetBaseCardStat` and stores the resulting stat. |
+| 0x80071248 | `AiScript_LoadCardType` | Opcode: copies a card's 5-bit type field (from its packed `gDuel_adwCardStats` word) into an `gAiScript_aMemory` slot. |
+| 0x800712B4 | `AiScript_LoadCardID` | Opcode: copies the card id (leading field) of an `gDuel_aActiveCards` entry into an `gAiScript_aMemory` slot. |
+| 0x80071320 | `AiScript_SetFaceDown` | Opcode: tests an `gDuel_aActiveCards` entry's face-down flag and stores the boolean into an `gAiScript_aMemory` slot. |
+| 0x800713B8 | `AiScript_LoadLifePoint` | Opcode: copies the s16 life-points field (offset 0x14 of the 32-byte duel-side record) into an `gAiScript_aMemory` slot. |
+| 0x80071424 | `AiScript_LoadOpponentID` | Opcode: stores `gDuel_bOpponentID` into `gAiScript_aMemory[idx]` — lets scripts branch per opponent. |
+| 0x80071460 | `AiScript_LoadTerrain` | Opcode: stores the current `gDuel_bTerrain` byte into `gAiScript_aMemory[idx]` — identical shape to `AiScript_LoadOpponentID`, different global. |
+| 0x8007149C | `AiScript_LoadDeckSize` | Opcode: counts the occupied entries (nonzero leading field) across a record range — the AI's remaining-cards count — into a VM slot. |
+| 0x80071510 | `AiScript_LoadSelectionRandom` | Opcode: copies the `AiSelection.random` byte into the `gAiScript_aMemory` slot selected by its stream operand. |
+| 0x8007154C | `AiScript_TestPinned` | Opcode: tests the flag byte at offset 0x19 of the duel-side record (the "pinned" state) and stores the result. |
+| 0x800715C4 | `AiScript_StartCombo` | Opcode: scans the 5-entry combo window in the VM state block (offset 0x38, shared with `AiScript_PushComboCard`) and writes the found entry — or a default — into `gAiScript_aMemory`. |
+| 0x8007164C | `AiScript_LoadBestDifference` | Opcode: copies the precomputed best-combo score from `gAi_wBestDifference` into a `gAiScript_aMemory` slot. |
+| 0x80071688 | `AiScript_LoadBestAttacker` | Opcode: copies the precomputed best-attacker slot from `gAi_bBestAttacker` into a `gAiScript_aMemory` slot. |
+| 0x800716C4 | `AiScript_LoadBestTarget` | Opcode: copies the precomputed best-target slot from `gAi_bBestTarget` into a `gAiScript_aMemory` slot — the trio a combo search leaves behind. |
+| 0x80071700 | `AiScript_FindStrongest` | Opcode: the big max-scanner (137 insns): takes 5 operands, gets a card-id range from `Ai_GetWinningCardRange`, scans `gDuel_aActiveCards[lo..hi]` with flag-gated skips, and writes the strongest entry's slot to the output. |
+| 0x80071924 | `AiScript_FindWeakest` | Opcode: sibling of `AiScript_FindStrongest` scanning for the weakest qualifying entry. |
+| 0x80071B64 | `AiScript_FindKiller` | Opcode: scans active-card slots 1–5 and stores the lowest-ATK eligible slot whose attack, including the Guardian Star matchup modifier, beats the selected target's scripted ATK-or-DEF comparison; stores zero when none qualifies. |
+| 0x80071CB0 | `AiScript_FindDefenseStopper` | Opcode: repeatedly pairs the strongest unused cards in slot ranges 1–5 and 56–60, optionally excludes face-down cards from the second range, and stores `1` only when at least one pair runs and every first-range power is strictly greater; otherwise stores `0`. |
+| 0x80071EB8 | `AiScript_CountCards` | Opcode: counts cards matching the scripted criteria over a scanned range into a VM slot. |
+
+## Batch 7 (functions — AI searchers, fusion solver, play emitters, 20 rows)
+
+| address | name | description |
+|---|---|---|
+| 0x80071FC8 | `AiScript_FindFirstCard` | Opcode: scans `gDuel_aActiveCards` over an `Ai_GetCardRange` window and stores the first slot matching the scripted target/type criteria (two `gAiScript_aMemory` operands). |
+| 0x8007214C | `AiScript_FindCard` | Opcode: same scan shape, but matches on card id — first entry whose id equals the looked-up value, with flag-based skips. |
+| 0x800722CC | `AiScript_MatchType` | Opcode: scans for a slot owned by a looked-up value, excluding entries via type-gated flag bits (0x4000/0x1000) and set membership (`Ai_IsCardInSets`). |
+| 0x8007249C | `AiScript_FindEquipTarget` | Opcode: finds a field slot whose monster the scripted equip card can attach to (the equip-compatibility lookup), storing the slot. |
+| 0x800725C4 | `AiScript_CheckRitual` | Opcode: runs the ritual recipe lookup for the scripted card and stores the boolean result in a VM slot. |
+| 0x80072640 | `AiScript_FindFirstMonster` | Opcode: scans the field records for the first qualifying monster and stores its slot. |
+| 0x800726F4 | `AiScript_FindFirstType` | Opcode: sibling scan — first entry of the scripted type. |
+| 0x800727C0 | `Ai_CompleteFusion` | The AI's fusion-chain solver: recursive combo search over the `gAiScript_State` rows, resolving each key through `gDuel_aActiveCards`, skipping used/rejected rows, testing fusion/equip validity at each depth. |
+| 0x80072A48 | `AiScript_FindBestCombo` | Opcode: initializes the combo-search scratch from script depth, excluded sets, and hand size; scans the five field slots and then the hand while recursing through `Ai_CompleteFusion`; and stores `3` for no result, `0` when the best start lies past the field, or `1`/`2` from the field result's second combo byte. |
+| 0x80072DC0 | `AiScript_EvaluateFusion` | Opcode: preps and scores a fusion attempt — fills the combo-search header at `gAiScript_State+0x9C` from four operands plus `Ai_GetHandSize`, evaluates `Duel_GetBaseCardStat` both ways (ATK and DEF), and keeps the higher. |
+| 0x80072F1C | `AiScript_SkipHand` | Opcode: advances the script cursor 4 bytes, discarding them — the hand-script skip. |
+| 0x80072F54 | `AiScript_SkipField` | Opcode: identical 4-byte skip for field scripts. |
+| 0x80072F8C | `AiScript_PlayFaceUp` | Opcode: emits a face-up play — fills the play-command record `D_800EAE88[0..4]` with five `gAiScript_aMemory`-selected values. |
+| 0x80073050 | `AiScript_SetPosition` | Opcode: low-byte copy between VM slots — how scripts set a play's position (attack/defense) value. |
+| 0x8007308C | `AiScript_FindBestAttack` | Opcode: the best attack-matchup search. Pits each own monster (slots 1-5) against each opposing slot, scoring ATK difference + `Duel_CalcGuardianStarMatchup`, tracking the best score/attacker/target into `gAi_wBestDifference`, `gAi_bBestAttacker` and `gAi_bBestTarget`. |
+| 0x80073220 | `AiScript_PushComboCard` | Opcode: clears the play-command record, then collects the found combo — scans the `gAiScript_State+0x38` window (bounded by `gAiScript_State[0xA3]`) and pushes values >= 11 into `D_800EAE88[]`. "C" = with clear. |
+| 0x800732A0 | `AiScript_PushComboEmpty` | Opcode: the same combo collect WITHOUT the leading clear ("Nc" = no clear). |
+| 0x80073300 | `AiScript_HandNop` | Opcode: hand-script no-op — empty function. |
+| 0x80073308 | `AiScript_FieldNop` | Opcode: field-script no-op — empty function. |
+| 0x80073310 | `AiScript_AddCard` | Opcode: inserts a card id into the script's card set (scan-or-insert over the set window). |
+| 0x80073380 | `AiScript_ClearCards` | Opcode: clears the script's card set (the set table's writable region). |
+
+## Batch 8 (functions — final: last AI opcodes, sound setters, SDK identifications)
+
+| address | name | description |
+|---|---|---|
+| 0x800733A8 | `AiScript_AddType` | Opcode: inserts a type id into the script's TYPE set (scan-or-insert over the second set window). |
+| 0x80073420 | `AiScript_ClearTypes` | Opcode: clears the script's type set. |
+| 0x80073448 | `AiScript_SetSelectionRandom` | Opcode: sets the `AiSelection.random` byte that the AI action path also fills from `rand() & 1`. |
+| 0x80073458 | `AiScript_ClearSelectionRandom` | Opcode: clears that same selection byte. |
+| 0x80073464 | `AiScript_SetUnknownFlag` | Opcode: sets the flag byte at `0x800F5C7F` (inside `gAiScript_State`'s tail). Mechanism certain; what the flag gates is still unknown — hence the inherited "Unk". |
+| 0x80073474 | `AiScript_ClearUnknownFlag` | Opcode: clears that same flag byte. |
+| 0x80073480 | `AiScript_MoveCard` | Opcode: sets the scripted flag bit on an `gDuel_aActiveCards` entry — per the IDB reading, marking the card as moved/used this turn. |
+| 0x800734DC | `AiScript_LoadOpponentData` | Opcode: writes a scaled `gDuel_aOpponentData` lookup into a VM slot — resolves (opponent*9 + field) with an optional offset from a second slot. |
+| 0x800735A0 | `AiScript_Store` | Opcode: stores a 16-bit immediate from the script stream into `gAiScript_aMemory[idx]`. |
+| 0x800735DC | `AiScript_SetRegister` | Opcode: copies one `gAiScript_aMemory` entry to another (two stream-read indices). |
+| 0x80073624 | `AiScript_Add` | Opcode: adds one `gAiScript_aMemory` entry to another and stores the sum in a third slot. |
+| 0x800736C4 | `AiScript_Print` | Opcode: debug print — emits two strings (the "check_point" machinery) via the console `printf` path. |
+| 0x80046FA0 | `SD_SetOutputType` | Sets the sound output mode (0=stereo, 1=mono): writes the driver state's mode byte, toggles its flag, and re-derives the CD-audio mix. Live-proven on the OPTION screen toggle. |
+| 0x8003FEE0 | `SD_SEPlayFull` | Convenience wrapper: plays sound effect `id` at full volume — always `SD_SEPlay(id, SD_SE_VOLUME_MAX)`. Live-proven with ids 8 (cancel) and 0x2F (option toggle). |
+| 0x80073758 | `PCread` | Chunked file-read wrapper over `_SN_read` — the LIBSN PC-host debugging filesystem (dev-kit leftover; inert on retail hardware). |
+| 0x800740F0 | `FlushCache` | BIOS syscall trampoline: flushes the instruction cache (standard PsyQ kernel call). |
+| 0x80074380 | `ChangeClearRCnt` | BIOS syscall trampoline: root-counter (timer) interrupt-clear mode control. |
+| 0x80074A70 | `ReturnFromException` | BIOS syscall trampoline (B0h): return from exception. |
+| 0x80074A80 | `ResetEntryInt` | BIOS syscall trampoline (B0h): restore the default exception exit. |
+| 0x80074A90 | `HookEntryInt` | BIOS syscall trampoline (B0h): install a custom exception exit. |
+| 0x80075B20 | `DeliverEvent` | BIOS syscall trampoline: fire a kernel event (used inside the SPU library's IRQ path). |
+| 0x80075BE0 | `SpuSetReverb` | PsyQ libspu: enables/disables SPU reverb processing. |
+| 0x80076D10 | `WaitEvent` | BIOS syscall trampoline: block until a kernel event fires. |
+| 0x8007E350 | `CdFlush` | No-argument LIBCD command-state flush. It clears the active command state without shutting down the drive, which later overlay code continues using. |
+| 0x8007E600 | `CdIntToPos_8007E600` | Second linked copy of PsyQ `CdIntToPos`: converts a sector number to a CD MSF position, returning its pointer argument (libsyms owns the bare name at 0x8007A710). |
+| 0x8007E710 | `CdPosToInt_8007E710` | Second linked copy of PsyQ `CdPosToInt`: MSF position back to a sector number. |
+| 0x8007E8D0 | `SetDumpFnt` | PsyQ debug-font library: selects the font stream used by `FntPrint` dumps. |
+| 0x8007E9B0 | `FntOpen` | PsyQ debug font: opens an on-screen text window at the given position/size. |
+| 0x8007EC68 | `FntFlush` | PsyQ debug font: draws the accumulated text into the frame. |
+| 0x8007EF84 | `FntPrint` | PsyQ debug font: printf into the debug text window (the game's on-screen debug output). |
+| 0x800857C0 | `GsSetProjection` | PsyQ libgs: sets the 3D projection distance. |
+| 0x8008B4E0 | `InitCARD2` | PsyQ memory-card BIOS entry: initializes the card subsystem (async variant). |
+| 0x8008E680 | `strcmp` | The C library string compare (LIBC A56 object, signature-identified). |
+| 0x8008FBD0 | `exit` | The C library process-exit stub (matching libsyms' own identification at this address). |
+
+## Addendum (post-bulk-apply)
+
+| address | name | description |
+|---|---|---|
+| 0x8002D684 | `Main_RunPasswordMenu` | Mode tick for the password screen — live-confirmed ambient (mode slot 10), the first CONFLICT row adjudicated by tracing. Standard loop-family shape; the entry grid itself runs in the screen's disc-loaded module. |
+
+## Batch: free-duel module pipeline (2026-09-02, live-traced, Linux seat)
+
+| address | name | description |
+|---|---|---|
+| 0x80168FB4 | `FreeDuel_Entry` | The fixed-address entry `Main_RunFreeDuelMenu` calls into the disc-loaded free-duel module: seeds `rand()` then runs `FreeDuel_UpdateScreen`. |
+| 0x80168C7C | `FreeDuel_UpdateScreen` | Per-frame screen logic. While a dialog is up (flag 0x20) it only waits for dismissal; otherwise runs the cursor tween and scrollbar, then reads `gInput_wPad1Held` to move the pending cell (clamped 0..4 / 0..7) and `gInput_wPad1Pressed` for cancel (SE 8) and confirm (Build Deck tile, deck-incomplete refusal, or duel start with opponent index row*5+col). |
+| 0x80168A9C | `FreeDuel_UpdateCursorTween` | When the pending cell differs from the committed one, sets an 8-frame counter and per-frame velocities so the cursor widget glides to (col*56+20, row*52+40); on landing copies the pending cell into `gFreeDuel_bCursorColumn/Row`, re-places the cursor and plays SE 0x2F. |
+| 0x80168090 | `FreeDuel_PlaceCursor` | Puts the cursor widget at the committed cell's pixel position. With the commit flag set, also refreshes the selected duelist's win/loss readout from `duelistRecords` and the name-string id, guarded by `gFreeDuel_abGridAvailable`. |
+| 0x80168004 | `FreeDuel_UpdateScrollbar` | Every frame: nudges `gGraphics_sViewportY` so the cursor stays within 40..144 px of the viewport, then sets the scrollbar thumb's y to 7 + (cursor_y - 40) * 72 / 364, i.e. 72 px of travel over the 7-row grid. Follows the tweened cursor, so the thumb glides. |
+| 0x8009B36C | `gFreeDuel_bTargetColumn` | Pending grid column written by the input handler; becomes `gFreeDuel_bCursorColumn` when the tween lands. |
+| 0x8009B36D | `gFreeDuel_bTargetRow` | Pending grid row, same lifecycle. |
+| 0x80169030 | `gFreeDuel_abGridAvailable` | Module data: 8 rows x 5 columns of bytes, nonzero where a grid cell can be selected (Build Deck at (0,0), duelists per unlock bits). |
+| 0x801690A4 | `gFreeDuel_bScreenFlags` | Module data byte: 0x40 while the cursor tween is in flight (input ignored), 0x20 while the refusal dialog is open. |
+| 0x80169058 | `gFreeDuel_pThumbWidget` | Module data: pointer to the scrollbar thumb widget instance (0x800F07E8 in the widget pool). |
+| 0x801690A0 | `gFreeDuel_pCursorWidget` | Module data: pointer to the grid cursor widget instance (0x800F0858). |
+
+## Batch: screen fade system (2026-09-02, live-traced, Linux seat)
+
+| address | name | description |
+|---|---|---|
+| 0x800E9EC8 | `gFade_State` | The screen-fade state block (0x28 bytes): u32 color, u8 current level, u8 target level, u8 flags (0x80 fade in flight, 0x01 strip-wipe mode, 0x10/0x20 color latch), u8 step per frame, s16 head, u8 strips[30]. |
+| 0x800151D8 | `Fade_StepBands` | Walks 15 mirrored pairs from a signed head using the configured step: increasing levels visit i=14..0 (middle to edges) and subtract step; decreasing levels visit i=0..14 (edges to middle) and add step. Clamps between current and target, then adds step * D_8009B0D8 to the stored head for increasing levels and subtracts it otherwise. Promotes current only when the last pair reaches target. See the local [band-ramp mechanics](../../fade-transition-state.md#band-ramp-mechanics). |
+| 0x80015310 | `Fade_Update` | Per-frame fade update: runs the strip walker (strip mode) or a flat level ramp, and when current reaches target clears the in-flight bit, latches the working RGB from the target RGB, and sets or clears the overlay-on flag. |
+| 0x800154E4 | `Fade_DrawOverlay` | Updates first, then submits boxes when the active flag is set or when the separate control byte is nonzero and level != 255. Band mode submits 30 boxes; non-band mode submits one full-screen box. Combined flags 0x01/0x02 add a tail box at descriptor (0,240), height 8, without restoring full-screen geometry. See the local [draw/submission evidence](../../fade-transition-state.md#draw-eligibility-and-box-submission). |
+| 0x800158B8 | `Fade_InitOut` | Initializes head 255, target 0, in-flight flag, all 30 strips at the current level, and step 12. The final color helper installs white tint and flags 0xB0 when D_8009B145 is nonzero. |
+| 0x80015904 | `Fade_StartOut` | Calls `Fade_InitOut`, then requests step 8 and strip mode. Its final color-helper call overrides this with step 12 and non-strip flags 0xB0 when D_8009B145 is nonzero. |
+| 0x80015B00 | `Fade_WaitOut` | Calls `Fade_StartOut`, then pumps the four per-frame update functions until the in-flight bit drops. Blocking; the captured strip transitions took ~48 frames, not a fixed duration guaranteed by this wrapper. |
+| 0x8009B141 | `gFade_bOverlayOn` | Separate draw-control byte, written to 1/0 by `Fade_EnableOrderingTables` (0x80015CFC)/`Fade_DisableOrderingTables` (0x80015D0C); its high bit also affects updater behavior. With no active fade, drawing still requires level != 255. Equal-255 completion leaves this byte at 1 without drawing, so it is not an unconditional black-screen latch. |
+
+## Batch: text-box / dialog machine (2026-09-02, live-traced on name entry, Linux seat)
+
+| address | name | description |
+|---|---|---|
+| 0x800EB0F8 | `gTextBox_aRecords` | Array of text-box records (0x64 bytes, index = box slot): current text pointer, glyph-entry list, box/highlight/shadow widget pointers, flags, string id, rect, glyph cell size, and the record's glyph-sprite slot base/count. |
+| 0x80090E58 | `gTextBox_awSpriteSlotRange` | Cumulative glyph-sprite slot boundaries per text-box slot: 0, 255, 415, 575, 620. Record i owns slots [tbl[i], tbl[i+1]). |
+| 0x801D9000 | `gText_adwGlyphCodeTable` | One u32 per font glyph; the low half is the Shift-JIS code the glyph draws. Scanned by `Text_SjisToGlyphCodes`. |
+| 0x801B0000 | `gText_aBank` | The current screen's glyph-code bank. TextBox_BuildStep interprets F0-FF as variable control commands; FF returns from nested streams or terminates the outer stream. Loaded with the screen's module. |
+| 0x801C0000 | `gText_aBankOffsets` | u16 byte offset into `gText_aBank` per string id. |
+| 0x8003B744 | `Text_LookupString` | Returns the bank pointer for a string id: base + offsets[id]; ids >= 0xD000 index the table relative to 0xD000. |
+| 0x80035BE4 | `TextBox_Create` | Opens a text box: sets its rect then initialises the record with the string id. |
+| 0x80035C38 | `TextBox_CreateFlagged` | `TextBox_Create`, then ORs extra flags into the record's flag word. |
+| 0x80035AB8 | `TextBox_SetRect` | Stores the box position and size into the record. |
+| 0x80035AF0 | `DuelEffect_InitEntry` | Initializes a shared effect channel: value, default 8x12 cell, sprite slot base/count from `gTextBox_awSpriteSlotRange`, flags, and counters. |
+| 0x80035B7C | `TextBox_Destroy` | Closes a box: releases its glyph list and frees the box, highlight and shadow widgets. |
+| 0x80039934 | `TextBox_SetPos` | Moves a box and its three widgets to a new position. |
+| 0x800393B0 | `TextBox_BuildStep` | The typewriter: on the first call resolves the string and allocates the widgets; every call emits one glyph sprite; sets the done bit at the terminator. |
+| 0x80043178 | `DisplayObject_SavePosition` | Copies a display object's live output x/y pair into the saved source pair used by both interpolation helpers. |
+| 0x8004318C | `DisplayObject_InterpolatePositionCosine` | Eases the saved source position toward a target through their midpoint using the caller's cosine phase. |
+| 0x80043230 | `Widget_SlideSine` | Slides a widget between a stored origin and a target along a sine of the given step; dialogs use it to enter and leave. |
+| 0x8003BC40 | `Text_SjisToGlyphCodes` | Converts a Shift-JIS u16 string into glyph codes (0xF0xx for high indices), 0xFF-terminated, so dynamic text can be typed by the machine. |
+
+## Batch: dialog choice machine (2026-09-02, live-traced on the name confirmation, Linux seat)
+
+| address | name | description |
+|---|---|---|
+| 0x8009B34D | `gDialog_bChoice` | Index of the selected choice line in the open dialog (0 = first). Updated on every DPAD move, finalised from `gDialog_bInputState` on confirm; screens read it after the box reports done. |
+| 0x8009B345 | `gDialog_bChoiceCount` | Number of selectable lines in the open choice box; the upper bound for DOWN. |
+| 0x8009B336 | `gDialog_bChoiceEnabled` | Bitmask, one bit per line, of choices that may be picked; drives the cursor's highlight color. |
+| 0x8009B327 | `gDialog_bInputState` | The choice box's input result byte: bit 0x40 confirmed with the chosen line in the low 3 bits, bit 0x80 cancelled. |
+| 0x800374F4 | `Dialog_OpenChoice` | Creates the choice cursor object for a text box at its bottom-right corner (sprite 0x20C) and returns it; the box stores it at +0x30. |
+| 0x800371A8 | `Dialog_UpdateChoice` | Per-frame tick of the cursor object: spawns its sprite on first call, then handles confirm and cancel from `gDialog_bInputState` or passes the DPAD to `Dialog_ReadChoiceInput`. |
+| 0x8003700C | `Dialog_ReadChoiceInput` | Moves the selection down or up within the count (or cycles with the repeat bit), plays SE 6 and re-highlights; returns 0 when nothing relevant was pressed. |
+| 0x80036F80 | `Dialog_HighlightChoice` | Sets the cursor's color fields to 0xC0 or 0xC0C0 depending on whether the selected line is enabled, then refreshes the object. |
+| 0x80037110 | `Widget_UpdatePulseColour` | Draw callback that folds the global frame counter into a triangle wave and writes it across an object's color and shadow lanes -- the blinking cursor. |
+
+## Batch: story script engine (2026-09-02, live-traced in the campaign intro, Linux seat)
+
+| address | name | description |
+|---|---|---|
+| 0x8002CE64 | `Main_RunCampaign` | Mode tick for the campaign (mode byte 0xC2): runs the story script and its text boxes each frame. Live-confirmed as the ambient loop of the intro cutscene. |
+| 0x8002FA54 | `Script_RunTick` | Bytecode driver: if no script is running, resolves the selected script through the self-relative offset table and latches its stream; otherwise executes the current opcode through `gScript_apfnCommand`, gated by `gScript_wState`. |
+| 0x8002E730 | `Script_OpShowImage` | Script opcode 5: shows the cutscene picture -- copies the staged image into the display area, or when nothing is busy releases the previous one, starts a fade and requests the next picture from disc. |
+| 0x8002EC74 | `Script_OpSound` | Reads an encoded sound command from `gScript_pStream`, plays an immediate sound effect or updates/replays the current sound command, and clears `gScript_wCommand` when the operation is complete. |
+| 0x80090C50 | `gScript_apfnCommand` | Table of the 24 script opcode handlers (0x8002E3DC .. 0x8002FED0), indexed by `gScript_wCommand`. |
+| 0x8009B27C | `gScript_wCommand` | The opcode currently being serviced; bit 0x8000 marks it busy across frames. |
+| 0x8009B290 | `gScript_pStream` | Byte-stream cursor of the running script. |
+| 0x8009B2A4 | `gScript_wState` | Script engine state: 0x8000 a script is running, 0x4000 waiting for a text box to finish, low bits select the script. |
+
+## Batch: campaign overworld (2026-09-02, live-traced, Linux seat)
+
+| address | name | description |
+|---|---|---|
+| 0x8002CCA8 | `Campaign_TestStoryFlag` | Tests one bit of `gCampaign_abStoryFlags`: byte (id & 0x7FF) >> 3, bit 0x80 >> (id & 7); if bit 0x8000 of the id is set the result is inverted. |
+| 0x801D0618 | `gCampaign_abStoryFlags` | The save block's story-progress bit array, MSB-first, read by `Campaign_TestStoryFlag`. |
+| 0x801D5800 | `gText_aGlobalOffsets` | u16 offsets, base 0x801D0000, for string ids 0x8000 and up: the always-resident bank holding location and card names. |
+
+## Batch: controller input runtime
+
+| address | name | description |
+|---|---|---|
+| 0x8003B734 | `Input_IsPad1ConfirmPressed` | Tests pad 1's newly pressed mask for either confirm button, X or Square, and returns the matching bits. |
+| 0x8003CB7C | `Input_ResetPads` | Clears both controllers' held, newly pressed, and repeat masks together with all 32 per-button repeat timers and pending input state. |
+| 0x8003CBE8 | `Input_InitPads` | Starts the Psy-Q pad service with one 34-byte receive buffer per port, installs the repeat timing defaults, and resets published input state. |
+| 0x8003CC38 | `Input_ReadRawPads` | Decodes both active-low Psy-Q receive buffers and accumulates pad 1 in the low half and pad 2 in the high half of the pending held mask. |
+| 0x8003CCD8 | `Input_UpdatePads` | Consumes the pending mask, derives rising-edge and timer-driven repeat bits, then publishes held, newly pressed, and repeat masks for both controllers. |
+| 0x8003CDF8 | `Input_BackupPad1AndUsePad2` | Saves pad 1's held, newly pressed, and repeat masks, then exposes the corresponding pad 2 masks through the pad 1 globals. |
+| 0x8003CE48 | `Input_RestorePad1FromBackup` | Restores pad 1's held, newly pressed, and repeat masks after the temporary pad 2 remap. |
+
+## Batch: save-data runtime
+
+| address | name | description |
+|---|---|---|
+| 0x8003CE74 | `SaveData_NextMaskWord` | Advances the two-word save mask state and returns the next 32-bit word used when generating and validating the save's masked checksum blocks. |
+| 0x8003D0F4 | `SaveData_ApplyRuntimeState` | Rebuilds the saved player-name glyphs, restores runtime globals, and reapplies the saved sound output mode after persistent data is loaded. |
+| 0x8003D288 | `SaveData_HasSameDuelistCode` | Tests whether two loaded save records carry the same duelist code at record offset `0x334`. |
+| 0x8003F7D4 | `SaveData_RequestLoad` | Clears the load-result flag and starts an asynchronous read of the `0x680`-byte save state into the staging buffer. |
+| 0x8003F810 | `SaveData_PollLoad` | Polls the pending read; on success copies the staged state into persistent memory and applies its runtime fields. |
+| 0x8003F87C | `SaveData_RequestWrite` | Copies the current save state into staging, prepares its checksum block, and starts the `0xD00`-byte memory-card write. |
+
+## Batch: duel HUD and effective stats
+
+| address | name | description |
+|---|---|---|
+| 0x80016DDC | `Duel_UpdateLifePointDisplay` | Moves one side's displayed life points toward its authoritative value with larger steps for larger differences and clamps the final step to avoid overshooting. |
+| 0x80016E70 | `Duel_DrawLifePointsAndDeckCounts` | Updates both displayed life-point values, then draws four LP digits and two remaining-deck digits for each side with the active-side shading. |
+| 0x800170C8 | `Duel_CalcCardStats` | Adds the card's base ATK/DEF, stat modifier, and terrain modifier, clamps each result to 0–9999, and returns packed `DEF << 16 | ATK`. |
+
+## Batch: duel rules and rewards
+
+| address | name | description |
+|---|---|---|
+| 0x80018CF8 | `Duel_HasAllExodiaPieces` | Returns whether the current five-card hand contains every Exodia piece, marking each matched temporary slot so one card cannot satisfy two required IDs. |
+| 0x80019A08 | `Duel_CheckEquip` | Looks up an equip card in the compatibility table and returns the monster card ID when that pair is valid, or zero otherwise. |
+| 0x80019A60 | `Duel_CheckFusion` | Normalizes two card IDs, searches their packed fusion-table row, and returns the fusion result card ID or zero when no recipe exists. |
+| 0x8001BD48 | `Duel_CheckQuitInput` | In a two-player duel, detects a newly pressed Select button, requests the quit-confirmation dialog, and reports that it handled the input. |
+| 0x80021894 | `Duel_AwardCard` | Adds one card to the trunk with quantity saturation at 250, shifts the 16-entry recent-award history, and inserts the new card at the front. |
+
+## Batch: file transfer lifecycle
+
+| address | name | description |
+|---|---|---|
+| 0x80013998 | `File_InitTransferDescriptor` | Fills a caller-provided transfer descriptor with its file selector, position, size, phase callback, seed, and optional destination, selecting sector-count or byte-count and buffered or direct transfer state. |
+| 0x800143DC | `File_ActivateTransfer` | Copies the queued transfer descriptor into active state, promotes the next shared 32-byte buffer record, raises the mode-4 flag when needed, and publishes the descriptor's active flags. |
+| 0x80014E1C | `File_RequestAsyncTransfer` | Starts the game-facing asynchronous request: marks the handoff, invokes an installed transfer callback when present, initializes the active descriptor when available, and returns that descriptor. |
+
+## Batch: sound sequence readers
+
+| address | name | description |
+|---|---|---|
+| 0x8004BAA0 | `SD_CompareBytes` | Compares a nonempty byte range and returns the first byte difference, or zero when all requested bytes match; a zero-length request returns `-1`. |
+| 0x8004BAE4 | `SD_ReadSequenceByte` | Reads and advances one byte from the active sound sequence, marking the reader exhausted and returning `-1` when the new offset passes its configured bound. |
+| 0x8004BB34 | `SD_ReadVariableLengthValue` | Decodes a MIDI-style 7-bit continuation value from the active sequence; byte `0xFF` marks the reader exhausted and yields zero. |
+| 0x8004BC2C | `SD_ReadSequenceU32BE` | Reads four sequence bytes in order and combines them into one 32-bit big-endian value. |
+| 0x8004BCA8 | `SD_ReadSequenceU16BE` | Reads two sequence bytes in order and combines them into one 16-bit big-endian value. |
+
+## Batch: duel-effect state helpers
+
+| address | name | description |
+|---|---|---|
+| 0x80035CE4 | `DuelEffect_ResetOccupancy` | Clears all 240 bytes of the duel-effect occupancy table and resets its row and column scan cursors to zero. |
+| 0x80035DB8 | `DuelEffect_ClearMatchingMarker` | Scans all 620 effect entries and clears the marker byte on every entry whose stored one-based identifier matches the requested zero-based slot. |
+| 0x80035DF4 | `DuelEffect_ResetEntryMarkers` | Clears both tracked marker bytes in every one of the 620 effect entries. |
+| 0x80036DBC | `DuelEffect_UpdateObjectLayout` | Copies the channel's coordinate bounds into the linked display object, then positions its repeated choice fields from the entry layout variant, display mode, and selected choice. |
+| 0x8003735C | `DuelEffect_HasActiveEntry` | Scans the object's bounded effect-entry range, stopping at the first inactive marker and returning whether an active entry has a nonzero payload byte. |
+
+## Batch: utility and numeric helpers
+
+| address | name | description |
+|---|---|---|
+| 0x80024704 | `Util_CompareS16` | Compares two signed 16-bit values and returns `-1`, `0`, or `1` for ascending-order sorting. |
+| 0x800356A0 | `Util_CopyWords` | Copies complete 32-bit words backward through a region; a partial trailing length causes one additional full-word copy, matching the routine's word-oriented contract. |
+| 0x80035748 | `Util_FillMemory` | Replicates the low byte of the requested value across 32-bit words and fills backward; a partial trailing length still writes one final full word. |
+| 0x800357E8 | `Text_EncodeDecimalDigits` | Encodes a value into the requested number of decimal digit bytes and replaces unused most-significant zero positions with the `0xA` blank marker. |
+| 0x800358A0 | `Text_EncodeDecimalNoPadding` | Runs the fixed-width decimal encoder, then converts its leading `0xA` blank markers back to zero in the output buffer. |
+| 0x800358FC | `Rand_GetInterval` | Returns the Psy-Q pseudorandom value modulo the caller-supplied interval. |
+
+## Batch: Options screen lifecycle
+
+| address | name | description |
+|---|---|---|
+| 0x8003C568 | `Options_UpdateLayout` | Positions the cursor for the supplied selection byte and updates the stereo/mono widget from the working output type. The layout retains two nonzero positions, but the NTSC-U executable has no post-initialization writer for the selection. |
+| 0x8003C628 | `Options_Init` | Creates the Options screen objects, initializes its active state and selection, copies the stored sound output type with negative values reset to stereo, lays out the widgets, and starts the screen sound. |
+| 0x8003C7A0 | `Options_HandleInput` | Toggles stereo/mono with horizontal input on the naturally reachable row and commits the sound-driver setting immediately, or cancels the screen. Nonzero-selection confirm branches remain but have no natural NTSC-U writer. |
+| 0x8003C8CC | `Options_Update` | Dispatches the low nibble of the Options state to fade-out waiting, input handling, an idle state, or a return to input, then returns the resulting state. |
+
+## Batch: memory-card I/O events
+
+| address | name | description |
+|---|---|---|
+| 0x80043E68 | `MemCard_CloseIOEvents` | Enters a critical section, closes all eight stored memory-card event handles in order, and then exits the critical section. |
+| 0x80043EBC | `MemCard_InitIOEvents` | Resets local card state, opens complete/timeout/error/new-card events for both `SwCARD` and `HwCARD`, enables all eight handles, and performs the setup inside one critical section. |
+| 0x80044CFC | `MemCard_SetIOResultCompleteCB` | Event callback that stores result `0` in the shared memory-card I/O result word. |
+| 0x80044D0C | `MemCard_SetIOResultTimeoutCB` | Event callback that stores timeout result `1` in the shared memory-card I/O result word. |
+| 0x80044D20 | `MemCard_SetIOResultErrorCB` | Event callback that stores error result `2` in the shared memory-card I/O result word. |
+| 0x80044D34 | `MemCard_SetIOResultNewCardCB` | Event callback that stores new-card result `3` in the shared memory-card I/O result word. |
+
+## Batch: model support and handler registry
+
+| address | name | description |
+|---|---|---|
+| 0x80057F38 | `Model_UpdateViewMetrics` | Uses or copies the 32-byte reference-view record, derives yaw and pitch through the horizontal distance, stores the full three-dimensional distance, and normalizes both angles to one turn. |
+| 0x80058FB0 | `Model_CopySlotU16Values` | Copies the four 16-bit values at model-slot offset `0xDD0` into the caller's output buffer. |
+| 0x80059134 | `Model_InitLightTriplet` | Initializes three fixed coordinate and intensity records at model-slot offsets `0xD70`, `0xD80`, and `0xD90`. |
+| 0x8005A8C4 | `Model_HasInsufficientBufferSpace` | Computes remaining model-buffer space from the moving heap pointer, active bank base, and selected slot's data size, counting type `5` twice, and reports whether the minimum reserve would be violated. |
+| 0x80060170 | `Model_RegisterHandlerKey` | Leaves an existing key unchanged or stores a new key/handler value in the first empty entry of the fixed 80-record model registry. |
+| 0x800601D0 | `Model_FindHandlerKey` | Reverse-searches the 80-record model registry by handler value and returns its key, or `-1` for the default sentinel or no match. |
+| 0x8006041C | `Model_GetPrimitiveHandler` | Decodes a packed model primitive type and returns the corresponding processing handler, falling back to the default handler for unsupported codes. |
+
+## Batch: script viewport and text commands
+
+| address | name | description |
+|---|---|---|
+| 0x8002E9A0 | `Script_OpViewportTween` | Reads little-endian target X, target Y, and frame-count halfwords from the script stream, then switches the script dispatcher to viewport-tween state `7`. |
+| 0x8002EA0C | `Script_UpdateViewportTween` | Derives 16.16 X/Y steps on the tween's first update, advances the viewport each frame, and snaps to the target while clearing the dispatcher state when the counter expires. |
+| 0x80038530 | `Text_StartCampaignDuel` | Reads the opponent, two duel-descriptor bytes, terrain, and continuation value from the active text stream, selects the sound command from the opponent ID, initializes campaign-duel state, and switches the main mode to duel. |
+| 0x80038BA8 | `Text_SetCursorOffset` | Reads a 16-bit target from the active text stream and replaces the cursor's low halfword while preserving its current 64 KiB bank. |
+| 0x80038BF0 | `Text_HandleChoiceCommand` | Either jumps the active cursor through the selected same-bank target or initializes a choice prompt's count, enabled mask, display flags, input state, and update callback. |
+
+## Batch: sound callbacks and sequence tracks
+
+| address | name | description |
+|---|---|---|
+| 0x8004544C | `SD_ClearBusyFlag` | Registered callback that clears the main sound-driver busy byte. |
+| 0x8004545C | `SD_ArmBusyCallback` | Sets the main sound-driver busy byte and installs `SD_ClearBusyFlag` in the shared callback slot. |
+| 0x8004B734 | `SD_SequenceTimerCallback` | Root-counter callback that guards against disabled, busy, or reentrant state, runs eight sequence-track ticks, and periodically invokes secondary sound maintenance plus an optional callback. |
+| 0x8004BBBC | `SD_FindMidiTrackChunk` | Scans the bounded active sequence stream for the next four-byte `MTrk` marker and returns the offset immediately after it, or `-1` when none remains. |
+| 0x8004C8C8 | `SD_ProcessSequenceTracks` | Advances each active `0x2C`-byte track timer, dispatches sequence commands when its accumulator wraps, updates delay values, and contributes to the secondary running total. |
+| 0x8004CA60 | `SD_ResetSequenceTracks` | Marks every configured secondary sequence track stopped and clears its leading value. |
+
+## Batch: Build Deck and display-pool helpers
+
+| address | name | description |
+|---|---|---|
+| 0x800320BC | `BuildDeck_AddCard` | Finds the first free entry in the 40-card Build Deck list, fills it with the selected card's ID, type, ATK, and DEF, then refreshes the deck's derived state. |
+| 0x800338E4 | `BuildDeck_UpdatePaneTransition` | Initializes and advances the 16-tick horizontal slide between Build Deck panes, plays sound `30`, snaps the viewport to its target, and records the completed pane. |
+| 0x80040390 | `DisplayObject_ResetPool` | Clears the allocation field in all 96 display-object slots, resets both shared counters, and marks the head and companion entries of all seven processing lists empty. |
+
+## Batch: duel card-object and field collectors
+
+| address | name | description |
+|---|---|---|
+| 0x80018080 | `Duel_ApplyCardObjectFlags` | Rebuilds a duel card object's face-down, defense-position, and normal/used color state from its card record, refreshes the object, and clears its image-resource byte unless record flag `0x2000` preserves it. |
+| 0x800240B0 | `Duel_UpdateCardPickCursor` | Initializes and advances the field card-pick cursor, resolves its current row and column to a card record, publishes a successful pick, and manages the hold and teardown timers around that selection. |
+| 0x80026C6C | `Duel_CollectFieldCardsBelowType` | Collects occupied cards from one five-slot row on the current side whose packed card type is below the requested threshold, null-terminates the output list, and returns its count. |
+| 0x80026D18 | `Duel_CollectFieldCardsByType` | Collects occupied cards from one five-slot row on the current side that match the requested packed card type, accepting every type when the selector is negative, then null-terminates the list and returns its count. |
+
+## Batch: DuelEffect runtime helpers
+
+| address | name | description |
+|---|---|---|
+| 0x800255FC | `DuelEffect_UpdateFieldMarker` | Advances a marker across the current side's five field slots, waits for each marker animation, and updates the qualifying marked card before moving to the next slot. |
+| 0x8002892C | `DuelEffect_UpdateState` | Latches a newly selected effect state, dispatches its callback on later updates, and clears the state when its cancel bit is set. |
+| 0x8002E370 | `DuelEffect_MarkObjectIfActive` | Reverse-scans three effect records and sets object flag `0x2` when any record has a nonnegative signed marker. |
+| 0x80038798 | `DuelEffect_PlaySoundCommand` | Plays a normal 16-bit sound ID immediately, or uses a high-bit command to start the flagged sound path, read its follow-up value, and arm effect state `0x11`. |
+| 0x80039D64 | `DuelEffect_ProcessEntries` | Dispatches handlers for the channel's active effect entries and, when requested, compacts its bounded entry range before writing a new terminator. |
+| 0x8003B714 | `DuelEffect_InitEntryDefaultFlags` | Calls `DuelEffect_InitEntry` for one entry with the caller-supplied pointers and default flags value zero. |
+| 0x8003D46C | `DuelEffect_CreateChannel` | Resets the dialog choice, creates a fixed-size channel from the request's low 15 bits, stamps its sequence byte, and applies activation flags or the high-bit setup path. |
+
+## Batch: remaining main-mode helpers
+
+| address | name | description |
+|---|---|---|
+| 0x8002CE08 | `Main_RunDebugMenu` | Sets the debug menu's one-shot initialization flag and initializes it on first entry, then runs its per-frame updater and clears the companion state byte when the menu exits. |
+| 0x8003B9BC | `Main_InitFreeDuelMenu` | Queues and waits for the `0x57`-sector Free Duel package at WA sector `0x1E88`, then initializes the loaded module with the primary load arena. |
+
+## Batch: name-entry dialog
+
+| address | name | description |
+|---|---|---|
+| 0x80169734 | `NameEntry_UpdateDialog` | Drives the name-entry dialog state machine: creates and slides pending boxes, handles confirmation choices, rebuilds the typed-name box after an inserted glyph's transfer arrives, processes the separate finish request, and starts the screen exit after acceptance. |
+
+## Batch: main-menu value setup
+
+| address | name | description |
+|---|---|---|
+| 0x80180FD8 | `MainMenu_StartValueSetup` | Allocates the dual-value setup screen's five display objects, snapshots two caller-owned values and a toggle, initializes its widget modes, and installs the screen callback. |
+| 0x80181CB8 | `MainMenu_UpdateValueWidgetTween` | Interpolates one value widget over ten updates toward its resting position or the bar position derived from the current value, then publishes the completed mode. |
+| 0x80181E30 | `MainMenu_FinishValueSetup` | Writes both edited values and the final toggle back to their callers, releases all five setup objects, and clears the screen callback. |
+| 0x80181EEC | `MainMenu_CountDecimalDigits` | Counts a nonnegative value's decimal digits by repeated division by ten, returning one digit for zero. |
+| 0x80181F20 | `MainMenu_StartValueWidgetTween` | Records a value widget's current position, assigns its index and target mode, installs the tween callback, and starts its ten-update timer. |
+
+## Batch: Free Duel cursor sparkles
+
+| address | name | description |
+|---|---|---|
+| 0x801681B4 | `FreeDuel_SpawnSparkle` | Allocates and configures one display object for the Free Duel cursor-trail sparkle, using the shared sparkle asset and returning the new object. |
+| 0x8016899C | `FreeDuel_GetSparkleSlot` | Reverse-scans the 16-entry sparkle pointer pool and returns the highest-index empty slot, or null when every slot is occupied. |
+| 0x801689D4 | `FreeDuel_UpdateSparkle` | Initializes newly active sparkles to a 16-update grey fade, subtracts four from every color channel per update, then releases the object and clears its pool slot. |
+
+## Batch: campaign-map camera
+
+| address | name | description |
+|---|---|---|
+| 0x801681E8 | `CampaignMap_SetCameraFromLocation` | Copies the selected location record's camera position, angle, pitch, and distance into the live map camera, then recomputes the view. |
+| 0x80168258 | `CampaignMap_UpdateView` | Applies the live camera's projection, geometry offset, far color, and fog settings, then advances the shared view transition state. |
+| 0x80168310 | `CampaignMap_ResetCamera` | Restores the campaign map's fixed camera, projection, and matrix defaults before recomputing the view. |
+| 0x80168388 | `CampaignMap_MoveCameraDpad` | Provides free-look controls that adjust camera position or angle, pitch, and distance from held pad combinations, then recomputes the view. |
+| 0x801688BC | `CampaignMap_StartCameraTween` | Seeds 16.16 accumulators and per-step deltas from the live camera to a location's position, shortest-path turn, pitch, and distance targets. |
+
+## Batch: campaign-map location lifecycle
+
+| address | name | description |
+|---|---|---|
+| 0x80168004 | `CampaignMap_ClearLocationObjects` | Releases each of the four current location objects and clears all four module pointer slots. |
+| 0x80168050 | `CampaignMap_RebuildLocationObjects` | Clears the prior location objects, then creates the enabled and story-flag-approved objects from the selected location's four spawn records. |
+| 0x8016818C | `CampaignMap_CreateLocationLabel` | Creates and prepares the current location's label box from global string ID `0x8350 + gCampaignMap_Location`. |
+| 0x80168588 | `CampaignMap_CreateLocationMarker` | Creates a marker at the current location's coordinates and stores the indexed destination location's coordinates as its target. |
+| 0x8016866C | `CampaignMap_SetLocation` | Rebuilds the complete campaign-map scene for one location: render state, camera, label, gated objects, optional town marker, and background track. |
+
+## Batch: campaign-map navigation
+
+| address | name | description |
+|---|---|---|
+| 0x80168E0C | `CampaignMap_PickExit` | Tests town confirm/cancel input and four directional exits against their story flags, stores the selected move type, and returns a destination, an enter-location marker, or `-1`. |
+| 0x80168FCC | `CampaignMap_UpdateLocation` | Finishes active map movement and rebuilds the location scene, drives the fade into a selected destination, or polls exits and starts the next transition. |
+
+## Batch: controller state globals
+
+| address | name | description |
+|---|---|---|
+| 0x8009B394 | `gInput_wPad1Repeat` | Pad 1 input mask containing newly pressed buttons and timer-generated repeats. |
+| 0x8009B396 | `gInput_wPad2Repeat` | Pad 2 input mask containing newly pressed buttons and timer-generated repeats. |
+| 0x8009B398 | `gInput_wPad1Pressed` | Pad 1 rising-edge mask containing buttons newly pressed on the published update. |
+| 0x8009B39A | `gInput_wPad2Pressed` | Pad 2 rising-edge mask containing buttons newly pressed on the published update. |
+| 0x8009B39E | `gInput_wPad1RepeatBackup` | Temporary backup of pad 1's repeat mask while pad 2 is exposed through the pad 1 interface. |
+| 0x8009B3A0 | `gInput_wPad1PressedBackup` | Temporary backup of pad 1's newly pressed mask while pad 2 is exposed through the pad 1 interface. |
+| 0x8009B3A4 | `gInput_wPad1Held` | Pad 1 mask of buttons currently held on the latest published update. |
+| 0x8009B3A6 | `gInput_wPad2Held` | Pad 2 mask of buttons currently held on the latest published update. |
+| 0x8009B3A8 | `gInput_dwPendingHeld` | Combined pending held-button word accumulated by the pad service, with pad 1 in the low half and pad 2 in the high half. |
+| 0x8009B3AC | `gInput_wPad1HeldBackup` | Temporary backup of pad 1's held mask while pad 2 is exposed through the pad 1 interface. |
+
+## Batch: duel state globals
+
+| address | name | description |
+|---|---|---|
+| 0x8009B338 | `gDuel_wSelectedCardID` | Card ID currently selected by the shared duel and card-grid interfaces. |
+| 0x8009B361 | `gDuel_bOpponentID` | Current opponent or duelist ID; negative values select the two-player setup path instead of a normal opponent. |
+| 0x8009B364 | `gDuel_bTerrain` | Current duel terrain ID used for terrain package loading and monster stat adjustments. |
+| 0x800EA002 | `gDuel_wPlayerLifePointDisplay` | Player life-point value currently shown by the ticking duel HUD counter. |
+| 0x800EA004 | `gDuel_wPlayerLifePoint` | Authoritative player life-point value used by duel calculations. |
+| 0x800EA022 | `gDuel_wOpponentLifePointDisplay` | Opponent life-point value currently shown by the ticking duel HUD counter. |
+| 0x800EA024 | `gDuel_wOpponentLifePoint` | Authoritative opponent life-point value used by duel calculations. |
+| 0x800EA118 | `gDuel_wFusionResultCardID` | Card ID produced by the current fusion result. |
+| 0x8009B165 | `gDuel_bWinnerSide` | Winning duel side index: `0` for the player and `1` for the opponent. |
+| 0x8009B164 | `gDuel_bQuitDialogState` | Two-player quit-dialog state: bit `0x01` requests the prompt and bit `0x80` marks it initialized. |
+
+## Batch: deck randomization and rewards
+
+| address | name | description |
+|---|---|---|
+| 0x800FE6F8 | `gRand_dwSeed` | Seed advanced by the resident `rand` implementation for shuffles, weighted card selection, AI choices, and other pseudorandom behavior. |
+| 0x80177F94 | `gDuel_awPlayerDeckShuffle` | Player-side permutation buffer passed to `Duel_ShuffleDeck`. |
+| 0x80177FBC | `gDuel_awOpponentDeckShuffle` | Opponent-side permutation buffer passed to `Duel_ShuffleDeck`. |
+| 0x80177FE8 | `gDuel_awPlayerShuffledDeck` | Forty-card shuffled working copy of the player's deck. |
+| 0x80178038 | `gDuel_awOpponentShuffledDeck` | Forty-card shuffled working copy of the opponent's deck. |
+| 0x801781D8 | `gDuel_awOpponentDeckPool` | Weighted source pool used to generate the opponent's 40-card deck before shuffling. |
+| 0x8017878C | `gDuel_awSaPowCardDrops` | Per-opponent 722-entry weighted card-drop rows used for S/A-POW rewards. |
+| 0x80178D40 | `gDuel_awBcdCardDrops` | Per-opponent 722-entry weighted card-drop rows used for B/C/D rewards. |
+| 0x801792F4 | `gDuel_awSaTecCardDrops` | Per-opponent 722-entry weighted card-drop rows used for S/A-TEC rewards. |
+| 0x801798A8 | `gDuel_awRankScoreChange` | Threshold/value rows used to convert tracked duel statistics into the final rank score. |
+
+## Batch: frontend selection state
+
+| address | name | description |
+|---|---|---|
+| 0x80184594 | `gMain_bMenuID` | Current main-menu entry ID, covering pre-game entries `0`-`4` and post-load entries `5`-`10`. |
+| 0x80184568 | `gMain_apMenuEntries` | Eleven main-menu entry object pointers indexed by `gMain_bMenuID`, with five pre-game and six post-load slots. |
+| 0x8009B258 | `gCardGrid_bCursorColumn` | Column of the shared ten-wide card-grid cursor. |
+| 0x8009B259 | `gCardGrid_bCursorRow` | Row component of the shared card-grid cursor position. |
+| 0x8009B366 | `gFreeDuel_bCursorColumn` | Committed column of the Free Duel opponent-grid cursor. |
+| 0x8009B367 | `gFreeDuel_bCursorRow` | Committed row of the Free Duel opponent-grid cursor. |
+| 0x8009B365 | `gFreeDuel_bReturnFlags` | Free Duel return-action flags: `0x40` after visiting Build Deck and `0x80` after starting a duel. |
+| 0x8009B37C | `gOptions_bState` | Current Options-screen state dispatched by `Options_Update`. |
+| 0x8009B37D | `gOptions_bOutputType` | Options-screen working copy of the stereo/mono selection used by input and layout updates. |
+| 0x8009B384 | `gOptions_bSelection` | Options selection byte, initialized to row zero. The executable retains nonzero layout/state branches but no post-initialization writer. |
+
+## Batch: file and persistent storage globals
+
+| address | name | description |
+|---|---|---|
+| 0x80011580 | `gFile_szModelMrgPath` | Development-path string `M:/mrgSU/model.mrg` used by the resident model loader. |
+| 0x800117C8 | `gFile_szSuMrgPath` | Development-path string `M:/mrgSU/SU.mrg` used by the resident main-menu package request. |
+| 0x8009078C | `gFile_apszName` | Null-terminated array of seven runtime data-file name pointers in disc lookup order. |
+| 0x800E9EA8 | `gFile_anLba` | Runtime sector table populated from those file names and indexed by the game file selectors. |
+| 0x8009B450 | `gMemCard_nIOResult` | Shared memory-card I/O result: `-1` pending, `0` complete, `1` timeout, `2` error, `3` new card, and `4` after new-card handling. |
+| 0x800F2AE0 | `gMemCard_aIOEventHandles` | Eight memory-card event handles: complete, timeout, error, and new-card results for both software and hardware card classes. |
+| 0x801D0200 | `gDuel_awPlayerDeck` | Current 40-card player deck stored at the start of the persistent save state. |
+| 0x801D0250 | `gLibrary_abCardChest` | One-byte quantity for each of the game's 722 trunk cards. |
+| 0x801D07BC | `gDuel_awRecentCardDrops` | Sixteen most recently acquired card IDs, updated by duel rewards and password purchases. |
+| 0x801D07E0 | `gLibrary_dwStarchips` | Current 32-bit starchip balance stored in the save state. |
+
+## Batch: AI runtime globals
+
+| address | name | description |
+|---|---|---|
+| 0x800909D4 | `gDuel_aTerrainBoost` | Six signed terrain-adjustment units per monster type, indexed by the current nonzero terrain minus one. `Duel_GetTerrainBoost` multiplies the selected unit by 10 before applying it to a card stat. |
+| 0x800916E0 | `gAiScript_apfnCommand` | AI bytecode handler table indexed by each opcode that `AiScript_Run` reads from the active script. |
+| 0x800917F0 | `gDuel_aOpponentData` | Nine signed configuration bytes per opponent. Byte zero supplies the AI hand-size parameter; `AiScript_LoadOpponentData` exposes the remaining fields to script memory, scaling the first exposed field by 100. |
+| 0x800F5B98 | `gAiScript_aMemory` | Twenty 32-bit AI bytecode registers used to pass operands, intermediate values, and handler results between script commands. |
+| 0x800F5BE8 | `gAiScript_State` | The `0xD4`-byte AI interpreter state: script cursors, eight-entry return stack, combo cards, card/type sets, and fusion-search scratch. |
+| 0x800F5C80 | `gAi_wBestDifference` | Sixteen-bit best matchup difference at `gAiScript_State + 0x98`, written by the best-attack search and exposed to scripts by `AiScript_LoadBestDifference`. |
+| 0x800F5C82 | `gAi_bBestAttacker` | Best attacker slot at `gAiScript_State + 0x9A`, paired with `gAi_wBestDifference` and copied into script memory on request. |
+| 0x800F5C83 | `gAi_bBestTarget` | Best opposing target slot at `gAiScript_State + 0x9B`, paired with `gAi_bBestAttacker` and copied into script memory on request. |
+| 0x801AB000 | `gDuel_aActiveCards` | AI-facing `0x0C`-byte records for active duel-card slots. A zero card ID marks an empty slot; handlers inspect each record's flags and card type while searching and composing plays. |
+| 0x801D4244 | `gDuel_adwCardStats` | Packed per-card statistics indexed by card ID minus one, including base ATK/DEF units, guardian-star IDs, and card type. |
+
+## Batch: graphics and frontend runtime globals
+
+| address | name | description |
+|---|---|---|
+| 0x80090B50 | `gCredits_awSecretNumbers` | Five eight-digit secret numbers stored as pairs of four-digit halfwords. `Main_RunCredits` selects one with the save's game ID modulo five. |
+| 0x8009151C | `gMovie_aStreamRanges` | Thirteen `{sector_count, end_frame}` records selecting contiguous ranges in `MOVIE.STR`; only entry zero is populated in the retail executable. |
+| 0x8009B0AC | `gGraphics_bActiveBuffer` | Game-owned mirror of the active Psy-Q graphics double-buffer index. It alternates between zero and one as frames switch buffers. |
+| 0x8009B146 | `gGraphics_sViewportX` | Shared signed 2D viewport x origin, subtracted from non-screen-space display objects and moved by horizontal pane and script transitions. |
+| 0x8009B148 | `gGraphics_sViewportY` | Shared signed 2D viewport y origin, subtracted from non-screen-space display objects and adjusted by vertically scrolling screens. |
+| 0x800EF668 | `gInput_abRawPadBuffers` | Two adjacent 34-byte receive buffers passed to Psy-Q `InitPAD` and decoded into the game's held, pressed, and repeat masks. |
+| 0x8016D410 | `gPassword_abDigits` | Eight one-byte password digits used to refresh the display and assemble the entered eight-digit card password. |
+| 0x8016D420 | `gPassword_pDigitCursorWidget` | Password digit-highlight widget pointer used as the coordinate reference by cursor-decoration callbacks. This overlay address is reused by other modules. |
+| 0x8016D428 | `gPassword_nDigitIndex` | Selected password digit index from zero through seven, used to position the highlight and gate its end decorations. This overlay address is reused by other modules. |
+| 0x801D5708 | `gText_abColorSlots` | Sixteen text-color selector slots used by encoded bytes `0x80`–`0x8F`; duel-result labels use slots zero and one. |
+
+## Batch: file and CD SDK interfaces
+
+This batch adds nine rows and corrects the inherited `PadChkVsync` row at
+`0x8007E350` above, covering ten interfaces in total.
+
+| address | name | description |
+|---|---|---|
+| 0x80073920 | `nextfile` | Advances a caller-owned Psy-Q `DIRENTRY` during memory-card directory enumeration and returns that same pointer on success. |
+| 0x80073AC0 | `firstfile` | Starts directory enumeration for a formatted device path, fills the caller-owned Psy-Q `DIRENTRY`, and returns that record pointer on success. |
+| 0x8007A860 | `CdDataCallback` | First linked copy of the LIBCD DMA-channel-3 callback setter. It replaces the callback and returns the previous function pointer. |
+| 0x8007E3D0 | `CdGetSector` | Transfers a requested word count from the current CD sector to the caller's destination and maps low-level success to return value one. |
+| 0x8007E4F0 | `CdGetSector2` | Parallel sector-transfer wrapper using LIBCD's second transfer path with the same destination, count, and success contract as `CdGetSector`. |
+| 0x8007E7F0 | `CdControlB` | Blocking three-argument CD command wrapper. It submits the byte command, polls through the caller's result buffer, and succeeds only on completion code two. |
+| 0x8007E860 | `CdReadyCallback` | Replaces and returns the callback that receives `CdlDataReady` status and the unchanged result pointer. |
+| 0x8007E880 | `CdSyncCallback` | Replaces and returns the distinct callback used by the `CdlComplete` command-completion path. |
+| 0x8007E8A0 | `CdDataCallback_8007E8A0` | Second linked copy of `CdDataCallback`, byte-identical to the `0x8007A860` wrapper and selected by another CD teardown state. |
+
+## Batch: card tables and duel records
+
+| address | name | description |
+|---|---|---|
+| 0x801799D8 | `gDuel_awRitualData` | Twenty-four five-halfword ritual recipes containing the ritual card, three required tributes, and the resulting monster. |
+| 0x80179A04 | `gDuel_anRankScore` | Two completed end-of-duel rank scores, one for the player and one for the opponent. |
+| 0x80179A14 | `gDuel_wCardDropID` | Card ID selected by the weighted reward roll before the duel award path adds it to the trunk and recent-drop list. |
+| 0x8017A1D8 | `gDuel_awEquipTable` | Halfword equipment-compatibility groups containing an equip card ID, member count, and compatible monster IDs, terminated by a zero key. |
+| 0x8017C2D8 | `gDuel_aFusionTable` | Packed fusion lookup data: a 723-entry offset index followed by groups of two 10-bit partner/result pairs. |
+| 0x801A7E20 | `gDuel_aDeckCardRecords` | Two 40-entry sets of six-byte per-deck-card records, player then opponent. Each side's five hand slots store indices into its own set. |
+| 0x801A8008 | `gLibrary_aPasswordCardData` | Eight-byte password records indexed by card ID, containing the card's starchip price and eight-digit BCD password. |
+| 0x801D06F4 | `gFreeDuel_dwUnlockedDuelists` | First four bytes of the MSB-first Free Duel unlock flags, covering IDs 1–31. IDs 32–38 use the fifth byte at `0x801D06F8`; Duel Master K is independently available. |
+| 0x801D071C | `gFreeDuel_aDuelistRecords` | Forty `{u16 wins, u16 losses}` Free Duel grid records. Slot zero is Build Deck, and slots 1–39 belong to the duelists; normal updates cap each counter at 999. |
+| 0x801D4D8E | `gCard_asNameSortKey` | Signed 16-bit per-card secondary keys used to break ties in alphabetical Build Deck and trunk sorting. |
+
+## Batch: duel presentation and effect globals
+
+| address | name | description |
+|---|---|---|
+| 0x8009AF24 | `gDuel_abTrapAttackThresholds` | Six one-byte attack thresholds for House of Adhesive Tape through Widespread Ruin. The trap selector multiplies each value by 100 before comparing it with the attacker. |
+| 0x8009AF29 | `gDuel_bWidespreadRuinAttackThreshold` | Interior alias for the final trap-threshold byte. Its retail value is 255, and the trap selector scales it to 25,500. |
+| 0x8009AF30 | `gDuel_abLifePointRecoveryUnits` | Five recovery values `{2, 5, 10, 20, 50}`, multiplied by 100 when the corresponding LP-recovery card resolves. |
+| 0x8009AF38 | `gDuel_abDirectDamageUnits` | Five direct-damage values `{5, 10, 20, 50, 100}`, multiplied by 10 before the selected side's life points are reduced. |
+| 0x8009B246 | `gDuel_wViewerCardID` | Card ID currently shown by the duel card-detail viewer, published by field-card selection paths before the shared display opens. |
+| 0x8009B2C4 | `gDebug_nLastSoundID` | Last sound-effect ID selected by the resident debug menu. |
+| 0x8009B2C8 | `gDebug_nSceneOrSoundID` | Debug-menu value reused as a scene or sound ID by the selected diagnostic path. |
+| 0x8009B408 | `gSD_bOutputType` | Stored sound output type: `-1` before initialization, `0` for stereo, and `1` for mono. |
+| 0x801D5332 | `gDuel_abCardLevelAttr` | Card-ID-indexed bytes containing attribute in the high nibble and level in the low nibble; entry zero is reserved. |
+| 0x801DC000 | `gLibrary_aCardArtRecord` | Staging buffer for the selected card's `102 x 96` art and 256-entry CLUT, baked `96 x 14` title, and `40 x 32` thumbnail with its 64-entry CLUT. |
+
+## Batch: core runtime and persisted campaign state
+
+| address | name | description |
+|---|---|---|
+| 0x8002CD8C | `Main_ResetFrontendRuntime` | Resets the shared frontend display, effect, menu-record, and transient state before menu initialization or a screen switch, then restores the input repeat timing defaults. |
+| 0x80058F10 | `GsGetWorkBase` | Embedded LIBGS getter that returns the current packet work-base pointer consumed by resident model renderers. |
+| 0x80073880 | `TestEvent` | Psy-Q event probe used by the memory-card helpers to test their complete, timeout, error, and new-card event handles. |
+| 0x800877B0 | `SetRotMatrix` | Loads a Psy-Q `MATRIX` rotation block into GTE control registers 0 through 4. |
+| 0x8008E590 | `rand` | Advances `gRand_dwSeed` with the resident `0x41C64E6D` / `0x3039` linear congruential recurrence and returns bits 16 through 30. |
+| 0x8008E5C0 | `srand` | Stores the supplied value as `gRand_dwSeed`, setting the seed used by the resident `rand`. |
+| 0x8009B27A | `gCampaignSceneIndex` | Current campaign event-script index selected from the overworld location and restored from save data after a successful load. |
+| 0x8009B45C | `g_SDValue` | Global pointer to the main sound-driver work area, including command queues, buffers, voices, sequence state, and output controls. |
+| 0x801D060C | `gSaveData_aPlayerNameSjis` | Twelve-byte persisted field containing six u16 SJIS code words. Matching keyboard code writes caret slots 0-5 without appending a source terminator; a five-character-plus-terminator invariant is not established by this path. The display stream is separately encoded and terminated. |
+| 0x801D07DC | `gCampaignSavedSceneIndex` | Persisted campaign event-script index copied into `gCampaignSceneIndex` when save runtime state is applied. |
+
+## Batch: remaining accepted semantic names
+
+The disputed `Main_RunDuel` and hedged `Model_LoadMonsterMerge` names remain
+excluded. These are the other confirmed or high-confidence semantic-map
+entries that were not yet represented in this naming gate.
+
+| address | name | description |
+|---|---|---|
+| 0x80014EEC | `File_TryRequestAsyncTransfer` | Returns null while the primary transfer state is busy; otherwise runs the pending handoff callback, initializes the primary descriptor, and returns it without forcing an occupied transfer. |
+| 0x80015078 | `File_RequestSecondaryAsyncTransfer` | Temporarily clears the secondary-pending flag, initializes the secondary transfer descriptor, then marks it ready for later promotion by `File_ActivateTransfer`. |
+| 0x800171A8 | `Duel_LoadPackageStage` | Routes the thirteen stages of a 235-sector duel-terrain package to their RAM destinations and VRAM uploads, including the equip, fusion, ritual, overlay, and AI-script blocks. |
+| 0x800245EC | `Duel_StepCardDataTransfer` | Initializes and advances the asynchronous card-data transfer across the sorted unique-card boundary list, moving one `0x580`-byte card-data block for each new ID. |
+| 0x80024734 | `Duel_RequestCombinedDeckData` | Sorts and deduplicates the two 40-card duel decks into a sentinel-terminated unique-ID list, then requests their card-data blocks through `Duel_StepCardDataTransfer`. |
+| 0x80024824 | `Duel_PopulateCombinedDeckData` | Builds all 80 combined-deck records and copies each card's selected `0x580`-byte data block into the duel runtime buffer. |
+| 0x8002C7E8 | `Duel_CheckRitual` | Checks the active ritual and field cards against the 24 five-halfword records in `gDuel_awRitualData` to determine whether the required three tributes are present. |
+| 0x8002D7CC | `Main_RunTrade` | Main-mode tick for Trade and the shared two-save memory-card flow used by 2P Duel, including its fade/setup and loaded-screen dispatch lifecycle. |
+| 0x8009B39C | `gInput_bRepeatDelay` | Held-input timer threshold before a button produces its first automatic repeat event. |
+| 0x8009B3A2 | `gInput_bRepeatInterval` | Held-input timer reload value that controls the interval between subsequent automatic repeat events. |
+
+## Batch: GTE matrix and register interfaces
+
+| address | name | description |
+|---|---|---|
+| 0x80086F60 | `MulMatrix0` | Composes two rotation matrices through the GTE and writes the resulting matrix through the third argument. |
+| 0x80087320 | `ReadRotMatrix` | Reads GTE control registers 0 through 7 into a `MATRIX`, recovering both its rotation block and translation vector. |
+| 0x80087480 | `MulMatrix2` | Uses the same matrix-composition body as `MulMatrix`, but writes the product through the second argument. |
+| 0x80087590 | `ApplyMatrix` | Applies a matrix to a `VECTOR` and stores the three `MAC1`-`MAC3` results as 32-bit components. |
+| 0x800875E0 | `ApplyMatrixSV` | Applies a matrix and stores the three `IR1`-`IR3` results as signed 16-bit `SVECTOR` components. |
+| 0x80087640 | `TransMatrix` | Copies a three-long vector into the translation fields of a `MATRIX`. |
+| 0x800877E0 | `SetLightMatrix` | Loads a matrix-shaped block into GTE light-matrix control registers 8 through 12. |
+| 0x80087810 | `SetColorMatrix` | Loads a matrix-shaped block into GTE color-matrix control registers 16 through 20. |
+| 0x80087840 | `SetTransMatrix` | Loads a `MATRIX` translation vector into GTE control registers 5 through 7. |
+| 0x80087860 | `ReadGeomScreen` | Returns GTE control register 26, the projection-plane distance written by `SetGeomScreen`. |
+
+## Batch: transfer, model, and remaining GTE names
+
+| address | name | description |
+|---|---|---|
+| 0x80013B68 | `File_RequestSecondaryRangeTransfer` | Queues the secondary descriptor with an absolute start and end address plus two mode bytes, marking it pending for later activation. |
+| 0x80053248 | `Model_SetSlotProperties` | Variadic model-slot setter: slots 0 and 1 consume five signed properties while slot 2 consumes the first and refreshes `D_8009AF88`; negative values preserve existing fields, and every call sets `D_8009AF94` to 15. |
+| 0x80089460 | `ReadSZfifo4` | Stores the four GTE depth FIFO registers 16 through 19 through caller-provided pointers. |
+| 0x80089C00 | `SetDQA` | Writes the GTE depth-cue coefficient in control register 27. |
+| 0x80089C10 | `SetDQB` | Writes the GTE depth-cue offset in control register 28. |
+| 0x8008B2F0 | `TransposeMatrix` | Transposes the 3 x 3 signed-halfword rotation block of a `MATRIX`. |
+| 0x800E9E18 | `gFile_SecondaryTransferDescriptor` | Queued secondary file-transfer descriptor copied into the primary descriptor when activation begins. |
+| 0x800E9E60 | `gFile_PrimaryTransferDescriptor` | Active primary file-transfer descriptor operated on by the transfer service. |
+| 0x8017808C | `gDuel_awCombinedDeckCardIds` | Sorted 80-card working buffer containing both shuffled duel decks before deduplication. |
+| 0x80178130 | `gDuel_awUniqueDeckCardIds` | Sorted unique card IDs from both duel decks, terminated by `0xFFFF` and used as card-data transfer boundaries. |
+
+## Batch: save transfer and integrity names
+
+| address | name | description |
+|---|---|---|
+| 0x80010384 | `gMemCard_szSaveFileName` | Null-terminated `BASLUS-01411-YUGIOH` memory-card filename shared by load, write, two-save, and directory request paths. |
+| 0x8003CEB8 | `SaveData_CalcCrc16` | Computes CRC-16/XMODEM with polynomial `0x1021` and a zero initial state over a caller-supplied save-data region. |
+| 0x8003CF14 | `SaveData_WritePrimarySecondaryIntegrity` | Writes duplicated CRC-16 values and generated mask words for the primary and secondary protected save-data regions. |
+| 0x8003CFC8 | `SaveData_WriteTertiaryIntegrity` | Writes the duplicated CRC-16 value and generated mask words for the tertiary protected save-data region. |
+| 0x8003D03C | `SaveData_BuildPayload` | Builds the staged memory-card write payload from the `0x200`-byte header template and two normalized `0x680`-byte state copies. |
+| 0x8003D174 | `SaveData_ValidateIntegrity` | Validates all three protected save-data regions by comparing their stored mask words with the CRC-derived mask stream. |
+| 0x8003D2B8 | `SaveData_MatchesDuelistAndCurrentSequence` | Tests whether two saves share a duelist code and the candidate carries the current runtime save sequence. |
+| 0x8009B3B8 | `gSaveDataSequence` | Runtime save sequence restored from state offset `+0x404`, incremented in outgoing payloads, and used to select the current two-save record. |
+| 0x801D3200 | `gSaveData_aTransferBuffer` | Shared staging buffer for asynchronous save-data reads and duplicated-state writes. |
+| 0x801D4000 | `gSaveData_aHeaderTemplate` | Template copied into the first `0x200` bytes of each staged memory-card write payload. |
+
+## Batch: save, display, and sound runtime names
+
+| address | name | description |
+|---|---|---|
+| 0x800249E0 | `Duel_SetupCardRecord` | Initializes one duel card record from a combined-deck entry, derives its stats and terrain modifier, and uploads its card image regions. |
+| 0x80039AAC | `DisplayObjectFade_MarkInitialized` | Sets the display-object fade initialization flag and reports whether the record was already initialized. |
+| 0x8003FE70 | `SaveData_SetMaskSeed` | Seeds both words of the private save-integrity mask recurrence with the caller's value. |
+| 0x8003FE80 | `Sound_InitFrontend` | Initializes the game-facing sound runtime from the three sound-file positions and waits for startup work to complete. |
+| 0x8003FF34 | `SD_BGMFadeOut` | Starts the standard fixed-step BGM fade-out paired with frontend screen transitions. |
+| 0x8003FF58 | `SD_BGMFadeOutWithStep` | Starts a BGM fade-out using a caller-supplied positive per-frame step. |
+| 0x80047EC4 | `SD_KeyOffVoiceSlots` | Keys off the four dedicated SPU voice slots and polls briefly for their statuses to clear. |
+| 0x8009AF64 | `gSaveData_dwMaskStateLow` | Low word of the private save-integrity mask recurrence. |
+| 0x8009AF68 | `gSaveData_dwMaskStateHigh` | High word of the private save-integrity mask recurrence. |
+| 0x8009B3FA | `gMemCard_wDialogFlags` | Memory-card dialog and operation state flags spanning open, I/O-pending, result, and closing phases. |

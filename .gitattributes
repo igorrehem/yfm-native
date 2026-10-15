@@ -1,0 +1,7 @@
+# Scripts keep the line endings their shells expect, whatever the checkout.
+*.bat text eol=crlf
+*.sh text eol=lf
+# The official languages' text packs: byte for byte what the port reads.
+languages/*.txt text eol=lf
+# The packs dealer's golden deals, compared byte for byte (tests/pc/packs_test.c).
+tests/pc/packs_golden.txt text eol=lf

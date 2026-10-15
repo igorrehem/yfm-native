@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""Test the code mod loader in a 32-bit process on Linux, on Windows, or both;
+and (--target windows-x64) in a 64-bit Windows process with the
+x86_64-windows objects.
+
+Builds the fixtures in tests/pc/mod_fixtures with build_mod.py (the good one
+as a mod is built; the broken ones with the flag that breaks each), builds
+tests/pc/object_loader_test.c for each system, and runs it: natively on
+Linux, and under Wine off Windows. The same fixture files are used for both,
+which is the point: one object, both systems.
+
+ctest runs the Linux half (pc_object_loader); smoke.py --windows runs the
+Windows half."""
+import argparse, os, shutil, subprocess, sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import build_mod
+
+OUT = os.path.join(ROOT, "tmp/pc/object-loader-test")
+FIXTURES = os.path.join(ROOT, "tests/pc/mod_fixtures")
+SOURCES = ["src/pc/compat/fs.c", "tests/pc/object_loader_test.c", "src/pc/mods/object_loader.c", "src/pc/mods/mod_libc.c",
+           "src/pc/guest/branch_thunks.c"]
+
+
+def fixtures(target="i386"):
+    directory = os.path.join(OUT, "fixtures" if target == "i386" else f"fixtures-{target}")
+    objects = os.path.join(OUT, "objects" if target == "i386" else f"objects-{target}")
+    source = lambda *names: [os.path.join(FIXTURES, name) for name in names]
+    compile_object = lambda sources, output, folder, flags=(): build_mod.compile_object(sources, output, folder, flags,
+                                                                                       target)
+    compile_object(source("good.c", "good_other.c"), os.path.join(directory, "good.o"), objects)
+    if target != "i386":
+        # The 32-bit object, the 64-bit one without its tag, and one tagged
+        # for another x86-64 ABI: all refused.
+        build_mod.compile_object(source("good.c", "good_other.c"), os.path.join(directory, "i386.o"),
+                                 os.path.join(objects, "i386"))
+        objcopy = build_mod.tool("llvm-objcopy")
+        subprocess.run([objcopy, "--remove-section", ".memories.abi", os.path.join(directory, "good.o"),
+                        os.path.join(directory, "untagged.o")], check=True)
+        build_mod.tag_abi(shutil.copy(os.path.join(directory, "untagged.o"), os.path.join(directory, "linux-abi.o")),
+                          "x86_64-linux")
+    for name, files, flags in (("pic", ["good.c", "good_other.c"], ["-fPIC"]),
+                               ("unknown", ["unknown.c"], []),
+                               ("common", ["common.c"], ["-fcommon"]),
+                               ("ctor", ["ctor.c"], []),
+                               ("protected", ["protected.c"], ["-fstack-protector-all"])):
+        compile_object(source(*files), os.path.join(directory, name + ".o"), os.path.join(objects, name), flags)
+    # The same code without debugging information, and built from another
+    # folder: both must hash as good.o does (save states keep the hash).
+    # Built at -O1, the code differs and so must the hash.
+    compile_object(source("good.c", "good_other.c"), os.path.join(directory, "good-nodebug.o"),
+                   os.path.join(objects, "nodebug"), ["-g0"])
+    moved = os.path.join(OUT, "moved-sources")
+    os.makedirs(moved, exist_ok=True)
+    for name in ("good.c", "good_other.c"):
+        shutil.copy(os.path.join(FIXTURES, name), moved)
+    compile_object([os.path.join(moved, "good.c"), os.path.join(moved, "good_other.c")],
+                   os.path.join(directory, "good-moved.o"), os.path.join(objects, "moved"))
+    compile_object(source("good.c", "good_other.c"), os.path.join(directory, "good-o1.o"),
+                   os.path.join(objects, "o1"), ["-O1"])
+    with open(os.path.join(directory, "good.o"), "rb") as handle:
+        good = handle.read()
+    with open(os.path.join(directory, "truncated.o"), "wb") as handle:
+        handle.write(good[:len(good) - 100])   # the section table is at the end
+    with open(os.path.join(directory, "garbage.o"), "wb") as handle:
+        handle.write(bytes((index * 73 + 41) & 0xff for index in range(4096)))
+    open(os.path.join(directory, "empty.o"), "wb").close()
+    return directory
+
+
+def run_test(target, directory):
+    flags = ["-std=gnu11", "-O2", "-g", "-Wall", "-Wextra", "-Isrc"]
+    if target == "linux":
+        program = os.path.join(OUT, "object_loader_test")
+        command = ["gcc", "-m32", *flags, *SOURCES, "-lm", "-o", program]
+        launch, environment = [program], dict(os.environ)
+    else:
+        import build_win32_deps
+        build_win32_deps.use_toolchain()
+        wide = target == "windows-x64"
+        program = os.path.join(OUT, "object_loader_test" + ("64" if wide else "") + ".exe")
+        command = ["x86_64-w64-mingw32-clang" if wide else "i686-w64-mingw32-clang", *flags, *SOURCES, "-static",
+                   "-o", program]
+        launch, environment = [program], dict(os.environ)
+        if sys.platform != "win32":
+            launch = ["wine", program]
+            environment.update(WINEPREFIX=os.path.join(ROOT, "tmp/pc/wine-prefix"),
+                               WINEDLLOVERRIDES="mscoree,mshtml=", WINEDEBUG="-all")
+    built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
+    if built.returncode:
+        print(f"test_object_loader: building for {target} failed\n{built.stderr}", file=sys.stderr)
+        return False
+    result = subprocess.run(launch + [directory], cwd=ROOT, env=environment, capture_output=True, text=True,
+                            timeout=600)
+    output = result.stdout.replace("\r", "")
+    print(f"--- {target}\n{output}", end="")
+    if result.returncode:
+        print(f"test_object_loader: {target} exited {result.returncode}\n{result.stderr}", file=sys.stderr)
+        return False
+    return True
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--target", choices=("linux", "windows", "windows-x64", "both"), default="both")
+    options = parser.parse_args()
+    os.chdir(ROOT)
+    targets = ["linux", "windows"] if options.target == "both" else [options.target]
+    ok = all([run_test(target, fixtures("x86_64-windows" if target == "windows-x64" else "i386"))
+              for target in targets])
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

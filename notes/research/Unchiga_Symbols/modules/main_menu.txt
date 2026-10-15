@@ -1,0 +1,14 @@
+// main menu module (NEW GAME/LOAD/... and the post-load menu) -- resident while Main_RunMenu (0x8002D588) is the mode tick.
+MainMenu_StartValueSetup = 0x80180FD8; // type:func
+MainMenu_UpdateValueWidgetTween = 0x80181CB8; // type:func
+MainMenu_FinishValueSetup = 0x80181E30; // type:func
+MainMenu_CountDecimalDigits = 0x80181EEC; // type:func
+MainMenu_StartValueWidgetTween = 0x80181F20; // type:func
+gMain_apMenuEntries = 0x80184568;
+gMain_bMenuID = 0x80184594;
+// Declared here because splat only emits undefined symbols still referenced by
+// generated assembly, and converting func_80180B4C to C removed the module's
+// last such reference to the ordering table root.
+D_800E9D90 = 0x800E9D90;
+qsort = 0x8008E400; // type:func
+rand = 0x8008E590; // type:func

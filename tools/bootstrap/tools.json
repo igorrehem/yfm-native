@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "python": {
+    "major_minor": [3, 10],
+    "environment": "tools/environments/python",
+    "bootstrap_requirements": "tools/bootstrap/bootstrap-requirements.lock",
+    "requirements": "tools/bootstrap/requirements.lock",
+    "distributions": {
+      "colorama": "0.4.6",
+      "crunch64": "0.6.2",
+      "cxxfilt": "0.3.0",
+      "intervaltree": "3.1.0",
+      "Levenshtein": "0.27.1",
+      "m2c": "0.4.7",
+      "n64img": "0.3.3",
+      "packaging": "26.3",
+      "pip": "26.2.1",
+      "psutil": "7.2.2",
+      "pygfxd": "1.0.5",
+      "pylibyaml": "0.1.0",
+      "pypng": "0.20220715.0",
+      "PyYAML": "6.0.3",
+      "rabbitizer": "1.16.2",
+      "rapidfuzz": "3.14.5",
+      "setuptools": "84.0.0",
+      "sortedcontainers": "2.4.0",
+      "spimdisasm": "1.42.4",
+      "splat64": "0.50.0",
+      "toml": "0.10.2",
+      "tqdm": "4.67.1",
+      "watchdog": "6.0.0",
+      "wheel": "0.48.0"
+    },
+    "required_paths": [
+      "tools/environments/python/bin/python",
+      "tools/environments/python/bin/splat",
+      "tools/environments/python/bin/m2c"
+    ]
+  },
+  "git_tools": [
+    {
+      "name": "asm-differ",
+      "url": "https://github.com/simonlindholm/asm-differ.git",
+      "commit": "c80ea4e3d16ecc8f4c21923633f3f9b1fb534c53",
+      "destination": "tools/vendor/asm-differ",
+      "license": "Unlicense",
+      "required_paths": ["diff.py", "LICENSE"]
+    },
+    {
+      "name": "maspsx",
+      "url": "https://github.com/mkst/maspsx.git",
+      "commit": "746b895f02929ecd148af7b1f4ff05b69f973878",
+      "destination": "tools/vendor/maspsx",
+      "license": "MIT",
+      "required_paths": ["maspsx.py", "LICENSE"]
+    },
+    {
+      "name": "decomp-permuter",
+      "url": "https://github.com/simonlindholm/decomp-permuter.git",
+      "commit": "fb516c435c6f362fbced66e171545324306b607b",
+      "destination": "tools/vendor/decomp-permuter",
+      "license": "MIT",
+      "required_paths": ["permuter.py", "LICENSE"]
+    }
+  ]
+}

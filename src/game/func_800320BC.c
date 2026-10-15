@@ -1,0 +1,66 @@
+#include "../types.h"
+#include "../game/build_deck_card_counts.h"
+#include "../game/card_constants.h"
+#include "../game/card_list_sort.h"
+#include "../game/display_object_layout.h"
+#include "../game/duel_card.h"
+#include "../game/text_box_lifecycle.h"
+#include "../game/text_box_runtime.h"
+#include "../game/text_staging.h"
+
+#define BUILD_DECK_ADD_LIST_OFFSET \
+    ((u32)&((BuildDeckTransitionState *)0)->lists[1])
+/* u32 as a whole, as the list offset is: with a 64-bit sizeof the sum would
+   be 64 bits wide, and `arg0 + offset` would sign-extend the s32 record
+   address, which on arm64 (the game library at 0xC0000000) points the
+   entry into the top of the address space. */
+#define BUILD_DECK_ADD_ENTRY_CURSOR_OFFSET \
+    ((u32)((u32)&((BuildDeckTransitionState *)0)->lists[1].entries[0].id + \
+           2 * sizeof(s16)))
+#define BUILD_DECK_ADD_ENTRY_HALFWORD_STRIDE \
+    (sizeof(CardEntry) / sizeof(s16))
+#define CARD_ENTRY_BYTES(entry) ((u8 *)(entry))
+
+/* The Build Deck screen's card counts: the count box refresh, returning a
+   copy to the chest, taking one out, recounting the deck, and adding a card
+   to the deck list. All five work on the same screen record - the per-card
+   counts at +0x5D97, the two totals at +0x5A9C and +0x5AA0, the chest list
+   at +4 and the deck list at the second `lists` element - and each re-sorts
+   through func_80032C48 when it changes what a list shows.
+
+   The four former sources were recorded at gcc_2_8_1_g0_split, gcc_2_8_1_g0
+   and gcc_2_8_1_g8. Every member compiles to an identical object at
+   gcc_2_8_1_g0_split. Bounded below by the card-list text boxes, which need
+   gcc_2_8_1_g0, and above by func_80032184 at gcc_2_8_1_cc_g8_as_g0_split. */
+
+void BuildDeck_AddCard(s32 arg0, s32 arg1)
+{
+    s32 *record;
+    s16 *entry;
+    s32 index = 0;
+    {
+        s32 *base = gDuel_adwCardStats;
+        s32 record_index = arg1 - 1;
+
+        record = &base[record_index];
+    }
+    entry = (s16 *)(arg0 + BUILD_DECK_ADD_ENTRY_CURSOR_OFFSET);
+    do {
+        if (CARD_ENTRY_BYTES(entry)[5] == 0) {
+            CARD_ENTRY_BYTES(entry)[5] = 1;
+            entry[-2] = (s16)arg1;
+            CARD_ENTRY_BYTES(entry)[2] =
+                (u8)((*record >> CARD_STAT_TYPE_SHIFT) & CARD_STAT_TYPE_MASK);
+            entry[-1] =
+                (s16)((*record & CARD_STAT_VALUE_MASK) * CARD_STAT_SCALE);
+            entry[0] =
+                (s16)(((*record >> CARD_STAT_DEFENSE_SHIFT) &
+                       CARD_STAT_VALUE_MASK) * CARD_STAT_SCALE);
+            func_80032C48((void *)(arg0 + BUILD_DECK_ADD_LIST_OFFSET));
+            func_8003201C((BuildDeckTransitionState *G32)arg0);
+            return;
+        }
+        index++;
+        entry += BUILD_DECK_ADD_ENTRY_HALFWORD_STRIDE;
+    } while (index < DECK_SIZE);
+}

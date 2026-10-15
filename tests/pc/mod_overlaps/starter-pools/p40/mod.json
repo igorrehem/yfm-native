@@ -1,0 +1,10 @@
+{
+    "id": "p40",
+    "name": "Pools 40",
+    "about": "Pools drawing the forty of a deck by themselves; a pool drawing nothing is kept and adds nothing.",
+    "starter_pools": [
+        {"draws": 20, "cards": {"Mystical Elf": 1, "Kuriboh": 1}},
+        {"draws": 20, "cards": {"Celtic Guardian": 4, "Baby Dragon": 1}},
+        {"draws": 0, "cards": {}}
+    ]
+}

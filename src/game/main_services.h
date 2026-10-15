@@ -1,0 +1,126 @@
+#include "../port_ptr.h"
+#ifndef MEMORIES_DECOMP_MAIN_SERVICES_H
+#define MEMORIES_DECOMP_MAIN_SERVICES_H
+
+#include "../types.h"
+#include "../psyq/setjmp.h"
+
+/* The per-frame callback registry the resident service pump walks.
+ *
+ * There are four slots, not one. Main_RunFrameServices calls every non-null
+ * slot in order once per frame, and Main_ClearFrameServiceCallbacks clears
+ * all four. The size is not a guess: c_symbols.ld places D_800E9DB0 at
+ * 0x800E9DB0 and the next symbol, D_800E9DC0, sixteen bytes later, which is
+ * exactly four pointers.
+ *
+ * The main_menu overlay previously declared slot 0 as a bare
+ * `void (*)(void)` -- and, where it only cleared the slot, as an `s32`. Both
+ * spellings write the right address, because slot 0 sits at
+ * the base, but they hide that three more slots follow and that something else
+ * may own them. Reaching slot 0 by index says what the code is really doing.
+ *
+ * This is a registry of independent slots, NOT a chain: no slot is called with
+ * arguments, none returns a value, and nothing enforces an order beyond the
+ * index. Slot 3 is stored by Duel_InitScene (src/game/duel_init_scene.c:155,
+ * `D_800E9DB0[3] = Duel_DrawFieldCards;`; Duel_InitScene.s:207-208), func_8002BFCC
+ * (library_runtime.c, `D_800E9DB0[3] = Library_DrawCardGrid;`) and
+ * CampaignMap_SetLocation
+ * (src/overlays/overworld/set_location.c:56,
+ * `D_800E9DB0[3] = CampaignMap_UpdateView;`), and by func_8002ACA4
+ * (src/game/library_runtime.c), which clears it when the card view opens and
+ * restores Library_DrawCardGrid when it closes.
+ * Slot 2 is stored only by func_8002ACA4, which installs func_80029934 for
+ * the model view and clears it on the way out; splat's name for that address
+ * is D_800E9DB8, and no other listing or C unit names it.
+ * Slot 1 is stored by the main_menu overlay, by index:
+ * MainMenu_InitTradeScreen (src/overlays/main_menu/trade_update.c,
+ * `D_800E9DB0[1] = MainMenu_DrawTradeOffersAndHighlights;`) and
+ * MainMenu_ReleaseTradeDisplayHandles
+ * (src/overlays/main_menu/trade_offers.c:145, `D_800E9DB0[1] = 0;`). Before
+ * that the overlay reached it as D_800E9DB4, with a private declaration in
+ * each unit. The per-slot names D_800E9DB8 and D_800E9DBC (0x800E9DB0 + 8
+ * and + 12) carry no displacement off D_800E9DB0, so their writers do not
+ * appear as `%lo(D_800E9DB0)` references. */
+extern void (*G32 D_800E9DB0[4])(void);
+
+/* The recovery point the registry's comment above already places at
+ * 0x800E9DC0. Main_Init arms it with setjmp once the boot sequence is up,
+ * and two functions jump back into it: Main_RunGameOver passes 1 from the
+ * game-over path and DebugMenu_Exit passes 2, so the value distinguishes
+ * which unwound (the first two are now in src/candidates/). All three spell
+ * it jmp_buf and include psyq/setjmp.h, which this header now includes so
+ * the declaration stands on its own. */
+extern jmp_buf D_800E9DC0;
+
+/* The single extra callback the pump runs after the four slots, and that
+ * Main_ClearFrameServiceCallbacks clears alongside them. */
+extern void (*G32 D_8009B0B8)(void);
+
+/* The signed per-frame watchdog owned and initialized by main_services.c. */
+extern s32 runtime_gp;
+
+/* A one-byte state value func_80013154 sets alongside D_8009B0A0 to
+ * D_8009B0A2, and that the two menu runners set to 10 or 6 through index 0.
+ * c_symbols.ld names D_8009B0A4 one byte on, so no spelling here claims the
+ * object is wider than the byte it is.
+ *
+ * Two arms, because the consumers split on addressing form. func_80013154
+ * writes the byte from small data, which is what a scalar reaches at -G8:
+ *     sb         $v1, %gp_rel(D_8009B0A3)($gp)
+ * (the store at 0x80013224), and that arm is the volatile one. Main_RunDuel
+ * and Main_RunCampaignMap write it through index 0 and
+ * both want the absolute form, which an array of unknown size reaches at
+ * the same -G8:
+ *     lui        $at, %hi(D_8009B0A3)
+ *     sb         $v0, %lo(D_8009B0A3)($at)
+ * -- src/candidates_target/func_8002CEE8.S:35 and :120, and the same two
+ * words 0A80013C / A3B022A0 at 0x8002D2F8 and 0x8002D350 inside
+ * Main_RunCampaignMap.
+ *
+ * A third arm, `u8 D_8009B0A3[9]`, used to serve
+ * src/game/main_run_duel.c. A bound the assembler can see is only
+ * needed where its -G sits below the compiler's, which is what
+ * duel_terrain_boost.h records for gDuel_bTerrain's [8] under
+ * gcc_2_8_1_cc_g8_as_g4_split; both array consumers here are plain
+ * gcc_2_8_1_g8, where the incomplete array is already outside small data.
+ * Relaxing the [9] to the shared [] leaves the retail SHA-256 unchanged. */
+#ifdef D_8009B0A3_IS_VOLATILE_SCALAR
+extern volatile u8 D_8009B0A3;
+#else
+extern u8 D_8009B0A3[];
+#endif
+
+/* The pending frontend-menu request. Main_RunMenu hands the pair to the
+   main_menu overlay as MainMenu_InitFrontendMenu(D_8009B268, D_8009B26D),
+   whose parameters are (unused, menu): D_8009B26D is the menu id --
+   Main_ApplyMenuSelection stores its selection argument, Script_OpSavePrompt and
+   Script_OpReturnToMenu
+   store 5, DebugMenu_UpdateTitleEntry round-trips it through gDebug_nSceneOrSoundID,
+   Main_RunGameOver stores 0 -- and D_8009B268 is stored 1 beside every
+   request and 0 in three of Main_ApplyMenuSelection's arms. Both are bytes, read lbu.
+   main_apply_menu_selection.c and main_run_frontend_menus.c reach them through $gp;
+   script_op_save_prompt.c, script_op_return_to_menu.c and frontend_scene_states.c
+   address them with %hi/%lo, outside small data, and define the .data arms. */
+#ifdef D_8009B268_IN_DATA
+extern u8 D_8009B268 PSX_SECTION(".data");
+#else
+extern u8 D_8009B268;
+#endif
+
+#ifdef D_8009B26D_IN_DATA
+extern u8 D_8009B26D PSX_SECTION(".data");
+#else
+extern u8 D_8009B26D;
+#endif
+
+struct GraphicsFrameBuffer;
+void func_80013154(struct GraphicsFrameBuffer *base);
+void func_80013360(void);
+
+/* The pump itself, and the call that empties the registry. Main_RunFrameServices
+   walks the four slots once per frame; Main_ClearFrameServiceCallbacks clears
+   all four. Both callers already spelled the pump this way. */
+void Main_RunFrameServices(void);
+void Main_ClearFrameServiceCallbacks(void);
+
+#endif

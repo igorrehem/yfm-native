@@ -1,0 +1,17 @@
+{
+    "Simon Muran": {
+        "pow": {
+            "Mystical Elf": 30
+        }
+    },
+    "8": {
+        "bcd": {
+            "replace": true,
+            "Kuriboh": 1
+        },
+        "pow": {
+            "replace": true,
+            "Kuriboh": 1
+        }
+    }
+}

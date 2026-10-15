@@ -1,0 +1,10 @@
+{
+  "name": "options-exec-guest",
+  "input": "910:0008,916:0000,1000:0040,1006:0000,1020:0040,1026:0000,1040:0040,1046:0000,1060:0040,1066:0000,1100:4000,1106:0000",
+  "frame": 1300,
+  "environment": {
+    "MEMORIES_TEST_EXEC_GUEST": "1"
+  },
+  "expect_output": "guest RAM is mapped executable",
+  "sha256": "5c360ca318c4d4e1faf29f11d06407b0f684fea904102abccf57fc9878a3b35d"
+}

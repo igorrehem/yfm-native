@@ -1,0 +1,174 @@
+# Overlay Build Configuration
+
+Each runtime module has an independent Splat configuration because overlays
+reuse load addresses and are not part of the resident executable link.
+
+The Free Duel configuration expects the verified module image at
+`tmp/overlays/free_duel/module.bin` and splits it into:
+
+| File range | Runtime range | Content |
+|---:|---:|---|
+| `0x0000-0x0004` | `0x80168000-0x80168004` | Module identifier |
+| `0x0004-0x1030` | `0x80168004-0x80169030` | MIPS text |
+| `0x1030-0x2800` | `0x80169030-0x8016A800` | Module data |
+
+The `0x1030` boundary is supported by the final return at `0x80169028`, the
+known data symbol at `0x80169030`, and the verified runtime load range ending
+at `0x8016A800`.
+
+The password configuration separates its non-code prefix, executable body,
+and trailing module data:
+
+| File range | Runtime range | Content |
+|---:|---:|---|
+| `0x0000-0x00B4` | `0x80168000-0x801680B4` | Module tables and strings |
+| `0x00B4-0x5400` | `0x801680B4-0x8016D400` | MIPS text |
+| `0x5400-0x5590` | `0x8016D400-0x8016D590` | C-owned screen state |
+| `0x5590-0x7800` | `0x8016D590-0x8016F800` | Remaining raw module data |
+
+The first function prologue begins at `0x801680B4`. The trailing boundary is
+required by references to `D_8016D400`. The first `0x190` bytes are one
+consumer-backed `PasswordModuleState`; linker aliases retain the historical
+interior symbol names used by generated assembly while the C object owns the
+storage.
+
+Both Egypt overworld variants share one layout shape. They are separate
+modules because the resident loader picks the second package when campaign
+story flag `0x47` is set, and their images differ:
+
+| File range | Runtime range | Content |
+|---:|---:|---|
+| `0x0000-0x0004` | `0x80168000-0x80168004` | Module identifier |
+| `0x0004-0x1E54` | `0x80168004-0x80169E54` | MIPS text |
+| `0x1E54-0x2274` | `0x80169E54-0x8016A274` | Alternate location table |
+| `0x2274-0x22C8` | `0x8016A274-0x8016A2C8` | Alternate controller state |
+| `0x22C8-0x3000` | `0x8016A2C8-0x8016B000` | Remaining raw module data |
+
+The `0x1E54` boundary is the word after the final `jr $ra` and its delay slot,
+which is identical in both variants.
+
+Run `make match-overlays` to extract the configured modules, split them with
+their module-specific Splat layouts, assemble and link every generated source,
+and compare each rebuilt binary byte-for-byte with its verified archive slice.
+
+## C-owned data
+
+Each `<module>_data_c.json` lists data-only translation units and their named
+compiler profiles, using the same `schema: 1` / `units` shape as resident
+`data_c.json`. A module with no data-only C units needs no data manifest.
+For example, Free Duel maps its leading word with:
+
+```yaml
+      - [0x0, .data, overlays/free_duel/module_header]
+```
+
+```json
+{
+  "schema": 1,
+  "units": [
+    {
+      "profile": "gcc_2_8_1_g0",
+      "source": "src/overlays/free_duel/module_header.c"
+    }
+  ]
+}
+```
+
+The dotted section type makes Splat link the C object's section instead of
+disassembling an input blob. `.rodata`, `.data`, `.sdata`, `.sbss` and `.bss`
+are supported. Keep the inline `[offset, type, path]` subsegment form used by
+these layouts: the metadata-only wiring check reads this form without Splat
+or a YAML dependency. A unit supplying several sections is compiled once.
+Units already in `<module>_matching_c.json` get their profile there, including
+any explicitly mapped data sections; do not repeat them in the data manifest.
+
+Both the build and `make check-metadata` require bidirectional wiring:
+every `c` subsegment needs a matching manifest entry, every data-only owned
+section needs a data manifest entry, and neither manifest may name an unmapped
+source. Duplicate data entries, conflicting grouped profiles, repeated
+source/section pairs, missing files and unknown profiles are errors. Raw
+`data`/`sdata`/`bss` blobs stay on the generated-assembly path.
+
+After linking, the build checks global data exports from every data-only
+manifest unit against the ELF. A missing export, an absolute alias overriding
+its definition, unallocated common storage or duplicate data definitions
+fails the build before binary extraction. Interior aliases not defined by
+the C object remain allowed. A byte-identical image alone does not prove
+that its globals are owned by the C definitions.
+
+Splat's linker section order still determines placement. Do not map the same
+object section in separate segments: the first occurrence consumes it.
+Keep ordinary data-only definitions in their own TU with a corresponding
+header. For small data that needs `%gp_rel`, keep definitions in the owning
+code TU and explicitly map its `.sdata`/`.sbss`. Always inspect the resulting
+object sections and linker script and require a complete module match.
+
+Every overlay's first C-owned range is its four-byte header word: `0x13` in
+Free Duel, `0x15` in password, `0x14` in both overworld variants, and `0x0F`
+in main menu. The overworld variants compile the same
+`overworld/module_header.c` independently. These retain address-based
+spellings: the values suggest module identifiers but do not establish their
+semantics. Their owning headers declare the exact four-byte objects.
+
+Main menu additionally maps the adjacent `0x18` bytes of `.rodata` through
+`module_rodata.c`. The typed `D_80180004` comparator table replaces the old
+`D_80180000[1]` reach across the section boundary and emits six checked
+function relocations in retail order.
+
+Main menu also owns the complete loaded runtime-state prefix at
+`0x80184558-0x80185CD4`. `module_state.c` emits three consecutive typed
+objects for the frontend, value-setup, and Trade screens, including both
+722-card inventory rows. Their sizes and the consumer-supported nested
+strides are compile-time checked. `main_menu_linker_symbols.txt` preserves
+the historical interior names, including the overlapping array/scalar views
+at `D_801845BC`/`D_801845BE` and `D_80185CC8`/`D_80185CC9`. The remaining
+raw asset tail begins at module offset `0x5CD4`.
+
+Password also owns `0x8016D400-0x8016D590` as one zero-initialized
+`PasswordModuleState`. The single object avoids treating sparse interior labels
+as object extents: for example, `D_8016D440` is a four-pointer array and
+`D_8016D4DC` is a halfword even though the next generated labels are much
+farther away. `password_linker_symbols.txt` defines those historical names as
+offset aliases from `gPassword_ModuleState`; the object exports one
+section-defined owner with an exact `0x190`-byte `.data` section.
+
+Free Duel additionally maps its complete named state prefix at
+`0x80169030-0x801690A8` through `module_state.c`. The `0x78`-byte object
+section owns the 40-byte availability grid, thumb pointer, one unknown word,
+16-pointer sparkle pool, cursor pointer, and the four-byte storage whose low
+byte is `gFreeDuel_bScreenFlags`. The explicit storage view is required
+because GCC aligns separate byte definitions while retail places the three
+padding bytes directly after the live flag.
+
+Both overworld variants also compile the live location table from
+`overworld/location_table.c`: sixteen typed 66-byte records at
+`0x801691A8-0x801695C8`, identical in the two verified images. The table is
+its own Splat segment between the live text and the remaining raw/alternate
+tail, so `.data` section ordering cannot move it behind the alternate text.
+See [`campaign-map-records.md`](../../../notes/overlays/campaign-map-records.md)
+for field evidence, boundary ownership and the preserved nonzero unknown
+bytes. The aligned live-state prefix at `0x801695C8-0x80169618` now comes
+from `overworld/live_state.c`, with one owning header for its 18 symbols.
+The two following flag bytes share a nonzero raw word and remain in assembly.
+See [the state ownership evidence](../../../notes/overlays/live-state-data.md)
+for widths, alignment and the all-symbol address checks.
+The alternate routine's unresolved call into the live table at `0x80169230`
+retains its exact target; data ownership does not resolve that call's meaning.
+
+The alternate table at `0x80169E54-0x8016A274` now comes from the separate
+`overworld/alternate_location.c` unit, using its own existing record types.
+It is also sixteen 66-byte records and has the same bytes as the live table,
+but both allocations and their distinct consumer contracts remain intact.
+The residual blob starts at `0x2274`; no following state is included.
+See [the alternate table evidence](../../../notes/overlays/alternate-location-data.md)
+for byte preservation and the interior-label audit.
+
+The overworld layouts use the project-owned symbol map directly. Its existing
+names and addresses are retained from the research map, but there is only one
+build declaration for each name so C-owned `defined:True` markers cannot be
+undermined by a second, undefined declaration. The research export is unchanged.
+
+The rest of the main-menu data remains assembly-owned. The prefix mapping
+stops before the first uncharacterised asset bytes rather than deriving their
+extent from the final state label, so this mapping advances but does not
+complete issue #2602.

@@ -1,0 +1,103 @@
+#ifdef MEMORIES_PC
+#include "pc/mods/mods.h"
+#include "pc/platform/title_menu.h"
+#include "pc/tower/tower.h"
+#endif
+#define MAIN_MODE_STATE_NEXT_AS_SCALAR
+#define MAIN_MODE_STATE_ACTIVE_AS_SCALAR
+#define D_8009B0D1_IN_DATA
+#include "../types.h"
+#include "duel_effect_mode_7.h"
+#include "file_transfer.h"
+#include "main_menu_selection.h"
+#include "main_modes.h"
+#include "main_services.h"
+#include "../external_funcs.h"
+#include "../unmatched.h"
+#include "main_mode_state.h"
+#define GFREEDUEL_BRETURNFLAGS_IN_DATA
+#include "../overlays/free_duel/free_duel.h"
+#define D_8009B3D4_IN_DATA
+#include "mem_card.h"
+#include "save_data.h"
+
+#ifdef MEMORIES_PC
+static void Main_ApplyMenuSelectionRetail(MainMenuSelection selection)
+#else
+void Main_ApplyMenuSelection(MainMenuSelection selection)
+#endif
+{
+    D_8009B268 = 1;
+    D_8009B26D = selection;
+
+    switch (selection) {
+    case MAIN_MENU_SELECTION_NEW_GAME:
+        File_RequestNameEntryPackage();
+        func_8016AA6C();
+        gCampaignSavedSceneIndex[0] = 0x30;
+        gCampaignSceneIndex = 0x30;
+        D_8009B3D4 = 1;
+        D_8009B0D1 = 0;
+        D_8009B26C = MAIN_MODE_CAMPAIGN;
+        break;
+    case MAIN_MENU_SELECTION_TWO_PLAYER_DUEL:
+        D_8009B26C = MAIN_MODE_TWO_PLAYER_DUEL_SETUP;
+        break;
+    case MAIN_MENU_SELECTION_TRADE:
+        D_8009B26C = MAIN_MODE_TRADE;
+        break;
+    case MAIN_MENU_SELECTION_LIBRARY:
+        D_8009B26C = MAIN_MODE_LIBRARY;
+        break;
+    case MAIN_MENU_SELECTION_CAMPAIGN:
+        gCampaignSceneIndex = gCampaignSavedSceneIndex[0];
+        D_8009B26C = MAIN_MODE_CAMPAIGN;
+        break;
+    case MAIN_MENU_SELECTION_FREE_DUEL:
+        gFreeDuel_bReturnFlags = 0;
+        D_8009B26C = MAIN_MODE_FREE_DUEL;
+        break;
+    case MAIN_MENU_SELECTION_BUILD_DECK:
+        BuildDeck_EnterNarrowConfirmMode();
+        D_8009B268 = 0;
+        break;
+    case MAIN_MENU_SELECTION_OPTIONS:
+        D_8009B26C = MAIN_MODE_OPTIONS;
+        D_8009B268 = 0;
+        break;
+    case MAIN_MENU_SELECTION_PASSWORD:
+        D_8009B26C = MAIN_MODE_PASSWORD;
+        D_8009B268 = 0;
+        break;
+    case MAIN_MENU_SELECTION_SAVE:
+    default:
+        D_8009B26C = MAIN_MODE_DEBUG;
+        break;
+    }
+}
+
+#ifdef MEMORIES_PC
+void Main_ApplyMenuSelection(MainMenuSelection selection)
+{
+    MemoriesModEvent event = {MEMORIES_EVENT_SCENE, MEMORIES_BEFORE, 0, 0, 0, 0, 0};
+    event.a = selection; event.b = D_8009B26C;
+    Mods_Dispatch(&event);
+
+    if (!event.handled) {
+        /* The tower's button (pc/tower/tower.h): its own screen, none of
+           the retail switch's arms. */
+        if (event.a == TOWER_MENU_SELECTION) {
+            D_8009B268 = 1;
+            D_8009B26D = (u8)event.a;
+            Tower_Enter();
+        } else {
+            Main_ApplyMenuSelectionRetail((MainMenuSelection)event.a);
+        }
+    }
+    /* A choice a mod's menu item made that is none of the game's: the title
+       comes back to that item's menu (pc/platform/title_menu.h). */
+    D_8009B26D = TitleMenu_Reopen(event.a, D_8009B26D);
+    event.phase = MEMORIES_AFTER; Mods_Dispatch(&event);
+
+}
+#endif

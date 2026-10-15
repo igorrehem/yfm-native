@@ -1,0 +1,494 @@
+name: PC release packages
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Packages to build for a manual run
+        required: true
+        type: choice
+        options:
+          - all
+          - macos-arm64
+        default: all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pc-release-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  package:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform != 'macos-arm64'
+    # Each archive's SDK carries every mod target's export list
+    # (tools/pc/package.py): the arm64 game's from the android job, the
+    # 64-bit Windows game's from sdk-exports-x64, built from this commit.
+    needs: [android, sdk-exports-x64]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: linux
+            runner: ubuntu-24.04
+          - system: windows
+            runner: windows-2022
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      # Whether the repository has a VirusTotal key; the key itself is
+      # handed only to the step that uses it.
+      VT_ENABLED: ${{ secrets.VT_API_KEY != '' }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Linux build tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends gcc-14 gcc-multilib clang lld cmake ninja-build libpng-dev xvfb xauth
+      - name: Use GCC 14 for the game sources
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p "$RUNNER_TEMP/pc-compiler"
+          ln -s /usr/bin/gcc-14 "$RUNNER_TEMP/pc-compiler/gcc"
+          echo "$RUNNER_TEMP/pc-compiler" >> "$GITHUB_PATH"
+      - name: Cache Linux dependencies
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: |
+            tmp/pc/linux-sysroot
+            tmp/pc/linux-sysroot-downloads
+            tmp/pc/sdl-source
+            tmp/pc/sdl-m32-portable
+          key: release-linux-${{ runner.os }}-${{ hashFiles('tools/pc/build_linux_sysroot.py', 'tools/pc/fetch_tools.py') }}
+      - name: Cache Windows dependencies
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            tmp/pc/llvm-mingw
+            tmp/pc/win32-deps
+          key: release-windows-${{ runner.os }}-${{ hashFiles('tools/pc/build_win32_deps.py', 'tools/pc/fetch_tools.py') }}
+      - name: Archive version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            echo "PACKAGE_VERSION=$REF_NAME" >> "$GITHUB_ENV"
+          else
+            echo "PACKAGE_VERSION=dev-${GITHUB_SHA:0:12}" >> "$GITHUB_ENV"
+          fi
+      # Public runners never receive a game ROM. The regular PC workflow
+      # runs the full adapter suite; this checks setup and the archives.
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdk-exports-aarch64
+          path: tmp/sdk-exports/android-arm64-v8a
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdk-exports-x86_64-windows
+          path: tmp/sdk-exports/win64
+      - name: Build and package
+        run: >-
+          python tools/pc/package.py "${{ matrix.system }}" --skip-smoke --version "$PACKAGE_VERSION"
+          --exports-from tmp/sdk-exports/android-arm64-v8a --exports-from tmp/sdk-exports/win64
+      - name: Test archive structure
+        run: python tools/pc/test_package.py --archives dist
+      # The SDK just built against every release in tools/pc/mod_compat.txt:
+      # a mod made with one of them must still load and run (no disc needed).
+      - name: Mods from earlier releases
+        if: runner.os == 'Linux'
+        run: python tools/pc/check_mod_abi.py
+      # The FM Editor as one program (tools/pc/fm_editor/README.md), in an
+      # archive of its own: it unpacks into the same folder as the game's,
+      # beside memories-pc(.exe), where it finds game/.
+      # On Windows a folder (fm-editor.exe + fm-editor-files/), and the
+      # PyInstaller loader compiled here rather than the prebuilt one that
+      # malware shares: virus scanners flagged the one-file build.
+      - name: FM Editor (Windows)
+        if: runner.os == 'Windows'
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+        run: |
+          python -m pip install --no-binary pyinstaller pyinstaller==6.18.0
+          python tools/pc/fm_editor/build_exe.py --dist tmp/fm-editor --version "$PACKAGE_VERSION"
+          python - <<'EOF'
+          import os, zipfile
+          version = os.environ["PACKAGE_VERSION"]
+          folder = f"yfm-redecomp-{version}"
+          with zipfile.ZipFile(f"dist/fm-editor-{version}-windows.zip", "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+              for directory, _, files in os.walk("tmp/fm-editor/fm-editor"):
+                  for name in sorted(files):
+                      path = os.path.join(directory, name)
+                      archive.write(path, f"{folder}/{os.path.relpath(path, 'tmp/fm-editor/fm-editor')}".replace(os.sep, "/"))
+              archive.write("tools/pc/fm_editor/README.md", f"{folder}/fm-editor-README.md")
+          EOF
+      # The shipped programs on VirusTotal (notes/pc-release.md, "VirusTotal"):
+      # uploaded, so only for release builds: tags and manual runs, never
+      # pull requests (whose builds are not public, and which may carry
+      # anyone's code) nor every push to master (the free tier's quota).
+      # Skipped without the VT_API_KEY secret (forks). Detections only warn;
+      # the table goes to the job summary. McAfeeD's reputation verdict
+      # (ti!<hash>) is on every new file, hence a threshold above 0.
+      - name: VirusTotal
+        if: runner.os == 'Windows' && (github.ref_type == 'tag' || github.event_name == 'workflow_dispatch') && env.VT_ENABLED == 'true'
+        continue-on-error: true
+        timeout-minutes: 30
+        env:
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+          VT_MAX_DETECTIONS: "2"
+        run: |
+          python - <<'EOF'
+          import os, zipfile
+          version = os.environ["PACKAGE_VERSION"]
+          target = os.path.join(os.environ["RUNNER_TEMP"], "vt")
+          os.makedirs(target, exist_ok=True)
+          for archive, name in ((f"dist/yfm-redecomp-{version}-windows.zip", "/memories-pc.exe"),
+                                (f"dist/fm-editor-{version}-windows.zip", "/fm-editor.exe")):
+              with zipfile.ZipFile(archive) as package:
+                  member = next(entry for entry in package.namelist() if entry.endswith(name))
+                  with open(os.path.join(target, name[1:]), "wb") as handle:
+                      handle.write(package.read(member))
+          EOF
+          status=0
+          # --timeout 600: two new files' analyses still leave the step's
+          # 30 minutes room to write the summary.
+          python tools/pc/vt_check.py --max "$VT_MAX_DETECTIONS" --timeout 600 \
+            --markdown "$RUNNER_TEMP/vt.md" --label memories-pc.exe --label fm-editor.exe \
+            "$RUNNER_TEMP/vt/memories-pc.exe" "$RUNNER_TEMP/vt/fm-editor.exe" || status=$?
+          {
+            echo "### VirusTotal ($PACKAGE_VERSION)"
+            echo
+            if [ -f "$RUNNER_TEMP/vt.md" ]; then cat "$RUNNER_TEMP/vt.md"; else echo "The check did not finish (exit $status); see the step log."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          case $status in
+            0) ;;
+            1) echo "::warning title=VirusTotal::a shipped program has more than $VT_MAX_DETECTIONS detections (job summary)" ;;
+            *) echo "::warning title=VirusTotal::the check failed (exit $status); see the step log" ;;
+          esac
+      # Built in Debian 11, like the game (tools/pc/build_linux_sysroot.py):
+      # a program built on the runner would ask for Ubuntu 24.04's glibc.
+      # The python image carries Tk, which PyInstaller bundles.
+      - name: FM Editor (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src -e PACKAGE_VERSION -e GITHUB_SHA -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" python:3.12-bullseye sh -ec '
+            python -m pip install --root-user-action=ignore pyinstaller==6.18.0
+            python tools/pc/fm_editor/build_exe.py --dist tmp/fm-editor --version "$PACKAGE_VERSION"
+            python - <<EOF
+          import os, tarfile
+          version = os.environ["PACKAGE_VERSION"]
+          folder = f"yfm-redecomp-{version}"
+          def mode(value):
+              return lambda info: (setattr(info, "mode", value), setattr(info, "uid", 0), setattr(info, "gid", 0), setattr(info, "uname", ""), setattr(info, "gname", ""), info)[-1]
+          with tarfile.open(f"dist/fm-editor-{version}-linux.tar.gz", "w:gz", compresslevel=9) as archive:
+              archive.add("tmp/fm-editor/fm-editor", f"{folder}/fm-editor", filter=mode(0o755))
+              archive.add("tools/pc/fm_editor/README.md", f"{folder}/fm-editor-README.md", filter=mode(0o644))
+          EOF
+            chown -R "$HOST_UID:$HOST_GID" tmp/fm-editor dist'
+      - name: Test shipped FM Editor (Windows)
+        if: runner.os == 'Windows'
+        run: python tools/pc/test_editor_package.py "dist/fm-editor-$PACKAGE_VERSION-windows.zip" --version "$PACKAGE_VERSION"
+      - name: Test shipped FM Editor (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a -s '-screen 0 1600x1000x24' python tools/pc/test_editor_package.py "dist/fm-editor-$PACKAGE_VERSION-linux.tar.gz" --version "$PACKAGE_VERSION"
+      - name: ROM setup tests (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cmake -S . -B tmp/release-tests -DCMAKE_BUILD_TYPE=Release
+          cmake --build tmp/release-tests --target memories_game_files_test memories_scratch_sweep_test
+          ctest --test-dir tmp/release-tests -R '^pc_game_files_' --output-on-failure
+      - name: Upload installable archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: yfm-redecomp-${{ matrix.system }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+  # The 64-bit Windows game's export list for the SDKs (not a package of its
+  # own): sdk/exports.x86_64-windows.txt and the tree it was built from.
+  sdk-exports-x64:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform != 'macos-arm64'
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache Windows dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            tmp/pc/tools
+            tmp/pc/win64-deps
+          key: release-win64-${{ runner.os }}-${{ hashFiles('tools/pc/build_win32_deps.py', 'tools/pc/fetch_tools.py', 'tools/pc/dependency_archives.py') }}
+      - name: Archive version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            echo "PACKAGE_VERSION=$REF_NAME" >> "$GITHUB_ENV"
+          else
+            echo "PACKAGE_VERSION=dev-${GITHUB_SHA:0:12}" >> "$GITHUB_ENV"
+          fi
+      # As package.py windows-x64 builds it, without the archive.
+      - name: Build the 64-bit Windows game
+        run: MEMORIES_VERSION="$PACKAGE_VERSION" python tools/pc/build_game32.py --target windows-x64 --backend sdl --release --build tmp/pc/win64
+      - name: Upload the x86_64-windows export list
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-exports-x86_64-windows
+          path: |
+            tmp/pc/win64/sdk/exports.x86_64-windows.txt
+            tmp/pc/win64/source
+          if-no-files-found: error
+          retention-days: 14
+
+  # Native Apple Silicon application. The ad-hoc signature needs no secret;
+  # this job is safe on pull requests and fork workflow_dispatch runs.
+  package-macos:
+    name: package (macos, macos-15)
+    runs-on: macos-15
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            tmp/pc/llvm-macos
+            tmp/pc/tools/macos
+            tmp/pc/macos-deps
+          key: macos-arm64-llvm21.1.8-${{ hashFiles('tools/pc/macos_toolchain.json', 'tools/pc/macos_deps.py', 'tools/pc/dependency_archives.py', 'tools/pc/fetch_tools.py') }}
+      - name: Archive version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            echo "PACKAGE_VERSION=$REF_NAME" >> "$GITHUB_ENV"
+          else
+            echo "PACKAGE_VERSION=dev-${GITHUB_SHA:0:12}" >> "$GITHUB_ENV"
+          fi
+      - name: Build the complete macOS ARM64 game without a disc
+        run: MEMORIES_VERSION="$PACKAGE_VERSION" python tools/pc/build.py --target macos
+      - name: Build bundled ARM64 mods, package and verify the macOS app
+        run: |
+          python3 tools/pc/package_macos.py --binary tmp/pc/macos/memories-arm64 --out tmp/pc-release/macos-arm64 --version "$PACKAGE_VERSION"
+          python3 tools/pc/test_package_macos.py --archive "tmp/pc-release/macos-arm64/yfm-redecomp-$PACKAGE_VERSION-macos-arm64.zip"
+      - name: Upload installable macOS application
+        uses: actions/upload-artifact@v4
+        with:
+          name: yfm-redecomp-macos-arm64
+          path: |
+            tmp/pc-release/macos-arm64/yfm-redecomp-*.zip
+            tmp/pc-release/macos-arm64/yfm-redecomp-*.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  # The Android app (notes/pc-release.md, "Android signing"): the arm64 APK,
+  # signed with the release key held in this repository's secrets. Only
+  # master and v* tags are signed; every other run (pull requests, manual runs
+  # on other branches, forks without the secrets) builds it as a check only
+  # (signed with a debug key, not uploaded); a version tag without the
+  # release key fails, so a release never carries a debug-signed APK.
+  android:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform != 'macos-arm64'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      # Whether this run signs with the release key; the secrets themselves
+      # are handed only to the step that uses them. The rule: a push to
+      # master or of a v* tag, or a manual run (workflow_dispatch) on master
+      # or a v* tag, with both secrets set. Never a pull request, nor a manual
+      # run on any other branch: the repository is public, anyone can download
+      # a run's artifacts, and unmerged code is never signed.
+      ANDROID_SIGNING: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')) && secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+      # The tools the Android build was made with locally (notes/pc-build.md,
+      # "Android"): NDK r29, build-tools and platform 35, JDK 17.
+      ANDROID_NDK_VERSION: 29.0.14206865
+      ANDROID_BUILD_TOOLS: 35.0.0
+      ANDROID_PLATFORM: android-35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # The whole history with its tags: a development APK takes the highest
+      # versionCode of the v* tags merged into HEAD (package_android.py).
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # The runner's preinstalled SDK (ANDROID_SDK_ROOT), with the pinned
+      # NDK added; ANDROID_NDK_ROOT is set to it, over the image's default.
+      - name: Android SDK and NDK
+        run: |
+          sudo apt-get update && sudo apt-get install --yes --no-install-recommends cmake ninja-build
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          # Its progress bars fill the log: kept aside, and shown when it fails.
+          if ! "$sdkmanager" --install "ndk;$ANDROID_NDK_VERSION" "build-tools;$ANDROID_BUILD_TOOLS" "platforms;$ANDROID_PLATFORM" > "$RUNNER_TEMP/sdkmanager.log" 2>&1; then
+            cat "$RUNNER_TEMP/sdkmanager.log"
+            exit 1
+          fi
+          test -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION" >> "$GITHUB_ENV"
+      # SDL3, libpng and FreeType built for arm64-v8a, and SDL's Java shell
+      # (tools/pc/build_android_deps.py); not tmp/pc/android-deps itself,
+      # which holds the debug key.
+      - name: Cache Android dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            tmp/pc/android-deps/arm64-v8a
+            tmp/pc/android-deps/java
+          key: release-android-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('tools/pc/build_android_deps.py', 'tools/pc/build_linux_sysroot.py', 'tools/pc/build_win32_deps.py', 'tools/pc/fetch_tools.py') }}
+      - name: Archive version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            echo "PACKAGE_VERSION=$REF_NAME" >> "$GITHUB_ENV"
+          else
+            echo "PACKAGE_VERSION=dev-${GITHUB_SHA:0:12}" >> "$GITHUB_ENV"
+          fi
+      - name: Release key check
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          if [ "$ANDROID_SIGNING" = true ]; then
+            echo "The APK is signed with the release key after the build."
+          elif [ "$REF_TYPE" = tag ]; then
+            echo "::error title=Android release key::the secrets ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD are not set: a release never ships a debug-signed APK (notes/pc-release.md, \"Android signing\")"
+            exit 1
+          else
+            echo "::notice title=Android::no release key in this run (only pushes and manual runs on master or a v* tag are signed, with the ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets): the APK is built as a check, signed with a debug key, and not uploaded"
+          fi
+      # The build (the NDK, cmake, the dependencies' downloaded sources) runs
+      # with no secret in its environment. It signs with the debug key; the
+      # next step signs again with the release key.
+      - name: Build the APK
+        run: MEMORIES_VERSION="$PACKAGE_VERSION" python tools/pc/build_game32.py --target android-arm64-v8a --backend sdl --release --build tmp/pc/android-arm64-v8a
+      # The arm64 game's export list, for the desktop archives' SDKs (the
+      # package job): every run, signed or not; the list holds no secret.
+      - name: Upload the aarch64 export list
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-exports-aarch64
+          path: |
+            tmp/pc/android-arm64-v8a/sdk/exports.aarch64.txt
+            tmp/pc/android-arm64-v8a/source
+          if-no-files-found: error
+          retention-days: 14
+      # The secrets reach this step only. The keystore goes to the runner's
+      # temporary folder, readable by this user only, its path stays in this
+      # step, and it is deleted when the step ends. package_android.py signs
+      # the built APK again with the release key (it checks the signer against
+      # MEMORIES_ANDROID_CERT_SHA256: the repository variable
+      # ANDROID_CERT_SHA256 when set, else the release certificate's full
+      # digest), and package.py --no-build
+      # packs it (release key only, not the debug certificate, the version
+      # --version makes), without the passwords.
+      - name: Sign the APK with the release key
+        if: env.ANDROID_SIGNING == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          MEMORIES_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          MEMORIES_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          MEMORIES_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          MEMORIES_ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 || 'C8DA2D972E42522E9F83139F5D54092F69FB3EE4C0B074FA53F8245DA45A4B8B' }}
+        run: |
+          umask 077
+          keystore="$RUNNER_TEMP/android-release.p12"
+          trap 'rm -f "$keystore"' EXIT
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode --ignore-garbage > "$keystore"
+          unset KEYSTORE_BASE64
+          test -s "$keystore"
+          export MEMORIES_ANDROID_KEYSTORE="$keystore" MEMORIES_VERSION="$PACKAGE_VERSION"
+          python tools/pc/package_android.py tmp/pc/android-arm64-v8a arm64-v8a
+          unset MEMORIES_ANDROID_KEYSTORE_PASSWORD MEMORIES_ANDROID_KEY_PASSWORD
+          python tools/pc/package.py android-arm64 --no-build --version "$PACKAGE_VERSION"
+      - name: APK signer
+        if: env.ANDROID_SIGNING == 'true'
+        run: |
+          apk="dist/yfm-redecomp-$PACKAGE_VERSION-android-arm64.apk"
+          "$ANDROID_SDK_ROOT/build-tools/$ANDROID_BUILD_TOOLS/apksigner" verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/apk-signer.txt"
+          {
+            echo "### Android APK ($PACKAGE_VERSION)"
+            echo
+            echo '```'
+            grep -E 'certificate (DN|SHA-256 digest)' "$RUNNER_TEMP/apk-signer.txt"
+            "$ANDROID_SDK_ROOT/build-tools/$ANDROID_BUILD_TOOLS/aapt2" dump badging "$apk" | head -1
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove the release key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/android-release.p12"
+      - name: Upload the APK
+        if: env.ANDROID_SIGNING == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: yfm-redecomp-android-arm64
+          path: dist/*-android-arm64.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  draft-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [package, android]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: yfm-redecomp-*
+          merge-multiple: true
+          path: release
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        # A tag with a hyphen (v0.2.0-preview.1, v0.2.0-rc.1) is a preview:
+        # its draft is marked as a pre-release. A plain v0.2.0 is a release.
+        run: |
+          case "$RELEASE_TAG" in *-*) kind=--prerelease ;; *) kind=--prerelease=false ;; esac
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json; then
+            python -c 'import json; assert json.load(open("release-state.json"))["isDraft"], "Refusing to replace a published release"'
+            gh release edit "$RELEASE_TAG" "$kind"
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft "$kind" --title "$RELEASE_TAG" --generate-notes
+          fi
+          gh release upload "$RELEASE_TAG" release/* --clobber

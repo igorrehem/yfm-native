@@ -1,0 +1,172 @@
+name: Overlay build
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "notes/**"
+      - "README.md"
+      - "tools/trace/**"
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - "notes/**"
+      - "README.md"
+      - "tools/trace/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: overlay-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The build needs the retail executable, which only a repository secret can
+  # provide. A fork or a clone without it skips the build instead of failing
+  # on every push; setting YGOFM_SLUS_01411_URL turns it back on.
+  retail-inputs:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - id: check
+        env:
+          SLUS_URL: ${{ secrets.YGOFM_SLUS_01411_URL }}
+        run: |
+          if [ -n "$SLUS_URL" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::YGOFM_SLUS_01411_URL is not set; skipping the retail build."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  verify-overlays:
+    needs: retail-inputs
+    if: needs.retail-inputs.outputs.available == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      USE_SYSTEM_MIPS_BINUTILS: "1"
+      SLUS_URL: ${{ secrets.YGOFM_SLUS_01411_URL }}
+      WA_MRG_URL: ${{ secrets.YGOFM_WA_MRG_URL }}
+      SU_MRG_URL: ${{ secrets.YGOFM_SU_MRG_URL }}
+
+    steps:
+      - name: Select build parallelism
+        run: echo "MAKEFLAGS=-j$(nproc)" >> "$GITHUB_ENV"
+
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+        
+      - name: Install host build dependencies
+        run: |
+          # The runner image carries third-party apt sources (Google Chrome,
+          # Microsoft) that this build never installs from. When one of them
+          # serves a Release file that disagrees with its Packages index,
+          # apt-get update exits 100 and the job dies before compiling
+          # anything. Drop those sources -- they appear as .list or as
+          # deb822 .sources depending on the image -- and do not let a
+          # surviving index failure be fatal. The apt-get install below is
+          # the real gate: it fails loudly if an index it needs is missing.
+          sudo rm -f /etc/apt/sources.list.d/*.list \
+                     /etc/apt/sources.list.d/*.sources
+          sudo apt-get update || true
+          sudo apt-get install --yes --no-install-recommends \
+            binutils-mips-linux-gnu=2.38-1ubuntu1cross2 \
+            ca-certificates \
+            curl \
+            python3-pip \
+            python3-venv
+
+      - name: Require private retail input secrets
+        run: |
+          if [ -z "$SLUS_URL" ]; then
+            echo "::error::Configure the YGOFM_SLUS_01411_URL repository secret."
+            exit 1
+          fi
+          if [ -z "$WA_MRG_URL" ]; then
+            echo "::error::Configure the YGOFM_WA_MRG_URL repository secret."
+            exit 1
+          fi
+          if [ -z "$SU_MRG_URL" ]; then
+            echo "::error::Configure the YGOFM_SU_MRG_URL repository secret."
+            exit 1
+          fi
+
+      - name: Download and verify retail inputs
+        run: |
+          mkdir -p game/DATA
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --silent \
+            --show-error \
+            "$SLUS_URL" \
+            --output game/SLUS_014.11
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --silent \
+            --show-error \
+            "$WA_MRG_URL" \
+            --output game/DATA/WA_MRG.MRG
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --silent \
+            --show-error \
+            "$SU_MRG_URL" \
+            --output game/DATA/SU.MRG
+          printf '%s  %s\n' \
+            84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88 \
+            game/SLUS_014.11 \
+            | sha256sum --check --strict
+          wa_mrg_sha256="$(sha256sum game/DATA/WA_MRG.MRG | cut -d' ' -f1)"
+          if [ "$wa_mrg_sha256" = \
+            "a519a1f5b27f4c6702613ba48c10bf945d25c9c51611ae3d2fab6e5d562b2d66" ]; then
+            echo "::error::WA_MRG.MRG is from the known dump with the anti-piracy branch patched out. Configure an untouched North American dump."
+            exit 1
+          fi
+          printf '%s  %s\n' \
+            2026d85d3f224e04afc74e6fde70938195048883192fe845ffcadb8b286cc3f4 \
+            game/DATA/WA_MRG.MRG \
+            | sha256sum --check --strict
+          printf '%s  %s\n' \
+            c34d1eef2445e15ed40d20ad325c9907c55123d03f35b8693e7031966ef52e51 \
+            game/DATA/SU.MRG \
+            | sha256sum --check --strict
+
+      - name: Restore pinned project tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            tools/downloads
+            tools/environments
+            tools/toolchains
+            tools/vendor
+          key: ${{ runner.os }}-project-tools-${{ hashFiles('tools/bootstrap/*.json', 'tools/bootstrap/*.py') }}
+
+      - name: Install or verify pinned tools
+        run: |
+          make python-tools
+          make toolchain-system
+          make compiler-281-prebuilt
+          make check-build-tools
+
+      - name: Verify tracked metadata
+        run: |
+          make overlays
+          make verify-overlays
+
+      - name: Perform exact overlay build
+        run: make match-overlays

@@ -1,0 +1,10 @@
+{
+  "name": "options-hold-scratchpad",
+  "input": "910:0008,916:0000,1000:0040,1006:0000,1020:0040,1026:0000,1040:0040,1046:0000,1060:0040,1066:0000,1100:4000,1106:0000",
+  "frame": 1300,
+  "environment": {
+    "MEMORIES_TEST_HOLD_SCRATCHPAD": "rw"
+  },
+  "expect_output": "the held page at 0x1f800000: untouched",
+  "sha256": "5c360ca318c4d4e1faf29f11d06407b0f684fea904102abccf57fc9878a3b35d"
+}

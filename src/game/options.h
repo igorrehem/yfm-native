@@ -1,0 +1,73 @@
+#ifndef MEMORIES_DECOMP_OPTIONS_H
+#define MEMORIES_DECOMP_OPTIONS_H
+
+#include "../types.h"
+#include "display_object.h"
+
+/* The options screen's shared state.
+ *
+ * options_screen.h next to this one is the per-TU header for
+ * options_screen.c, in the shape #2495 asks for. This one is the screen's
+ * state, which its former sources were each declaring by hand.
+ *
+ *   gOptions_bSelection   The highlighted row, passed to Options_UpdateLayout
+ *                         and tested against 0 for the first entry.
+ *   gOptions_bState       The screen's small state machine, switched on as
+ *                         `gOptions_bState & 0xF`.
+ *   gOptions_bOutputType  The audio output setting, only ever 0 or 1.
+ *
+ * Options_HandleInput writes `gOptions_bState = *(u8 *)&gOptions_bSelection + 1`,
+ * reading the signed byte through an unsigned lvalue. That cast is at the use,
+ * not in the declaration, so the divergent load stays exactly where it was and
+ * gOptions_bSelection keeps the s8 spelling every former source gave it.
+ */
+extern s8 gOptions_bSelection;
+extern u8 gOptions_bState;
+extern s8 gOptions_bOutputType;
+
+/* NOT HERE, ON PURPOSE
+ *
+ * gSD_bOutputType is shared by both sources but is declared in sound.h,
+ * after the driver words it follows in memory, because it is not an
+ * options symbol: the sound driver owns it, SaveData_BuildPayload
+ * writes it into the save, and sound_frontend.c reaches it as a plain
+ * scalar from small data, so sound.h carries the guarded arm those two
+ * addressing groups need. An earlier version of this note said the
+ * s8 [16] and u8 [9] spellings could not be reconciled, and that was
+ * wrong: both bounds were the same lever for absolute addressing and
+ * neither asserted a size. Neither bound is in the tree any more: sound.h
+ * carries gSD_bOutputType in one header under a guard, and the [9] beside
+ * D_8009B0A3 was measured away, since both of that symbol's array
+ * consumers compile at a plain gcc_2_8_1_g8 profile, where an incomplete
+ * array is already outside small data.
+ *
+ * The two option display objects are no longer among the exceptions either:
+ * see below.
+ */
+
+/* The two display objects the options screen keeps. Options_Init creates
+ * them and stores them here; Options_UpdateLayout reads them back.
+ *
+ * Options_Init used to spell these `struct Obj *`, against a struct of its
+ * own. It never dereferenced either global -- it only assigned them -- so
+ * that spelling was an abstention rather than a competing claim, and the
+ * local struct existed only to give the function's register-allocated local
+ * a `f8` field at 0x08. The canonical DisplayObject names the same halfword
+ * `flags` at the same offset, so the local type is gone and both globals are
+ * DisplayObject * here. */
+extern DisplayObject *G32 D_8009B380;
+extern DisplayObject *G32 D_8009B388;
+
+/* Builds the options screen and seeds the state above: it sets
+ * gOptions_bState to 1, copies gSD_bOutputType into gOptions_bOutputType
+ * (clamping a negative to 0), clears gOptions_bSelection, and stores the two
+ * display objects into D_8009B388 and D_8009B380. It is declared here rather
+ * than in a header of its own because this is the header that already owns
+ * every global it writes.
+ *
+ * Main_RunOptionsMenu (src/candidates/func_8002D6C8.c) is the only caller;
+ * main_run_frontend_menus.c, which held it, had the only declaration. */
+void Options_Init(void);
+s32 Options_Update(void);
+
+#endif

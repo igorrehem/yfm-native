@@ -1,0 +1,353 @@
+#define _POSIX_C_SOURCE 200809L
+#include "pc/saves/save_slots.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#ifndef _WIN32
+#include <fcntl.h>
+#endif
+#include "pc/compat/posix.h"
+#include "scratch.h"
+#include <unistd.h>
+
+#define NAME "BASLUS-01411-YUGIOH"
+
+/* Stands in for SaveData_ValidateIntegrity: a state is sound when its last
+ * byte is 0x5A. */
+static int sound(unsigned char *state) { return state[SAVE_SLOT_STATE_SIZE - 1] == 0x5A; }
+
+/* Stands in for Duelists_SavedRecord. */
+static void extra_record(const unsigned char *state, int *wins, int *losses)
+{
+    (void)state;
+    *wins += 10;
+    *losses += 20;
+}
+
+static void make_state(unsigned char *state, int code, unsigned starchips)
+{
+    memset(state, 0, SAVE_SLOT_STATE_SIZE);
+    state[0] = 1;                      /* one deck card */
+    state[0x50] = 3;                   /* three of card 1 */
+    state[0x51] = 2;
+    memcpy(state + 0x334, &code, 4);
+    state[0x404] = 7;                  /* sequence */
+    state[0x40C] = 0x60; state[0x40D] = 0x82; /* full-width A */
+    state[0x40E] = 0x4F; state[0x40F] = 0x82; /* full-width 0 */
+    state[0x518] = 9;                  /* two-player totals: not shown */
+    state[0x51A] = 9;
+    state[0x51C] = 3;                  /* Free Duel: 3-1 against the first */
+    state[0x51E] = 1;
+    state[0x51C + 4 * 39] = 2;         /* 2-1 against the last */
+    state[0x51E + 4 * 39] = 1;
+    memcpy(state + 0x5E0, &starchips, 4);
+    state[SAVE_SLOT_STATE_SIZE - 1] = 0x5A;
+}
+
+static void make_image(unsigned char *image, int code, unsigned starchips)
+{
+    memset(image, 0, SAVE_SLOT_FILE_SIZE);
+    image[0] = 'S';
+    image[1] = 'C';
+    make_state(image + SAVE_SLOT_HEADER_SIZE, code, starchips);
+    make_state(image + SAVE_SLOT_DUPLICATE_OFFSET, code, starchips);
+}
+
+/* A formatted card image holding the save in block 3. */
+static void write_card(const char *path, const unsigned char *save)
+{
+    static unsigned char card[0x20000];
+    unsigned char *frame = card + 128 * (3 + 1);
+    FILE *file;
+    card[0] = 'M';
+    card[1] = 'C';
+    frame[0] = 0x51;
+    frame[8] = frame[9] = 0xff;
+    strcpy((char *)frame + 10, NAME);
+    memcpy(card + 0x2000 * (3 + 1), save, SAVE_SLOT_FILE_SIZE);
+    file = fopen(path, "wb");
+    assert(file);
+    assert(fwrite(card, 1, sizeof(card), file) == sizeof(card));
+    assert(!fclose(file));
+}
+
+static void write_bytes(const char *path, const unsigned char *data, size_t size)
+{
+    FILE *file = fopen(path, "wb");
+    assert(file);
+    assert(fwrite(data, 1, size, file) == size);
+    assert(!fclose(file));
+}
+
+/* The memory card files an emulator or card manager writes, each holding
+ * `save` behind a header of its own (or none), and the import of them. */
+static void test_import(const char *directory)
+{
+    static unsigned char save[SAVE_SLOT_FILE_SIZE], other[SAVE_SLOT_FILE_SIZE], file[0x30000];
+    static unsigned char state[SAVE_SLOT_STATE_SIZE];
+    SaveSlotInfo slots[SAVE_SLOT_COUNT];
+    char path[1024], message[160];
+    int i;
+
+    /* The finder: the block wherever it starts, either copy sound. */
+    make_image(save, 0x2222, 31);
+    assert(SaveSlots_FindSave(save, sizeof(save), 0, sound) == 0);
+    assert(SaveSlots_FindSave(save, sizeof(save), 1, sound) == -1);
+    assert(SaveSlots_FindSave(save, 0x100, 0, sound) == -1);
+    memset(file, 0, sizeof(file));
+    memcpy(file + 3904, save, sizeof(save));            /* a DexDrive .gme's header */
+    assert(SaveSlots_FindSave(file, 3904 + sizeof(save), 0, sound) == 3904);
+    file[3904 + SAVE_SLOT_HEADER_SIZE + SAVE_SLOT_STATE_SIZE - 1] = 0; /* first copy damaged */
+    assert(SaveSlots_FindSave(file, 3904 + sizeof(save), 0, sound) == 3904);
+    file[3904 + SAVE_SLOT_DUPLICATE_OFFSET + SAVE_SLOT_STATE_SIZE - 1] = 0; /* both */
+    assert(SaveSlots_FindSave(file, 3904 + sizeof(save), 0, sound) == -1);
+    memset(file, 0, sizeof(file));
+    memcpy(file + 0x84, save, SAVE_SLOT_HEADER_SIZE + SAVE_SLOT_STATE_SIZE); /* cut short after one copy */
+    assert(SaveSlots_FindSave(file, 0x84 + SAVE_SLOT_HEADER_SIZE + SAVE_SLOT_STATE_SIZE, 0, sound) == 0x84);
+    memcpy(file, save, sizeof(save));
+    file[0] = 'X';                                       /* no "SC" header: not the game's block */
+    assert(SaveSlots_FindSave(file, sizeof(save), 0, sound) == -1);
+    memcpy(file, save, sizeof(save));                    /* passes the check but has no deck: */
+    file[SAVE_SLOT_HEADER_SIZE] = file[SAVE_SLOT_DUPLICATE_OFFSET] = 0; /* zeros, another game's */
+    assert(sound(file + SAVE_SLOT_HEADER_SIZE) && SaveSlots_FindSave(file, sizeof(save), 0, sound) == -1);
+
+    assert(SaveSlots_ImportName("epsxe000.mcr") && SaveSlots_ImportName("Card 1.MCD"));
+    assert(SaveSlots_ImportName("x.gme") && SaveSlots_ImportName("x.mcs") && SaveSlots_ImportName("x.psv"));
+    assert(SaveSlots_ImportName("x.srm") && SaveSlots_ImportName("x.vmp") && SaveSlots_ImportName("x.mc"));
+    assert(!SaveSlots_ImportName("slot01.sav") && !SaveSlots_ImportName("x.mcr.imported"));
+    assert(!SaveSlots_ImportName(".mcr") && !SaveSlots_ImportName("mcr") && !SaveSlots_ImportName("x.mcrr"));
+
+    /* Nothing to import: no message. */
+    assert(SaveSlots_ImportFolder(sound, message, sizeof(message)) == -1 && !message[0]);
+
+    /* A raw card (another game's save in block 0) goes into the first empty
+     * slot, read through the game's check, and the card is renamed. */
+    assert(!SaveSlots_WriteFile(0, save, sizeof(save))); /* slot 1 taken */
+    make_image(other, 0x3333, 500);
+    memset(file, 0, sizeof(file));
+    file[0] = 'M';
+    file[1] = 'C';
+    memcpy(file + 0x2000, "SC", 2);                      /* another game's block */
+    memcpy(file + 0x2000 * 3, other, sizeof(other));
+    snprintf(path, sizeof(path), "%s/saves/epsxe000.mcr", directory);
+    write_bytes(path, file, 0x20000);
+    assert(SaveSlots_ImportFolder(sound, message, sizeof(message)) == 1);
+    assert(!strcmp(message, "Imported the save in epsxe000.mcr into slot 2."));
+    assert(access(path, F_OK) == -1);
+    snprintf(path, sizeof(path), "%s/saves/epsxe000.mcr.imported", directory);
+    assert(!access(path, F_OK) && !remove(path));
+    assert(!SaveSlots_ReadState(1, state, sound));
+    assert(!memcmp(state, other + SAVE_SLOT_HEADER_SIZE, SAVE_SLOT_STATE_SIZE));
+    assert(SaveSlots_Token(1) != 0);
+    SaveSlots_Scan(slots, sound);
+    assert(slots[1].status == SAVE_SLOT_USED && slots[1].duelist_code == 0x3333 && slots[1].starchips == 500);
+
+    /* The same save again (a single-save .mcs): already there, nothing
+     * written, the file renamed all the same. */
+    memset(file, 0, sizeof(file));
+    file[0] = 'Q';
+    memcpy(file + 128, other, sizeof(other));
+    snprintf(path, sizeof(path), "%s/saves/copy.mcs", directory);
+    write_bytes(path, file, 128 + sizeof(other));
+    assert(SaveSlots_ImportFolder(sound, message, sizeof(message)) == -1);
+    assert(!strcmp(message, "The save in copy.mcs is already in slot 2."));
+    SaveSlots_Scan(slots, sound);
+    assert(slots[2].status == SAVE_SLOT_EMPTY);
+    snprintf(path, sizeof(path), "%s/saves/copy.mcs.imported", directory);
+    assert(!access(path, F_OK) && !remove(path));
+
+    /* A card with nothing of the game's stays, and says so. */
+    memset(file, 0, sizeof(file));
+    file[0] = 'M';
+    file[1] = 'C';
+    snprintf(path, sizeof(path), "%s/saves/blank.mcd", directory);
+    write_bytes(path, file, 0x20000);
+    assert(SaveSlots_ImportFolder(sound, message, sizeof(message)) == -1);
+    assert(!strcmp(message, "No save of this game found in blank.mcd."));
+    assert(!access(path, F_OK) && !remove(path));
+
+    /* Every slot full: the card stays to be imported once one is free. */
+    for (i = 0; i < SAVE_SLOT_COUNT; i++) {
+        make_image(other, 0x100 + i, (unsigned)i);
+        if (i > 1) assert(!SaveSlots_WriteFile(i, other, sizeof(other)));
+    }
+    make_image(other, 0x4444, 1);
+    memset(file, 0, sizeof(file));
+    memcpy(file + 3904, other, sizeof(other));
+    snprintf(path, sizeof(path), "%s/saves/card.gme", directory);
+    write_bytes(path, file, 3904 + 0x20000);
+    assert(SaveSlots_ImportFolder(sound, message, sizeof(message)) == -1);
+    assert(!strcmp(message, "No empty slot for 1 save in card.gme. Free a slot to import it."));
+    assert(!access(path, F_OK));
+    assert(!SaveSlots_Path(5, message, sizeof(message)) && !remove(message));
+    assert(SaveSlots_ImportFolder(sound, message, sizeof(message)) == 5);
+    assert(!strcmp(message, "Imported the save in card.gme into slot 6."));
+    assert(access(path, F_OK) == -1);
+    snprintf(path, sizeof(path), "%s/saves/card.gme.imported", directory);
+    assert(!access(path, F_OK) && !remove(path));
+
+    for (i = 0; i < SAVE_SLOT_COUNT; i++) {
+        assert(!SaveSlots_Path(i, path, sizeof(path)));
+        remove(path);
+    }
+}
+
+int main(void)
+{
+    static unsigned char image[SAVE_SLOT_FILE_SIZE], state[SAVE_SLOT_STATE_SIZE];
+    SaveSlotInfo slots[SAVE_SLOT_COUNT];
+    char directory[SCRATCH_MAX], card[SCRATCH_MAX + 32], path[1024];
+    int i;
+    assert(scratch_dir(directory, sizeof(directory), "memories-save-slots"));
+    assert(!setenv("MEMORIES_USER_DIR", directory, 1));
+    assert(!unsetenv("MEMORIES_MEMCARD1"));
+    assert(!unsetenv("MEMORIES_MEMCARD2"));
+
+    /* First run: the save on memcard1.mcd becomes slot 1, and the card stays. */
+    make_image(image, 0x1234, 4);
+    snprintf(card, sizeof(card), "%s/memcard1.mcd", directory);
+    write_card(card, image);
+    SaveSlots_ImportMemoryCards(NAME);
+    SaveSlots_Scan(slots, sound);
+    assert(slots[0].status == SAVE_SLOT_USED);
+    assert(slots[0].duelist_code == 0x1234);
+    assert(slots[0].starchips == 4);
+    assert(slots[0].wins == 5 && slots[0].losses == 2);
+    assert(slots[0].cards == 6);
+    assert(slots[0].sequence == 7);
+    assert(!strcmp(slots[0].name, "A0"));
+    assert(!slots[0].from_duplicate);
+    for (i = 1; i < SAVE_SLOT_COUNT; i++) assert(slots[i].status == SAVE_SLOT_EMPTY);
+    assert(!access(card, F_OK));
+
+    /* The added duelists' records, kept beside the save, count too. */
+    SaveSlots_SetRecordReader(extra_record);
+    SaveSlots_Scan(slots, sound);
+    assert(slots[0].wins == 15 && slots[0].losses == 22);
+    SaveSlots_SetRecordReader(NULL);
+
+    /* Once only: a slot the player cleared is not filled again. */
+    assert(!SaveSlots_Path(0, path, sizeof(path)));
+    assert(!remove(path));
+    SaveSlots_ImportMemoryCards(NAME);
+    SaveSlots_Scan(slots, sound);
+    assert(slots[0].status == SAVE_SLOT_EMPTY);
+
+    /* A save written as header + both copies reads back whole, padded. */
+    make_image(image, 0x5678, 900);
+    assert(!SaveSlots_WriteFile(4, image, SAVE_SLOT_HEADER_SIZE + 2 * SAVE_SLOT_STATE_SIZE));
+    assert(!SaveSlots_ReadState(4, state, sound));
+    assert(!memcmp(state, image + SAVE_SLOT_HEADER_SIZE, SAVE_SLOT_STATE_SIZE));
+    SaveSlots_Scan(slots, sound);
+    assert(slots[4].status == SAVE_SLOT_USED && slots[4].starchips == 900);
+
+    /* A damaged first copy falls back to the duplicate. */
+    image[SAVE_SLOT_HEADER_SIZE + SAVE_SLOT_STATE_SIZE - 1] = 0;
+    memset(image + SAVE_SLOT_DUPLICATE_OFFSET + 0x5E0, 0, 4);
+    image[SAVE_SLOT_DUPLICATE_OFFSET + 0x5E0] = 77;
+    assert(!SaveSlots_WriteFile(5, image, SAVE_SLOT_FILE_SIZE));
+    SaveSlots_Scan(slots, sound);
+    assert(slots[5].status == SAVE_SLOT_USED && slots[5].from_duplicate && slots[5].starchips == 77);
+
+    /* Both damaged: shown as damaged, not loadable. */
+    image[SAVE_SLOT_DUPLICATE_OFFSET + SAVE_SLOT_STATE_SIZE - 1] = 0;
+    assert(!SaveSlots_WriteFile(6, image, SAVE_SLOT_FILE_SIZE));
+    SaveSlots_Scan(slots, sound);
+    assert(slots[6].status == SAVE_SLOT_DAMAGED);
+    assert(SaveSlots_ReadState(6, state, sound) == -1);
+    assert(SaveSlots_ReadState(7, state, sound) == -1);
+
+    /* A patch changes only the bytes it names. */
+    memset(state, 0xEE, 0x10);
+    assert(!SaveSlots_WriteAt(4, SAVE_SLOT_HEADER_SIZE + 0x10, state, 0x10));
+    assert(!SaveSlots_ReadState(4, state, sound));
+    assert(state[0x10] == 0xEE && state[0x1F] == 0xEE && state[0x20] == 0 && state[0x50] == 3);
+    assert(SaveSlots_WriteAt(8, SAVE_SLOT_HEADER_SIZE, state, 0x10) == -1); /* no file to patch */
+    assert(SaveSlots_WriteAt(4, SAVE_SLOT_FILE_SIZE - 4, state, 8) == -1);
+    assert(SaveSlots_WriteAt(4, 1, state, SIZE_MAX) == -1);
+    assert(SaveSlots_WriteAt(4, -1, state, 1) == -1);
+
+    /* An unreadable existing path is unreadable, never an empty slot that
+     * can be overwritten without confirmation, and not called damaged: the
+     * save may be sound. Directories fail on both OSes. */
+    assert(!SaveSlots_Path(9, path, sizeof(path)));
+    assert(!mkdir(path, 0700));
+    SaveSlots_Scan(slots, sound);
+    assert(slots[9].status == SAVE_SLOT_UNREADABLE);
+    assert(strstr(SaveSlots_ReadError(), "slot10.sav"));
+    assert(!rmdir(path));
+    SaveSlots_Scan(slots, sound);
+    assert(!*SaveSlots_ReadError());
+
+#ifndef _WIN32
+    /* Force a short write without filling a disk. The old save must survive
+     * and the partial stream must close, so retrying cannot leak handles. */
+    {
+        char partial[1100];
+        int fd, next;
+        assert(!SaveSlots_Path(4, path, sizeof(path)));
+        snprintf(partial, sizeof(partial), "%s.partial", path);
+        fd = open("/dev/null", O_RDONLY);
+        assert(fd >= 0 && !close(fd));
+        assert(!symlink("/dev/full", partial));
+        assert(SaveSlots_WriteFile(4, image, sizeof(image)) == -1);
+        next = open("/dev/null", O_RDONLY);
+        assert(next == fd);
+        assert(!close(next));
+        assert(access(partial, F_OK) == -1);
+        assert(!SaveSlots_ReadState(4, state, sound));
+        assert(state[0x10] == 0xEE && state[0x50] == 3);
+    }
+#endif
+
+    /* Every key of the name entry's keyboard (string 0xF2: letters, digits
+     * and the last row's symbols), as the game stores it, reads back as
+     * the key: none is a '?'. */
+    {
+        static const unsigned short symbols[] = {0x817B, 0x817C, 0x8196, 0x815E, 0x8195, 0x8190,
+                                                 0x8193, 0x8149, 0x8148, 0x8144, 0x8146};
+        static const char keys[] = "+-*/&$%!?.:";
+        char name[16];
+        for (i = 0; i < 26; i++) {
+            assert(SaveSlots_Ascii(0x8260u + i) == 'A' + i);
+            assert(SaveSlots_Ascii(0x8281u + i) == 'a' + i);
+        }
+        for (i = 0; i < 10; i++) assert(SaveSlots_Ascii(0x824Fu + i) == '0' + i);
+        for (i = 0; i < (int)(sizeof(symbols) / sizeof(symbols[0])); i++) assert(SaveSlots_Ascii(symbols[i]) == keys[i]);
+        memset(state, 0, SAVE_SLOT_STATE_SIZE);
+        state[0x40C] = 0x90; state[0x40D] = 0x81; /* $ */
+        state[0x40E] = 0x62; state[0x40F] = 0x82; /* C */
+        state[0x410] = 0x8F; state[0x411] = 0x82; /* o */
+        SaveSlots_StateName(state, name, sizeof(name));
+        assert(!strcmp(name, "$Co"));
+    }
+
+    for (i = 0; i < SAVE_SLOT_COUNT; i++) {
+        assert(!SaveSlots_Path(i, path, sizeof(path)));
+        remove(path);
+    }
+    test_import(directory);
+    remove(card);
+    snprintf(path, sizeof(path), "%s/saves/.cards-imported", directory);
+    remove(path);
+    snprintf(path, sizeof(path), "%s/saves/.cards-importing", directory);
+    remove(path);
+    snprintf(path, sizeof(path), "%s/saves", directory);
+    assert(!rmdir(path));
+
+    /* A saves folder that cannot be made (here a file is in its way; on the
+     * player's machine an antivirus): every slot unreadable, with why. */
+    {
+        FILE *blocker = fopen(path, "wb");
+        assert(blocker && !fclose(blocker));
+        SaveSlots_Scan(slots, sound);
+        for (i = 0; i < SAVE_SLOT_COUNT; i++) assert(slots[i].status == SAVE_SLOT_UNREADABLE);
+        assert(strstr(SaveSlots_ReadError(), "saves"));
+        assert(!remove(path));
+    }
+    assert(!rmdir(directory));
+    puts("save slots: ok");
+    return 0;
+}

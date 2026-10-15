@@ -1,0 +1,151 @@
+{
+    "id": "drop-missing-cards",
+    "name": "Drop missing cards",
+    "version": "1.0",
+    "author": "Unchiga",
+    "description": "Gives the 82 cards no duelist drops (Exodia's legs among them) a duelist to win them from, as the old static recomp's Drop missing cards did.",
+    "enabled": false,
+    "drops": {
+        "Simon Muran": {
+            "pow": {"Witch's Apprentice": 40, "Hane-Hane": 30, "Right Leg of the Forbidden One": 20},
+            "bcd": {"Witch's Apprentice": 20, "Hane-Hane": 20}
+        },
+        "Teana": {
+            "pow": {"Fairy's Gift": 40, "Stuffed Animal": 40, "Goddess of Whim": 40},
+            "bcd": {"Fairy's Gift": 20, "Stuffed Animal": 20, "Goddess of Whim": 20}
+        },
+        "Jono": {
+            "pow": {"Winged Dragon #1": 40, "Fairy Dragon": 40},
+            "bcd": {"Winged Dragon #1": 20, "Fairy Dragon": 20}
+        },
+        "Villager 1": {
+            "pow": {"Barrel Lily": 40},
+            "bcd": {"Barrel Lily": 20}
+        },
+        "Villager 2": {
+            "pow": {"Wodan the Resident of the Forest": 40},
+            "bcd": {"Wodan the Resident of the Forest": 20}
+        },
+        "Villager 3": {
+            "pow": {"Three-legged Zombies": 40},
+            "bcd": {"Three-legged Zombies": 20}
+        },
+        "Seto": {
+            "pow": {"Magician of Faith": 40, "Flame Viper": 30, "Left Leg of the Forbidden One": 20},
+            "bcd": {"Magician of Faith": 20, "Flame Viper": 20}
+        },
+        "Heishin": {
+            "pow": {"Summoned Skull": 20},
+            "tec": {"Shadow Spell": 64}
+        },
+        "Rex Raptor": {
+            "pow": {"Armored Lizard": 30}
+        },
+        "Weevil Underwood": {
+            "pow": {"Petit Moth": 30, "Kattapillar": 30, "Larvae Moth": 20, "Cocoon of Evolution": 15},
+            "bcd": {"Petit Moth": 20, "Kattapillar": 20, "Larvae Moth": 20},
+            "tec": {"Javelin Beetle Pact": 64}
+        },
+        "Mai Valentine": {
+            "pow": {"Harpie Lady": 40, "Harpie Lady Sisters": 20},
+            "bcd": {"Harpie Lady": 20, "Elegant Egotist": 20}
+        },
+        "Bandit Keith": {
+            "pow": {"Mega Thunderball": 40, "Megasonic Eye": 30},
+            "bcd": {"Mega Thunderball": 20}
+        },
+        "Shadi": {
+            "pow": {"Flying Penguin": 40, "Nekogal #1": 40, "Dark Artist": 40},
+            "bcd": {"Flying Penguin": 20, "Nekogal #1": 20, "Dark Artist": 20}
+        },
+        "Yami Bakura": {
+            "pow": {"Dokurorider": 30, "Skelgon": 30, "Wall Shadow": 30},
+            "tec": {"Black Luster Ritual": 64}
+        },
+        "Pegasus": {
+            "pow": {"Tao the Chanter": 40, "Yamadron": 30},
+            "bcd": {"Tao the Chanter": 20}
+        },
+        "Isis": {
+            "pow": {"Performance of Sword": 30, "Tyhone #2": 30, "Psycho-Puppet": 20}
+        },
+        "Kaiba": {
+            "pow": {"Sonic Maid": 40, "Great White": 30},
+            "bcd": {"Sonic Maid": 20}
+        },
+        "Mage Soldier": {
+            "pow": {"Takriminos": 40, "Rock Ogre Grotto #1": 40},
+            "bcd": {"Takriminos": 20, "Rock Ogre Grotto #1": 20},
+            "tec": {"Reverse Trap": 64}
+        },
+        "Jono 2nd": {
+            "pow": {"Thousand Dragon": 10}
+        },
+        "Teana 2nd": {
+            "pow": {"Lava Battleguard": 30}
+        },
+        "Ocean Mage": {
+            "pow": {"Kanan the Swordmistress": 40},
+            "bcd": {"Kanan the Swordmistress": 20}
+        },
+        "High Mage Secmeton": {
+            "pow": {"Crab Turtle": 20, "Fortress Whale": 20}
+        },
+        "Forest Mage": {
+            "pow": {"Chakra": 20, "Hungry Burger": 20, "Great Moth": 10}
+        },
+        "High Mage Anubisius": {
+            "pow": {"Javelin Beetle": 20, "Perfectly Ultimate Great Moth": 10}
+        },
+        "Mountain Mage": {
+            "pow": {"Gaia the Dragon Champion": 20, "Seiyaryu": 20}
+        },
+        "High Mage Atenza": {
+            "pow": {"Tri-horned Dragon": 20, "B. Skull Dragon": 10}
+        },
+        "Desert Mage": {
+            "pow": {"Mikazukinoyaiba": 20, "Skull Guardian": 20, "Zera The Mant": 10}
+        },
+        "High Mage Martis": {
+            "pow": {"Serpent Night Dragon": 20, "Super War-lion": 20, "Mask of Shine & Dark": 20}
+        },
+        "Meadow Mage": {
+            "pow": {"Fiend's Mirror": 20, "Magician of Black Chaos": 10, "Sengenjin": 10, "Millennium Shield": 10}
+        },
+        "High Mage Kepura": {
+            "pow": {"Garma Sword": 20, "Rabid Horseman": 20, "Black Luster Soldier": 10}
+        },
+        "Labyrinth Mage": {
+            "pow": {"Gate Guardian": 10},
+            "bcd": {"Gate Guardian Ritual": 20}
+        },
+        "Seto 2nd": {
+            "tec": {"Dark Magic Ritual": 64, "Swords of Revealing Light": 48}
+        },
+        "Guardian Sebek": {
+            "pow": {"Yaranzo": 40},
+            "bcd": {"Yaranzo": 20}
+        },
+        "Guardian Neku": {
+            "pow": {"Needle Worm": 20},
+            "bcd": {"Needle Worm": 20}
+        },
+        "Heishin 2nd": {
+            "pow": {"Cosmo Queen": 20}
+        },
+        "Seto 3rd": {
+            "pow": {"Blue-eyes Ultimate Dragon": 10}
+        },
+        "DarkNite": {
+            "pow": {"Tiger Axe": 40},
+            "bcd": {"Tiger Axe": 20}
+        },
+        "Nitemare": {
+            "pow": {"Acid Crawler": 30},
+            "bcd": {"Acid Crawler": 20}
+        },
+        "Duel Master K": {
+            "pow": {"Hercules Beetle": 30}
+        }
+    }
+}

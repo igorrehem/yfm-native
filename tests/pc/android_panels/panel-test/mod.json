@@ -1,0 +1,14 @@
+{
+    "id": "panel-test",
+    "name": "Panel test",
+    "version": "1.0",
+    "author": "tests",
+    "description": "A data mod for checking the Mods panel on a phone (notes/pc-build.md, Android): enabled, it writes PANEL TEST on the title; its setting changes the name entry's prompt to Input your PANEL NAME!, which takes a restart.",
+    "enabled": false,
+    "title": {"text": [{"text": "PANEL TEST", "x": 160, "y": 16, "show": "always", "color": "#FFE040", "size": 2}]},
+    "text": [{"file": "name.txt", "setting": "name_label"}],
+    "settings": [
+        {"key": "name_label", "label": "Rename the name prompt", "type": "bool", "default": 0, "restart": true,
+         "description": "The name entry asks Input your PANEL NAME! instead."}
+    ]
+}

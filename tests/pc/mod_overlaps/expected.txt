@@ -1,0 +1,48 @@
+Disc data|warning|later|alpha, beta|File \DATA\WA_MRG.MRG;1	File \DATA\WA_MRG.MRG;1 (Alpha, Beta): Beta wins (later in load order)
+Disc data|warning|bytes|alpha, beta|File \DATA\SU.MRG;1	File \DATA\SU.MRG;1 (Alpha, Beta): Beta's bytes are read where they patch the same ones
+Disc data|warning|patched|alpha, beta, gamma|Sectors 1230-1239	Sectors 1230-1239 (Alpha, Beta, Gamma): Alpha's patch is written into Gamma's replacement, at the disc's offsets
+Sounds|warning|later|alpha, beta, gamma|Song 0x10	Song 0x10 (Alpha, Beta, Gamma): Gamma wins (later in load order)
+Texture images|warning|later|alpha, beta|Image cards/001, WA_MRG.MRG at 0x1000	Image cards/001, WA_MRG.MRG at 0x1000 (Alpha, Beta): Beta wins (later in load order)
+Cards|warning|keys|alpha, beta, gamma|Card 'Kuriboh'	Card 'Kuriboh' (Alpha, Beta, Gamma): Gamma's attack is used and the name Alpha and Beta gave is dropped, as Gamma's replace starts it from the disc's (later in load order); the rest combines
+Cards|warning|keys|alpha, beta|Card 'Blue-eyes White Dragon'	Card 'Blue-eyes White Dragon' (Alpha, Beta): Beta's description is used (later in load order); the rest combines
+Fusions|warning|later|alpha, beta, gamma|Fusion 'Kuriboh' + 'Mystical Elf'	Fusion 'Kuriboh' + 'Mystical Elf' (Alpha, Beta, Gamma): Gamma wins (later in load order)
+Fusions|info|agree|alpha, beta|Fusion 'Baby Dragon' + 'Ryu-kishin'	Fusion 'Baby Dragon' + 'Ryu-kishin' (Alpha, Beta): the same in each, so no difference
+Fusions|info|add|alpha, beta|Disc recipes for 'Celtic Guardian' removed	Disc recipes for 'Celtic Guardian' removed (Alpha, Beta): both apply and add up
+Fusions|info|add|alpha, beta|Every disc recipe removed	Every disc recipe removed (Alpha, Beta): both apply and add up
+Equips|warning|reset|alpha, beta, gamma|Equip 'Legendary Sword'	Equip 'Legendary Sword' (Alpha, Beta, Gamma): Gamma's "replace" clears what the earlier mods set
+Equips|warning|later|alpha, beta, gamma, delta|Equip 'Legendary Sword II'	Equip 'Legendary Sword II' (Alpha, Beta, Gamma, Delta é 😀 � 中 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx): Delta é 😀 � 中 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx wins (later in load order)
+Equips|warning|later|alpha, beta|Equip 'Megamorph'	Equip 'Megamorph' (Alpha, Beta): Beta wins (later in load order)
+Rituals|warning|later|alpha, beta, gamma|Ritual 'Black Luster Ritual'	Ritual 'Black Luster Ritual' (Alpha, Beta, Gamma): Gamma wins (later in load order)
+Drops and decks|warning|reset|alpha, beta|8's B/C/D drops	8's B/C/D drops (Alpha, Beta): Beta's "replace" clears what the earlier mods set
+Drops and decks|warning|reset|alpha, beta|Heishin's POW drops	Heishin's POW drops (Alpha, Beta): Beta's "replace" clears what the earlier mods set
+Drops and decks|warning|fixed|alpha, beta, gamma|Heishin's deck	Heishin's deck (Alpha, Beta, Gamma): Beta's fixed deck is dealt; the other edits of it are left out
+Drops and decks|info|add|alpha, beta|Simon Muran's POW drops	Simon Muran's POW drops (Alpha, Beta): both apply and add up (each edits the pool as the mods before left it)
+Drops and decks|info|add|alpha, gamma|Seto's TEC drops	Seto's TEC drops (Alpha, Gamma): both apply and add up (each edits the pool as the mods before left it)
+Starter decks|info|add|alpha, beta|Starter decks	Starter decks (Alpha, Beta): both apply and add up
+Passwords|warning|later|alpha, beta, gamma|Price of 'Kuriboh'	Price of 'Kuriboh' (Alpha, Beta, Gamma): Gamma wins (later in load order)
+Passwords|warning|later|alpha, beta|Price of 'Mystical Elf'	Price of 'Mystical Elf' (Alpha, Beta): Beta wins (later in load order, through its "all")
+Card packs|warning|sold|alpha, beta|Password 12345678	Password 12345678 (Alpha, Beta): Beta's pack 'first' is sold, the first in the list; the others' with it are not
+Card packs|warning|later|alpha, beta|The pack shop's rules	The pack shop's rules (Alpha, Beta): Beta wins (later in load order)
+Card packs|warning|later|alpha, beta|Pack shop 'main'	Pack shop 'main' (Alpha, Beta): Beta wins (later in load order)
+Card packs|warning|sold|alpha, gamma|Password 00000001	Password 00000001 (Alpha, Gamma): the digits give Gamma's card 'Mystical Elf', not the others' card or pack
+Guardian Stars|warning|later|alpha, beta|The name of star 11, Fire	The name of star 11, Fire (Alpha, Beta): Beta wins (later in load order)
+Guardian Stars|warning|reset|alpha, beta|Matchup Mars attacking Jupiter	Matchup Mars attacking Jupiter (Alpha, Beta): Beta's "replace" clears what the earlier mods set
+Values|warning|later|alpha, beta|Value attack	Value attack (Alpha, Beta): Beta wins (later in load order)
+Values|warning|later|alpha, beta|Value life_points	Value life_points (Alpha, Beta): Beta wins (later in load order)
+Values|warning|later|alpha, beta|Value chest_overflow.limit	Value chest_overflow.limit (Alpha, Beta): Beta wins (later in load order)
+Values|info|after|beta, gamma|Value life_points.duelists.all	Value life_points.duelists.all (Beta, Gamma): Gamma wins (it loads after Beta on purpose: after/requires)
+Terrain bonuses|warning|reset|alpha, beta|Forest bonus of Beast	Forest bonus of Beast (Alpha, Beta): Beta's "replace" clears what the earlier mods set
+Attack traps|warning|later|alpha, delta|Attack trap 'Bear Trap'	Attack trap 'Bear Trap' (Alpha, Delta é 😀 � 中 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx): Delta é 😀 � 中 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx wins (later in load order)
+Duelists|warning|later|alpha, beta, gamma|Duelist 'Heishin' replaced	Duelist 'Heishin' replaced (Alpha, Beta, Gamma): Gamma wins (later in load order)
+Duelists|warning|first|alpha, beta|Free Duel slot 41	Free Duel slot 41 (Alpha, Beta): Alpha keeps it, earlier in load order; the others take the next free slot
+Text|warning|later|alpha, beta|Text [8002]	Text [8002] (Alpha, Beta): Beta wins (later in load order)
+Text|info|agree|alpha, beta|Text [8001]	Text [8001] (Alpha, Beta): the same in each, so no difference
+Fonts|info|add|alpha, delta|Fonts	Fonts (Alpha, Delta é 😀 � 中 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx): both apply and add up (a letter comes from the first font that has it)
+Title screen and menus|warning|later|alpha, beta|title.logo.tint	title.logo.tint (Alpha, Beta): Beta wins (later in load order)
+Title screen and menus|warning|later|alpha, beta|title.entries.load.hide	title.entries.load.hide (Alpha, Beta): Beta wins (later in load order)
+Title screen and menus|info|add|alpha, beta|title.text (lines)	title.text (lines) (Alpha, Beta): both apply and add up
+Title screen and menus|info|add|alpha, beta|title.images (pictures)	title.images (pictures) (Alpha, Beta): both apply and add up
+Title screen and menus|info|aimed|alpha, beta|menu.buttons.alpha:credits.label	menu.buttons.alpha:credits.label (Alpha, Beta): Beta changes Alpha's own on purpose
+Title screen and menus|info|after|beta, gamma|menu.spacing	menu.spacing (Beta, Gamma): Gamma wins (it loads after Beta on purpose: after/requires)
+Duel pictures|warning|later|alpha, beta|ui.duel.lp_player.x	ui.duel.lp_player.x (Alpha, Beta): Beta wins (later in load order)
+Duel pictures|info|agree|alpha, beta|ui.duel.lp_player.tint	ui.duel.lp_player.tint (Alpha, Beta): the same in each, so no difference

@@ -1,0 +1,71 @@
+#include "../types.h"
+#include "duel_get_base_card_stat.h"
+#include "ai.h"
+#include "card_constants.h"
+#include "ai_script_read_byte.h"
+#include "ai_script_commands.h"
+#include "duel_card.h"
+#ifdef MEMORIES_PC
+#include "pc/cards/cards.h"
+#endif
+
+void AiScript_CalcCardPower(void)
+{
+    s32 *mem = gAiScript_aMemory;
+    s32 card;
+    s32 mode;
+    s32 dst;
+    s32 power;
+
+    card = mem[AiScript_ReadByte()];
+    mode = mem[AiScript_ReadByte()];
+    dst = AiScript_ReadByte();
+
+    if (((gDuel_adwCardStats[card - 1] >> CARD_STAT_TYPE_SHIFT) &
+         CARD_STAT_TYPE_MASK) < CARD_TYPE_MAGIC) {
+        switch (mode) {
+        case 0:
+            power = Duel_GetBaseCardStat(card, 0);
+            break;
+        case 1:
+            power = Duel_GetBaseCardStat(card, 1);
+            break;
+        case 2:
+            if (Duel_GetBaseCardStat(card, 0) > Duel_GetBaseCardStat(card, 1)) {
+                power = Duel_GetBaseCardStat(card, 0);
+            } else {
+                power = Duel_GetBaseCardStat(card, 1);
+            }
+            break;
+        }
+    } else {
+        power = 0;
+        if (mode == 0) {
+#ifdef MEMORIES_PC
+            /* A data-defined replacement has no retail value unless its
+             * cards entry explicitly supplies the AI analogue. */
+            switch (card > 0 ? Cards_AiId(card) : card) {
+#else
+            switch (card) {
+#endif
+            case DUEL_DIRECT_DAMAGE_FIRST_CARD_ID:
+                power = DUEL_SPARKS_DAMAGE;
+                break;
+            case DUEL_DIRECT_DAMAGE_FIRST_CARD_ID + 1:
+                power = DUEL_HINOTAMA_DAMAGE;
+                break;
+            case DUEL_DIRECT_DAMAGE_FIRST_CARD_ID + 2:
+                power = DUEL_FINAL_FLAME_DAMAGE;
+                break;
+            case DUEL_DIRECT_DAMAGE_FIRST_CARD_ID + 3:
+                power = DUEL_OOKAZI_DAMAGE;
+                break;
+            case DUEL_DIRECT_DAMAGE_FIRST_CARD_ID + 4:
+                power = DUEL_TREMENDOUS_FIRE_DAMAGE;
+                break;
+            }
+        }
+    }
+
+    gAiScript_aMemory[dst] = power;
+}

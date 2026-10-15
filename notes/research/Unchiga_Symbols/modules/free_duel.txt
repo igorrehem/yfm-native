@@ -1,0 +1,33 @@
+// free duel opponent-select module -- resident while Main_RunFreeDuelMenu (0x8002D3F8) is the mode tick.
+// EXE entry: FreeDuel_Entry = 0x80168FB4 (in symbol_addrs.txt). Findings F79-F86, F121, F124.
+FreeDuel_Init = 0x8016824C; // type:func
+FreeDuel_UpdateScreen = 0x80168C7C; // type:func
+FreeDuel_UpdateCursorTween = 0x80168A9C; // type:func
+FreeDuel_PlaceCursor = 0x80168090; // type:func
+FreeDuel_UpdateScrollbar = 0x80168004; // type:func
+FreeDuel_SpawnSparkle = 0x801681B4; // type:func
+FreeDuel_GetSparkleSlot = 0x8016899C; // type:func
+FreeDuel_UpdateSparkle = 0x801689D4; // type:func
+FreeDuel_Entry = 0x80168FB4; // type:func
+gFreeDuel_abGridAvailable = 0x80169030;
+gFreeDuel_pThumbWidget = 0x80169058;
+gFreeDuel_apSparklePool = 0x80169060;
+gFreeDuel_pCursorWidget = 0x801690A0;
+gFreeDuel_bScreenFlags = 0x801690A4;
+// Resident return-state byte shared with the menu dispatcher.
+gFreeDuel_bReturnFlags = 0x8009B365;
+// Resident viewport origins used by generated assembly and matching C.
+gGraphics_sViewportX = 0x8009B146;
+gGraphics_sViewportY = 0x8009B148;
+rand = 0x8008E590; // type:func
+SD_SEPlayFull = 0x8003FEE0; // type:func
+// Matching Free Duel C destroys the completed prompt through this resident helper.
+TextBox_Destroy = 0x80035B7C; // type:func
+// Resident helpers reached only from FreeDuel_Init. Declared here because splat
+// emits undefined symbols only while generated assembly still references them,
+// and converting that function to C removed its last such reference.
+Campaign_TestStoryFlag = 0x8002CCA8; // type:func
+// The forty duelist win/loss records the completed duel is written back to.
+gFreeDuel_aDuelistRecords = 0x801D071C;
+LoadImage2 = 0x80081DE8; // type:func
+IsIdleGPU = 0x80082324; // type:func

@@ -1,0 +1,174 @@
+name: Matching build
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "notes/**"
+      - "README.md"
+      - "tools/trace/**"
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - "notes/**"
+      - "README.md"
+      - "tools/trace/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: matching-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The build needs the retail executable, which only a repository secret can
+  # provide. A fork or a clone without it skips the build instead of failing
+  # on every push; setting YGOFM_SLUS_01411_URL turns it back on.
+  retail-inputs:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - id: check
+        env:
+          SLUS_URL: ${{ secrets.YGOFM_SLUS_01411_URL }}
+        run: |
+          if [ -n "$SLUS_URL" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::YGOFM_SLUS_01411_URL is not set; skipping the retail build."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  clean-build:
+    needs: retail-inputs
+    if: needs.retail-inputs.outputs.available == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    env:
+      USE_SYSTEM_MIPS_BINUTILS: "1"
+      SLUS_URL: ${{ secrets.YGOFM_SLUS_01411_URL }}
+
+    steps:
+      - name: Select build parallelism
+        run: echo "MAKEFLAGS=-j$(nproc)" >> "$GITHUB_ENV"
+
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install host build dependencies
+        run: |
+          # The runner image carries third-party apt sources (Google Chrome,
+          # Microsoft) that this build never installs from. When one of them
+          # serves a Release file that disagrees with its Packages index,
+          # apt-get update exits 100 and the job dies before compiling
+          # anything. Drop those sources -- they appear as .list or as
+          # deb822 .sources depending on the image -- and do not let a
+          # surviving index failure be fatal. The apt-get install below is
+          # the real gate: it fails loudly if an index it needs is missing.
+          sudo rm -f /etc/apt/sources.list.d/*.list \
+                     /etc/apt/sources.list.d/*.sources
+          sudo apt-get update || true
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential \
+            binutils-mips-linux-gnu=2.38-1ubuntu1cross2 \
+            ca-certificates \
+            curl \
+            git \
+            patch \
+            python3-pip \
+            python3-venv
+
+      - name: Require private retail input secrets
+        run: |
+          if [ -z "$SLUS_URL" ]; then
+            echo "::error::Configure the YGOFM_SLUS_01411_URL repository secret."
+            exit 1
+          fi
+
+      - name: Download and verify retail executable
+        run: |
+          mkdir -p game
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --silent \
+            --show-error \
+            "$SLUS_URL" \
+            --output game/SLUS_014.11
+          printf '%s  %s\n' \
+            84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88 \
+            game/SLUS_014.11 \
+            | sha256sum --check --strict
+
+      - name: Restore pinned project tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            tools/downloads
+            tools/environments
+            tools/toolchains
+            tools/vendor
+          key: ${{ runner.os }}-project-tools-${{ hashFiles('tools/bootstrap/*.json', 'tools/bootstrap/*.py') }}
+
+      - name: Install or verify pinned tools
+        run: |
+          make python-tools
+          make toolchain-system
+          make compiler-281-prebuilt
+          make check-build-tools
+
+      - name: Exercise build tooling regressions
+        run: |
+          tools/environments/python/bin/python -m unittest discover \
+            -s tools/project/tests -p 'test_*.py' -v
+
+      - name: Verify matching source contracts
+        run: make check-matching-source-contracts
+
+      - name: Perform clean matching build
+        run: |
+          make clean
+          make match
+          printf '%s  %s\n' \
+            84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88 \
+            tmp/project-build/SLUS_014.11 \
+            | sha256sum --check --strict
+
+      - name: Verify no C definition collides with a linker assignment
+        run: make check-data-symbols-objects
+
+      - name: Verify every call sees a declaration
+        run: make check-declaration-visibility
+
+      - name: Exercise the worker incremental loop
+        run: |
+          tools/environments/python/bin/python tools/project/build_incremental.py --seed-existing
+          make match-incremental
+          output="$(make match-incremental)"
+          printf '%s\n' "$output"
+          printf '%s\n' "$output" | grep -E '^incremental split: reused [0-9]+ generated files$'
+          printf '%s\n' "$output" | grep -E '^incremental build: rebuilt=0 reused=([0-9]+) retained=\1 materialized=0 '
+
+      - name: Report generated global usage drift
+        continue-on-error: true
+        run: |
+          if ! make check-global-usage; then
+            echo "::warning title=Global usage data is stale::Run make global-usage in a dedicated report update."
+            exit 1
+          fi
+
+      - name: Report generated progress drift
+        continue-on-error: true
+        run: |
+          if ! make check-progress; then
+            echo "::warning title=README progress is stale::Run make progress in a dedicated report update."
+            exit 1
+          fi

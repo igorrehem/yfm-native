@@ -1,0 +1,1421 @@
+# Modding Tutorial Evidence
+
+This note records claims recovered from the community modding tutorials
+attached to issue #368. The tutorials describe edits from a hex-editor
+perspective, so each claim is mapped back to resident code or data before it
+is accepted.
+
+Use this note with
+[`modding-tutorial-gameplay-patches.md`](modding-tutorial-gameplay-patches.md),
+which holds the companion batch of gameplay-focused patch analysis. Both files
+preserve offset-level provenance and confidence; they are not a second gameplay
+specification. Reconciled game behavior belongs in
+[`research/the-game.md`](research/the-game.md), and tentative tutorial claims
+must remain qualified when referenced there.
+
+Confidence levels:
+
+- **Confirmed**: the retail bytes, disassembly, and independently recovered
+  symbols or behavior agree.
+- **High**: the code and tutorial agree, but part of the surrounding semantic
+  interpretation is not independently named.
+- **Tentative**: the patch effect is plausible, but its target or broader
+  behavior still needs corroboration.
+
+## Reference corpus and coverage
+
+The `tutorials.zip` attachment retrieved from issue #368 is `304700` bytes
+with SHA-256
+`3e127e0b26c954c337c1e8bf67f95a218d66fedbcef0f8f7d5326107e899c059`.
+It contains 53 uniquely named artifacts under one `tutorials/` directory:
+37 text files, 12 Word documents, and one each of an Excel workbook, JPEG
+image, WindHex table, and nested ZIP archive.
+
+Every artifact filename is cited by this note or the companion gameplay
+ledger: 36 appear here and 19 appear there. The two intentional overlaps are
+`Introduction to Mod - ENG, 1.2.docx`, which supplies both image constraints
+and weighted-table guidance, and
+`Offset de Traps e Magicas - Por Wladmir Ghost.txt`, which covers both
+attack-trigger thresholds and damage/recovery tables. Thus the filename-level
+coverage is `36 + 19 - 2 = 53`. Coverage means that each supplied artifact has
+been triaged; it does not promote tentative claims to confirmed behavior.
+
+## Introduction document variants
+
+The bundle contains the same introductory tool overview in three languages,
+with a base and a 1.2 revision for each:
+
+- `Introduction to Mod - ENG.docx`
+- `Introduction to Mod - ENG, 1.2.docx`
+- `Introducción a Mod - ESP.docx`
+- `Introducción a Mod - ESP, 1.2.docx`
+- `Introdução ao Mod - PT-BR.docx`
+- `Introdução ao Mod - PT-BR, 1.2.docx`
+
+The English, Spanish, and Portuguese documents repeat the same technical
+claims. Comparing each base/1.2 pair shows no changed dimensions, limits,
+offsets, or game behavior. Version 1.2 only adds `GenericMadScientist` to the
+HARDMOD attribution and appends a general reminder to credit tool and tutorial
+authors.
+
+These six files are therefore one translated source family, not six
+independent corroborations. The shared `102x96`/`40x32` image constraints are
+reconciled in [Card-image editor dimensions](#card-image-editor-dimensions),
+and the shared `2048` weighted-table warning is reconciled in
+[`modding-tutorial-gameplay-patches.md`](modding-tutorial-gameplay-patches.md#weighted-deck-and-drop-total).
+The remaining paragraphs are descriptions of third-party editing tools and do
+not establish retail offsets or runtime behavior.
+
+## Initial duel life points
+
+**Tutorial:** `Alterar LP - Por Jael Rivera.txt`
+
+The tutorial identifies SLUS file offset `0x7DD0`, where the retail halfword
+`40 1F` represents decimal 8000 in little-endian order. It suggests replacing
+that halfword with another 16-bit value, for example `28 23` for decimal 9000.
+
+The offset maps to VRAM `0x800175D0`:
+
+```text
+0x80010000 + (0x7DD0 - 0x800) = 0x800175D0
+```
+
+At that address, matching
+[`Duel_InitSideStates`](../src/game/duel_state_init.c) contains:
+
+```mips
+addiu $v0, $zero, 0x1F40
+sh    $v0, 0x2($sp)
+sh    $v0, 0x0($sp)
+```
+
+The matching source spells this immediate as
+`DUEL_STARTING_LIFE_POINTS`, whose verified value is 8000.
+The function uses these two stack halfwords while initializing the two
+`0x20`-byte duel-side records rooted at `D_800E9FF0`. For each side it:
+
+- clears the displayed-life-point field at record offset `+0x12`;
+- writes the selected initial value at offsets `+0x14` and `+0x16`;
+- clears the remaining per-side display state.
+
+The existing RAM-map-backed symbols identify:
+
+| Record | Displayed LP (`+0x12`) | Authoritative LP (`+0x14`) | Maximum LP (`+0x16`) |
+|---|---:|---:|---:|
+| Player | `gDuel_wPlayerLifePointDisplay` (`0x800EA002`) | `gDuel_wPlayerLifePoint` (`0x800EA004`) | `0x800EA006` |
+| Opponent | `gDuel_wOpponentLifePointDisplay` (`0x800EA022`) | `gDuel_wOpponentLifePoint` (`0x800EA024`) | `0x800EA026` |
+
+Therefore the patch does not directly initialize the displayed LP to 8000.
+It initializes both the authoritative and maximum LP, while the displayed
+counter begins at zero and is updated afterward. Matching `func_800250C8`
+independently establishes the maximum: LP recovery adds to the authoritative
+value at `+0x14`, then clamps it to the `+0x16` value. The display counter at
+`+0x12` follows the authoritative value separately through
+`Duel_UpdateLifePointDisplay`.
+
+The constant is used only when `gDuel_bOpponentID >= 0`, the ordinary duel
+path. The negative-opponent-ID path is the 2P Duel setup: menu result `2`
+dispatches to
+[`Main_RunTwoPlayerDuelSetup`](../src/game/main_run_two_player_duel_setup.c),
+which initializes
+`D_8009B234` and `D_8009B236` with `DUEL_STARTING_LIFE_POINTS` and passes
+both addresses to `MainMenu_StartValueSetup` at `0x80180FD8`. Its matching
+input handler
+[`MainMenu_UpdateValueSetup`](../src/overlays/main_menu/value_setup.c) uses
+`DUEL_LIFE_POINT_SELECTION_STEP` to let pad 1 and pad 2 adjust their
+respective values to `1` or a multiple of 500 from 500 through 8000.
+`Duel_InitSideStates` then initializes each duel side from those two selected
+values.
+
+The editor also carries one shared binary option, whose visible meaning is
+not established here. Its setup/finish API reads and writes only the low byte
+of the caller's wider option field. Acceptance and cancellation both invoke
+`MainMenu_FinishValueSetup`, which writes the target values and normalized
+option back; cancellation is not a rollback. See the
+[complete value-editor contract](../src/overlays/main_menu/README.md#value-setup-input-and-write-back)
+for per-controller busy/input priority and shared-choice sequencing.
+
+The shared source constant does not make the tutorial patch global: each use
+compiles to a separate immediate, and SLUS offset `0x7DD0` changes only the
+ordinary-duel initialization site.
+
+**Confidence:**
+
+- **Confirmed** that file offset `0x7DD0` is the 8000 immediate in
+  `Duel_InitSideStates`.
+- **Confirmed** that changing it changes the initial authoritative player and
+  opponent LP values on the ordinary duel path.
+- **Confirmed** that the adjacent `+0x16` fields are maximum LP values used to
+  cap recovery.
+- **Confirmed** that 2P Duel instead defaults both sides to 8000, exposes the
+  two values to their respective controllers, and uses the selected values as
+  each side's initial and maximum LP.
+
+For a value representable by one 16-bit halfword, the tutorial's byte-edit
+method preserves the instruction opcode: decimal 9000 is hexadecimal
+`0x2328`, so the complete instruction changes from `40 1F 02 24` to
+`28 23 02 24`.
+
+## Millennium Eye opponent-card display
+
+**Tutorial:** `Olho do Milenio.txt`
+
+The tutorial identifies SLUS offset `0x8864`, whose retail bytes are
+`FF 00 02 24`. The offset maps to `0x80018064`, inside the exact matching C
+for `func_80018004`:
+
+```text
+0x80010000 + (0x8864 - 0x800) = 0x80018064
+```
+
+The instruction is:
+
+```mips
+addiu $v0, $zero, 0xFF
+```
+
+It supplies the final `field_67` value when the current duel-card display
+state byte at `+0x1F` is negative. The matching source first selects the
+card's normal display-data index plus one, then overrides that selection with
+`0xFF` for the negative mode:
+
+```c
+if (D_8009B1C8->field_1F != 0) {
+    object->flags |= 0x2000;
+    result->field_67 = object->child->field_04 + 1;
+    if (D_8009B1C8->field_1F < 0)
+        result->field_67 = 0xFF;
+}
+```
+
+`func_8003AAE4` later passes `field_67` to `func_8003A1EC`, which uses it as
+the resource index for image lookup and display-object setup. Replacing the
+immediate byte with `0x00` or `0x01` therefore changes the selected opponent
+card image resource; it does not alter the duel's underlying card data.
+
+`func_80017DB4` contains the same negative-mode `field_67 = 0xFF` override
+for another card-object update path. The tutorial's one-byte edit does not
+change that site, so static evidence alone does not prove that every
+opponent-card object keeps the replacement index through all later updates.
+
+The tutorial reports that value `0` exposes the opponent's card faces and
+value `1` keeps the cards hidden while showing their order numbers. The
+static call chain confirms that these values select different image
+resources, but the exact appearance of those resource indices has not yet
+been independently verified against extracted art or a runtime trace.
+
+A partial controlled run confirmed that the script applied phase-0 immediate
+`0`. In the retail presentation, Duel Master K's hand is obscured by grey
+mist and has no visible stats; with the patch active, the player could see the
+actual cards in his hand. The displayed card also changed as he selected each
+fusion ingredient. The execution breakpoints did not capture
+`func_80018004` returning, however, and phase `1` never ran. The observation
+therefore confirms the visible meaning of resource `0` in this path, but not
+whether a later update restores `0xFF` or what resource `1` displays.
+
+`tools/trace/opponent_card_resource_indices.lua` remains pending for a
+two-phase interpreter run. It now warns when phase 0 is armed in duel mode but
+no execution breakpoint has fired, so a CPU-core setup failure is visible
+before another long observation.
+
+**Confidence:**
+
+- **Confirmed** that `0x8864` is the low immediate byte of the negative-mode
+  `field_67 = 0xFF` assignment in `func_80018004`.
+- **Confirmed** that `field_67` becomes an image resource index and does not
+  modify card identity or duel state.
+- **Confirmed** by controlled replay that resource `0` exposes the opponent's
+  actual hand cards instead of the normal grey-mist presentation in the
+  observed Duel Master K path.
+- **Tentative** that resource `1` has the order-number presentation reported
+  by the tutorial, and whether either replacement survives every later card
+  object update.
+
+## Dialogue pointer redirects
+
+**Tutorial:** `Alterar Dialogo.txt`
+
+The tutorial uses SLUS file offset `0x1A1C3B` as an example dialogue target
+and derives bytes `3B 14` for an `FB 80` redirect. The result is correct, but
+the reliable conversion is to remove the PS-X EXE header before encoding the
+loaded address:
+
+```text
+loaded address = 0x80010000 + (0x1A1C3B - 0x800) = 0x801B143B
+stored target  = 0x143B
+little endian  = 3B 14
+```
+
+`FB 80` belongs to the text stream, not the campaign script opcode table.
+The handler at `0x80038BF0` advances the text cursor by
+`gDialog_bChoice * 2`, then calls `Text_SetCursorOffset` (`0x80038BA8`).
+Exact matching C for `Text_SetCursorOffset` reads the selected 16-bit value
+and replaces only the low halfword of the current text pointer:
+
+```c
+*p = (*p & 0xFFFF0000) | (v & 0xFFFF);
+```
+
+The redirect target must therefore remain in the cursor's current 64 KiB
+bank. A real multi-choice block needs one little-endian target halfword per
+possible choice. A single target works only when the selected choice index is
+known to be zero, so the tutorial's four-byte `FB 80 xx xx` recipe is not a
+general unconditional jump.
+
+**Confidence:**
+
+- **Confirmed** that file offset `0x1A1C3B` maps to loaded address
+  `0x801B143B` and target bytes `3B 14`.
+- **Confirmed** that `FB 80` indexes a table of 16-bit targets by the current
+  choice and preserves the pointer's upper 16 bits.
+- **Tentative** that inserting only one target after an arbitrary page wait is
+  safe; that depends on the active choice state and the source text bank.
+
+## Player name in the duel-result label
+
+**Tutorial:** `Nome no Final.txt`
+
+The tutorial gives runtime address `0x801B0514` and replacement bytes
+`FC 5A 12`. That address maps back to SLUS file offset `0x1A0D14`:
+
+```text
+file offset = 0x800 + (0x801B0514 - 0x80010000) = 0x1A0D14
+```
+
+The retail bytes there begin `24 21 35 FF`. The recovered glyph mapping decodes
+`24 21 35` as `YOU`, followed by the `FF` string terminator. This is the
+player-side label in the duel-result text bank; the adjacent string contains
+the `COM` label.
+
+In this text format, `FC lo hi` inserts another string from the current text
+bank. The same `FC 5A 12` sequence is used by the name-confirmation dialog,
+where it inserts the string at `0x801B125A`. Matching C in
+`SaveData_ApplyRuntimeState` fills that buffer from the saved player name
+through `Text_SjisToGlyphCodes`.
+
+Replacing only the three `YOU` glyph bytes with `FC 5A 12` therefore keeps
+the existing `FF` terminator and makes the result label render the current
+player name. It does not rename the save data or patch a general ending or
+credits routine, despite the tutorial's broad title.
+
+**Confidence:**
+
+- **Confirmed** that `0x801B0514` contains the `YOU` glyph sequence and maps
+  to SLUS offset `0x1A0D14`.
+- **Confirmed** that `FC 5A 12` inserts the runtime player-name string at
+  `0x801B125A`.
+- **Confirmed** that the patched bytes belong to the player-side duel-result
+  label rather than executable code.
+
+## Global card and category name offsets
+
+**Tutorials:**
+
+- `Bloco pointeiros monstros e guardians.txt`
+- `Offset Nomes.txt`
+
+The first tutorial identifies SLUS offsets `0x1C6000` and `0x1C6600` as
+pointer blocks for card names and for card-type, Guardian Star, and duelist
+names. Both offsets belong to one table:
+
+| SLUS offset | Resident address | Table position | Meaning |
+|---:|---:|---:|---|
+| `0x1C6000` | `0x801D5800` | entry `0x000` / string ID `0x8000` | Start of `gText_aGlobalOffsets` |
+| `0x1C6600` | `0x801D5E00` | entry `0x300` / string ID `0x8300` | Start of the card-type labels within the same table |
+
+Exact matching C in `Text_LookupString` indexes this table with
+`string_id - TEXT_GLOBAL_STRING_ID_BASE`, where the base is `0x8000`. It
+combines the selected 16-bit offset with the `0x801D0000` text-bank base.
+`TEXT_BANK_ADDRESS_MASK` (`0xFFFF0000`) retains the bank address's upper
+16 bits in both `Text_LookupString` and `func_800383DC`. Entry zero points
+to an empty string. Entries `0x001`-`0x2D2` correspond to card IDs 1-722,
+while the 45 entries through `0x2FF` all point back to that empty string.
+
+The `0x8300` subrange begins with the 24 card-type labels from `Dragon`
+through `Equip`. IDs `0x8318`-`0x8321` are the ten Guardian Star names.
+After six entries that alias the `Dragon` string, ID `0x8328` is
+`Build Deck` and IDs `0x8329`-`0x834F` are the 39 duelist names.
+
+The second tutorial's lone offset, `0x1C92CE`, maps to resident address
+`0x801D8ACE`. The table entry for string ID `0x8300` contains offset
+`0x8ACE`, and the bytes there decode through `gText_adwGlyphCodeTable` as
+`Dragon` followed by the `0xFF` terminator. This is therefore the first
+card-type string, not the start of the pointer table or of the 722 card names.
+Changing its encoded length without relocating later strings and updating
+their offsets would overwrite adjacent text.
+
+**Confidence:**
+
+- **Confirmed** that `0x1C6000` maps to `gText_aGlobalOffsets` and that
+  `Text_LookupString` dispatches IDs `0x8000`-`0xCFFF` through it; IDs
+  `0xD000` and above take the earlier, separate bank path.
+- **Confirmed** that `0x1C6600` is entry `0x300` of that same table rather
+  than an independent pointer block.
+- **Confirmed** that `0x1C92CE` is the encoded `Dragon` label selected by
+  string ID `0x8300`.
+
+## Bundled glyph-table coverage
+
+**Tutorial artifact:** `table.tbl`
+
+The bundled WindHex table is an accurate but partial view of the game's text
+codes. It contains 79 mappings:
+
+- `0x00` as a space, which the text stream treats specially;
+- 77 ordinary glyph codes between `0x01` and `0x5B`;
+- `0xFE` as `[ENTER]`, matching the engine's newline control.
+
+The resident `gText_adwGlyphCodeTable` storage spans 93 words from
+`0x801D9000` through the word before `0x801D9174`. Entries `0x01`-`0x5B`
+are 91 nonzero Shift-JIS glyph codes, while entries `0x00` and `0x5C` are
+zero. Every ordinary mapping supplied by `table.tbl` agrees with the
+resident Shift-JIS entry after normalizing full-width Latin characters and
+curly quotes to the table's ASCII display.
+
+The file omits 14 valid resident glyphs:
+
+| Code | Resident glyph |
+|---:|---|
+| `0x27`, `0x28` | `《`, `》` |
+| `0x47` | middle dot `・` |
+| `0x49`, `0x4D` | female `♀`, male `♂` |
+| `0x4B`, `0x4C` | `)`, `(` |
+| `0x51`, `0x54` | `>`, `<` |
+| `0x52`, `0x53` | `⊂`, `⊃` |
+| `0x55` | Greek alpha `α` |
+| `0x58`, `0x5A` | left arrow `←`, right arrow `→` |
+
+Missing rows therefore do not mean those byte values are unused. An editor
+using this file will not display those symbols by name even though retail
+strings can contain them. Likewise, `[ENTER]` describes text newline control
+`0xFE`, not a controller button. `TEXT_STRING_TERMINATOR` (`0xFF`) ends the
+encoded string. The matching `Text_SjisToGlyphCodes` and numeric formatter
+`func_80038148` both append this byte and use `TEXT_SINGLE_BYTE_GLYPH_LIMIT`
+(`0xF0`) to select one-byte versus two-byte glyph encoding. Their extended
+glyph encoding is not represented by this single-byte map; high-byte
+prefixes must not all be treated as standalone control commands.
+
+The shorthand in `research/the-game.md` that the community table decodes
+`0x00`-`0x5B` identifies its target glyph-code range, not complete coverage
+of every resident glyph in that range.
+
+**Confidence:**
+
+- **Confirmed** that all 77 supplied ordinary glyph mappings agree with the
+  resident Shift-JIS table.
+- **Confirmed** that the file omits the 14 resident symbols listed above.
+- **Confirmed** that `0xFE` is newline and `0xFF` terminates the string.
+
+### Decimal digit lookup
+
+The 20 bytes at `D_80010330` (SLUS offset `0xB30`) contain ten big-endian
+Shift-JIS keys, `0x824F` through `0x8258`, for the full-width digits `0`-`9`.
+Matching `Text_InitDecimalDigitGlyphMap` copies this table as a byte array and
+looks up each
+key in `D_801D9004` to populate the digit-glyph table at `D_800EAFF8`.
+The byte-array layout is retained because it controls the unaligned block
+copy; naming the extent does not change it into a halfword array.
+
+`TEXT_DECIMAL_RADIX` (`10`) names both the alphabet size and the division
+base in `Text_EncodeDecimalDigits`. `TEXT_DECIMAL_BLANK_DIGIT` (`0xA`)
+marks unused most-significant positions in the intermediate digit buffer.
+For positions above index zero, `Text_EncodeDecimalNoPadding` clears every
+value at or above the radix, not only bytes equal to that marker. The numeric
+formatter at `func_80038148` also checks the radix boundary before indexing
+the digit-glyph table.
+
+## Main-menu palette region
+
+**Tutorial:** `Editar Menus.txt`
+
+The tutorial identifies decimal offset `196608` in `SU.MRG` as the palette
+used to edit the menus. That is file offset `0x30000`, or logical sector 96.
+The independently recovered loader layout places the main-menu executable at
+SU sectors `98-114`, beginning at `0x31000`, so the tutorial's offset lies in
+the asset area immediately before the code rather than inside the overlay.
+
+Matching `File_RequestMainMenuPackage` requests the first `0x73` sectors of `SU.MRG`
+(`0x39800` bytes) and installs `MainMenu_LoadPackageStage` as the phase
+callback. Its five transfer lengths are `0x20000`, `0x10000`, `0x1000`,
+`0x8000`, and `0x800`, which exactly cover the request. The `0x1000` phase
+therefore begins at `+0x30000`, stages those bytes at `0x801DD000`, and ends
+at the `+0x31000` main-menu executable boundary. The preceding phases upload
+the menu image regions to VRAM, and the two following phases load the
+executable at `0x80180000` and its `0x800`-byte display-resource bank at
+`0x801AF800`; see the
+[complete package layout](../src/overlays/main_menu/README.md#complete-package-layout).
+
+At the start of the following phase, the callback uploads that staging buffer
+through `LoadImage2`. The resident `RECT` at `0x8009B058` decodes as
+`{x = 0, y = 240, w = 256, h = 8}`, so the transfer consumes exactly
+`256 * 8 * 2 = 0x1000` bytes. Each `0x200`-byte step is therefore one full
+row of 256 BGR555 CLUT entries at VRAM rows `240-247`.
+
+In the retail archive, all six `0x200`-byte chunks from `0x30000` through
+`0x30BFF` contain nonzero 16-bit values consistent with PlayStation color
+data. The following `0x400` bytes at `0x30C00-0x30FFF` are zero padding before
+the executable begins, so the upload consists of six populated palette rows
+followed by two zero rows. The populated `0xC00` bytes hash to:
+
+```text
+SHA-256: 5b59103a270882b261ff9c13ba68060a90b3b01f9b5475da50af11dc5908ba19
+```
+
+The complete `0x1000`-byte phase, including the two zero rows, hashes to:
+
+```text
+SHA-256: 26704e08cfa8e4504e20c8d51e7cb860c985fd8b7e4c885b1c626c6207fa1de8
+```
+
+The matching main-menu overlay identifies one direct consumer.
+`MainMenu_InitFrontendMenu` (`0x8018001C`) installs
+`MainMenu_DrawFrontendBackground` (`0x80180B4C`) in callback slot
+`D_800E9DB0`. That
+function assigns CLUT value `0x3D00`, now written as `getClut(0, 244)`, to
+native `POLY_FT4` packets that tile the complete `320 x 240` screen before a
+full-screen `POLY_G4` shade. The screen-coordinate uses retain the existing
+`GRAPHICS_DEFAULT_WIDTH` and `GRAPHICS_DEFAULT_HEIGHT` meanings; texture UV
+limits remain separate. Psy-Q's
+`getClut(x, y)` packing decodes `0x3D00` as `(0, 244)`, so VRAM row `244`—the
+fifth populated row, stored at `SU.MRG+0x30800`—is the full-screen menu
+background palette.
+
+The object-based draw path identifies three more rows. `DisplayObject_ConfigureSpriteResource` stores
+the texture argument's bits `4`-`9` as CLUT x and stores
+`240 + (texture & 0xF)` as CLUT y. `DisplayObject_RenderSpriteList` copies that coordinate pair
+into its sprite work record, and `DisplayObject_SubmitPacket` packs it into
+the GPU primitive with the same `(y << 6) | ((x >> 4) & 0x3F)` formula as
+`getClut`.
+
+All 31 main-menu overlay functions are matching C, so their direct initializer
+calls provide a complete static inventory:
+
+| VRAM row | SU offset | Matching main-menu consumer |
+|---:|---:|---|
+| `240` | `+0x30000` | The eleven `gMain_apMenuEntries` objects created by `MainMenu_InitFrontendMenu`, plus copies created by `MainMenu_SpawnFrontendEntryAfterimage` |
+| `241` | `+0x30200` | The three persistent singleton objects `D_80184558`, `D_8018455C`, and `D_80184560` created by `MainMenu_InitFrontendMenu` |
+| `242` | `+0x30400` | No direct consumer in the matching main-menu overlay |
+| `243` | `+0x30600` | No direct consumer in the matching main-menu overlay |
+| `244` | `+0x30800` | The full-screen tiled background drawn by `MainMenu_DrawFrontendBackground` |
+| `245` | `+0x30A00` | The dedicated `D_801845A4` sprite created by `MainMenu_StartValueSetup` |
+
+Rows `242` and `243` may be retained for another data-driven or resident use;
+the absence of a direct overlay initializer is not proof that their color
+data is globally unused. The code also does not establish visual names for
+the three row-`241` singleton objects, so those remain identified by ownership
+rather than appearance.
+
+The resident startup request in `func_80013154` and movie entry/exit requests
+in `func_8005B8A0` and `Movie_StopStream` use the same `320 x 240` dimensions
+with `GsInitGraph` or `GsInitGraph2`. `graphics_constants.h` names those
+arguments as `GRAPHICS_DEFAULT_WIDTH` and `GRAPHICS_DEFAULT_HEIGHT`.
+These are requested display dimensions, not buffer-placement coordinates:
+the movie path's `0x100` vertical placement, rectangle geometry, and GTE
+projection values remain separate.
+
+**Confidence:**
+
+- **Confirmed** that the tutorial's decimal offset is `SU.MRG+0x30000` and
+  that this is sector 96, directly before the main-menu code at sector 98.
+- **Confirmed** that the complete `0x1000`-byte phase is uploaded as eight
+  256-color CLUT rows at VRAM `(0, 240)`, with six populated rows followed by
+  two zero rows.
+- **Confirmed** that object texture IDs select rows `240`, `241`, and `245`
+  for the consumer groups listed above, using the same CLUT packing formula as
+  Psy-Q `getClut`.
+- **Confirmed** that `MainMenu_DrawFrontendBackground` selects row `244`
+  (`SU.MRG+0x30800`) for the full-screen menu background layer.
+- **Confirmed** that matching main-menu code has no direct initializer for
+  rows `242` or `243`; their wider runtime ownership remains unassigned.
+
+## WA menu background and symbol palettes
+
+**Tutorial:** `Paleta Inicial.txt`
+
+The tutorial identifies two image starts and two palette starts in
+`WA_MRG.MRG`:
+
+| Resource named by tutorial | WA offset | Package-relative offset |
+|---|---:|---:|
+| Menu background image | `0xFD3800` | `+0x00000` |
+| Menu symbol image | `0xFE3800` | `+0x10000` |
+| Background palette, 256 colors | `0xFEB800` | `+0x18000` |
+| Symbol palette, 16 colors | `0xFEBA00` | `+0x18200` |
+
+The resident loader in `func_8002F630` requests 50 sectors beginning at WA
+sector `0x1FA7`. This is exactly the package
+`0xFD3800-0xFEC800`:
+
+```text
+0x1FA7 * 0x800 = 0xFD3800
+0x32   * 0x800 = 0x19000
+```
+
+Its exact matching callback, `func_8002F4C0`, divides the package at
+`+0x18000`, the tutorial's first palette offset. The callback then uploads a
+`256 x 2` rectangle of 16-bit color values to VRAM `(0, 244)`. The
+`0x200`-byte 256-color palette therefore fills the first row, and the
+16-color palette at `+0x200` begins the second row at VRAM `(0, 245)`.
+
+The two image starts likewise divide the front `0x18000` bytes into a
+`0x10000`-byte first range and a `0x8000`-byte second range. Both ranges and
+both palette spans contain retail data rather than padding:
+
+```text
+WA[0xFD3800:0xFE3800]  SHA-256 48c6a860dc1da811fc739de4a248e0fbe9ca92e78f6580d273a72609cc5e0b6f
+WA[0xFE3800:0xFEB800]  SHA-256 58da7dcc3c46e6dcf3cc61854ad04c7f64c3a5509ce77fba9411c809e296ed75
+WA[0xFEB800:0xFEBA00]  SHA-256 59a8f715e25f09a875747f647b700aefa0d78d759512400179406bf42449c2a7
+WA[0xFEBA00:0xFEBA20]  SHA-256 6c98c1e36e44f6b060ef7c9fd751cb651dc3aea83c362fbfa1a627e10894c25a
+```
+
+The palette sizes independently pin the two indexed-color depths:
+`0x200 / 2 = 256` 16-bit entries, the full CLUT capacity for an 8-bit
+texture, while `0x20 / 2 = 16` entries, the full capacity for a 4-bit texture.
+Separately, a `0x10000`-byte 8-bit image and a `0x8000`-byte 4-bit image each
+contain 65,536 pixel indices. The palette capacities and exact 2:1 image-size
+ratio therefore agree on the format split without treating the tutorial's
+visual labels as code-derived names.
+
+**Confidence:**
+
+- **Confirmed** that all four offsets belong to the fixed 50-sector package
+  loaded from WA sector `0x1FA7`.
+- **Confirmed** that the two palette offsets map to the first full row and
+  the first 16 entries of the second row in the callback's VRAM upload.
+- **High** that the image and palette spans are paired as equal 65,536-pixel
+  8-bit/256-color and 4-bit/16-color data; the two exact palette capacities
+  and image-size ratio agree, while the texture consumers are not fully
+  mapped.
+- **High** that the two front ranges are respectively the menu background
+  and symbol images; their boundaries and loader are exact, while the visual
+  labels come from the tutorial.
+
+## Card cursor and fusion-number graphics
+
+**Tutorials:**
+
+- `Apontador Cartas.txt`
+- `Numeral Carta Fusao.txt`
+
+The resident loaders place every offset from these tutorials inside one of two
+known `WA_MRG.MRG` screen packages:
+
+| Resource named by tutorial | WA offset | Package-relative offset | Loader region |
+|---|---:|---:|---|
+| Shared card pointer image | `0xB54000` | `+0xC000` from `0xB48000` | Boot UI image payload |
+| Fusion-card numeral image | `0xB55C00` | `+0xDC00` from `0xB48000` | Boot UI image payload |
+| Shared card-pointer palette | `0xB60840` | `+0x840` in the palette block at `0xB60000` | Boot UI CLUT upload |
+| Fusion-card numeral palette | `0xB608A0` | `+0x8A0` in the palette block at `0xB60000` | Boot UI CLUT upload |
+| Password card image | `0xF97800` | `+0x00000` from `0xF97800` | Password-screen image payload |
+| Password cursor image | `0xFAB800` | `+0x14000` from `0xF97800` | Password-screen image payload |
+| Password frame image | `0xFAF800` | `+0x18000` from `0xF97800` | Password-screen image payload |
+| Password frame palette | `0xFB7A00` | `+0x200` in the palette block at `0xFB7800` | Password-screen CLUT upload |
+| Password card/cursor palette | `0xFB8800` | `+0x1000` in the palette block at `0xFB7800` | Password-screen CLUT upload |
+
+`Main_RunBootSequence` requests the 54-sector boot UI package at WA sector
+`0x1690`,
+which is byte range `0xB48000-0xB63000`. Its callback transfers an initial
+`0x18000`-byte graphics region followed by the `0x1000`-byte block beginning
+at `0xB60000`; that second block is uploaded to VRAM rectangle
+`(512, 248, 256, 8)`. The two listed boot palettes therefore map to VRAM
+coordinates `(544, 252)` and `(592, 252)`, respectively.
+
+Likewise, `File_RequestPasswordPackage` requests the 86-sector password package at sector
+`0x1F2F`, byte range `0xF97800-0xFC2800`. Its callback consumes a
+`0x20000`-byte image region followed by a `0x2000`-byte block uploaded to
+VRAM rectangle `(256, 240, 256, 16)`. The listed frame palette is one row into
+that block at `(256, 241)`, while the shared card/cursor palette begins at
+`(256, 248)`.
+
+The package placement, sizes, and VRAM coordinates are confirmed by the
+resident request and callback code. The individual visual labels come from
+the tutorials and are high-confidence asset identifications; no image decoder
+is needed to establish that the offsets belong to the stated image and CLUT
+transfer regions.
+
+## Boot UI color ramps
+
+**Tutorial:** `Cores Para Add e Como Add Cor Roxa.docx`
+
+The tutorial identifies seven color ramps at `WA_MRG.MRG+0xB61002`, spaced
+by `0x20` bytes:
+
+| Zero-based row | Tutorial label | Row start | First nontransparent color |
+|---:|---|---:|---:|
+| 0 | White | `0xB61000` | `0xB61002` |
+| 1 | Yellow | `0xB61020` | `0xB61022` |
+| 2 | Blue | `0xB61040` | `0xB61042` |
+| 3 | Green | `0xB61060` | `0xB61062` |
+| 4 | Grey | `0xB61080` | `0xB61082` |
+| 5 | Orange | `0xB610A0` | `0xB610A2` |
+| 6 | Red | `0xB610C0` | `0xB610C2` |
+| 7 | Empty | `0xB610E0` | `0xB610E2` |
+
+Each row is one 16-color PlayStation CLUT. The tutorial starts every listed
+ramp at `+2` because the first halfword is the transparent color entry. Its
+seven "original game" byte sequences match the remaining 15 retail entries
+exactly. The eighth row is entirely zero, corroborating the warning that
+selecting the unused eighth color slot makes affected text or symbols
+disappear unless a complete replacement palette is supplied.
+
+The loader independently confirms the region. `Main_RunBootSequence` includes
+`WA_MRG.MRG+0xB61000` in its 54-sector boot UI request, and
+`Main_LoadBootPackageStage` transfers an `0x800`-byte tail beginning there before
+uploading a `(640, 232, 16, 8)` rectangle. That upload consumes exactly the
+first `0x100` bytes: eight rows times sixteen 16-bit colors. Bytes
+`0xB61100-0xB617FF` are zero padding in the retail archive.
+
+```text
+SHA-256 of WA_MRG.MRG[0xB61000:0xB61100]:
+93c8426458da03801fd7c8762b86d0d06e322525468f03c39e6a4306b345bf26
+```
+
+**Confidence:** Confirmed for the row boundaries, retail values, empty eighth
+row, loader range, and VRAM upload geometry. The tutorial's suggested blue,
+purple, red, orange, yellow, and green replacements are custom palettes rather
+than retail data.
+
+## Shared duel-hand graphics block
+
+**Tutorial:** `Fields WA.txt`
+
+The tutorial lists one "DUEL DISK HAND" offset for every duel terrain and one
+for the Library:
+
+| Context | WA offset |
+|---|---:|
+| Normal | `0xB7B000` |
+| Forest | `0xBF0800` |
+| Wasteland | `0xC66000` |
+| Mountain | `0xCDB800` |
+| Meadow | `0xD51000` |
+| Umi | `0xDC6800` |
+| Yami | `0xE3C000` |
+| Library | `0xEFE800` |
+
+Each address is package offset `+0x18000`. In the seven `0x75800`-byte duel
+terrain records, that is the final `0x8000` bytes of
+`Duel_LoadPackageStage` phase 0; the Library package uses the same relative
+position. All eight retail ranges are byte-identical:
+
+```text
+SHA-256: 5e94e1a373c529a29e03cf1845eea74c1ac29a94f607a00d479df1cd4c9e1f13
+```
+
+The offsets therefore select duplicate copies of one shared payload rather
+than terrain-specific graphics. Editing one copy changes only its containing
+terrain or the Library, so a replacement intended for every listed context
+must be applied at all eight offsets. The package starts and complete phase
+geometry are documented in
+[`overlays/runtime-loader.md`](overlays/runtime-loader.md#shared-duel-hand-graphics-block).
+
+**Confidence:**
+
+- **Confirmed** that all eight offsets are package-relative `+0x18000` and
+  begin byte-identical `0x8000`-byte ranges.
+- **Confirmed** that the seven terrain copies occupy the end of phase 0.
+- **High** that the payload is the duel-hand graphic; that visual identity is
+  the tutorial's observed label rather than a decoded asset name.
+
+## Attribute icon images and palettes
+
+**Tutorials:**
+
+- `Offset e Paleta Atributos - Đỗ Thành Đạt.txt`
+- `Detalhes cartas.txt`
+
+The tutorial lists ten copies of the attribute icons: one in each of the seven
+terrain records and one in each Library, Password, and Build Deck package.
+Every image start is at package-relative offset `+0x1C000`:
+
+| Context | Image offset | First palette offset |
+|---|---:|---:|
+| Normal | `0xB7F000` | `0xB84E00` |
+| Forest | `0xBF4800` | `0xBFA600` |
+| Wasteland | `0xC6A000` | `0xC6FE00` |
+| Mountain | `0xCDF800` | `0xCE5600` |
+| Meadow | `0xD55000` | `0xD5AE00` |
+| Umi | `0xDCA800` | `0xDD0600` |
+| Yami | `0xE40000` | `0xE45E00` |
+| Library | `0xF02800` | `0xF08600` |
+| Password | `0xFB3800` | `0xFB9600` |
+| Build Deck | `0x10E0800` | `0x10EA600` |
+
+`Detalhes cartas.txt` repeats these same ten image offsets under the label
+"ATK & DEF Number" and, for each terrain package, also gives the address
+`+0x200` from the listed start. Directly decoding the retail bytes as 4-bpp
+graphics shows a row of nine distinct 32x16 emblems across the `0x900`-byte
+region, consistent with the attribute labels below rather than a decimal
+digit sheet. The `+0x200` addresses land inside that same atlas, at the start
+of its second 32x16 tile; they are not separate assets.
+
+The stated `32x16` dimensions and 16-color palettes imply `0x100` bytes per
+4-bpp icon and `0x20` bytes per palette. The nine icon images therefore occupy
+the first `0x900` bytes at each image offset, and the nine listed palettes
+occupy `0x120` bytes at `0x20` strides from each first-palette offset.
+
+All ten `0x900`-byte icon sequences are byte-identical:
+
+```text
+SHA-256: f02d8280cb698decff9234ce576ea2aadf0ed5355ba64a08f5116ba22844ae8f
+```
+
+All ten `0x120`-byte palette sequences are also byte-identical:
+
+```text
+SHA-256: 5997302376ade7d6bdba06dba04cb397598d37e23045556f28049bfa615e4b9c
+```
+
+The first seven offsets follow the known `0x75800` terrain-record stride.
+Library and Password use the same `+0x1C000` image position in their fixed
+packages. Build Deck also uses `+0x1C000`, but its palette sequence is
+`+0x25E00` from the package start rather than `+0x21E00`. The tutorial's nine
+labels—Light, Dark, Earth, Water, Fire, Wind, Spell/Equip, Trap, and
+"Light 2"—are preserved as visual observations; the duplicate bytes and
+archive placement are confirmed directly from the retail `WA_MRG.MRG`.
+
+## Small and large card-frame palettes
+
+**Tutorials:**
+
+- `Cards.txt`
+- `PALETAS E OFFSET PARA CARTAS.xlsx`
+
+The tutorial's `0x200`-byte spacing identifies palette rows, not separate
+card images. In each duel-terrain package, resident loader callback
+`Duel_LoadPackageStage` reads the `0x2000`-byte block at package offset
+`+0x20000` and uploads it as a `256 x 16` rectangle of 16-bit colors at
+VRAM `(256, 240)`. Each `0x200`-byte step is therefore one complete
+256-color row.
+
+The tutorial's twelve card-frame rows have this common package-relative
+layout:
+
+| VRAM row | Package offset | Card display | Card kind |
+|---:|---:|---|---|
+| 241 | `+0x20200` | Small | Normal |
+| 242 | `+0x20400` | Small | Magic |
+| 243 | `+0x20600` | Small | Trap |
+| 244 | `+0x20800` | Small | Ritual |
+| 245 | `+0x20A00` | Small | Fusion |
+| 246 | `+0x20C00` | Small | Effect |
+| 248 | `+0x21000` | Large | Normal |
+| 249 | `+0x21200` | Large | Magic |
+| 250 | `+0x21400` | Large | Trap |
+| 251 | `+0x21600` | Large | Ritual |
+| 252 | `+0x21800` | Large | Fusion |
+| 253 | `+0x21A00` | Large | Effect |
+
+Applying those relative offsets to the Normal, Forest, Wasteland, Mountain,
+Meadow, Umi, Yami, and Library package starts reproduces every distinct
+absolute offset in the tutorial. Their complete `+0x20000-+0x21FFF`
+palette blocks are byte-identical:
+
+```text
+SHA-256: e7a7296c5a77ad4bc89577db20e50c05d7c6f8e2faa2625b587b6fa37f8c3463
+```
+
+The entries numbered 4 and 5 in `Cards.txt` repeat the Forest and Wasteland
+offsets exactly; they are duplicate tutorial rows, not additional archive
+copies.
+
+The password-screen package starts at `0xF97800`. Its exact callback
+`Password_LoadPackageStage` uploads the same `0x2000`-byte palette rectangle,
+and the
+tutorial lists its six large-card rows at
+`0xFB8800-0xFB93FF`. Five rows are byte-identical to the terrain and Library
+copies. The large-Magic row differs only in its final `0x20` bytes, where the
+password package uses sixteen `0x0001` entries instead of the shared row's
+final sixteen colors.
+
+The workbook independently lists the same ten package starts and absolute
+large-card palette offsets. For the seven terrain packages plus Library and
+Password, its six rows are at package offsets `+0x21000`, `+0x21200`,
+`+0x21400`, `+0x21600`, `+0x21800`, and `+0x21A00`; the Build Deck copies are
+shifted to `+0x25000` through `+0x25A00`. Its category headings differ from
+`Cards.txt`: it labels `+0x21200` as Equip and repeats every `+0x21800` address
+under both Magic and "purple Fusion." The workbook therefore corroborates the
+row locations, but not six distinct category assignments.
+
+**Confidence:**
+
+- **Confirmed** that the listed offsets are 256-color rows in the
+  `+0x20000` palette block, based on both exact loader callbacks and their
+  VRAM upload geometry.
+- **Confirmed** that all eight full terrain/Library blocks are identical and
+  that tutorial entries 4 and 5 are duplicates.
+- **Confirmed** that the workbook's Magic and "purple Fusion" columns contain
+  the same ten offsets.
+- **High** that the row labels describe small and large card-frame variants;
+  those visual roles come from the tutorial, while their card-kind ordering
+  and palette boundaries are exact.
+
+**Which rows retail selects.** Every frame is one texture drawn through a
+row chosen from the card's packed type (`gDuel_adwCardStats` bits 26-30),
+and no code path selects the Fusion or Effect rows:
+
+- The large card, in every view, is built by `func_800291E0`
+  (`duel_effect_resource_setup.c`): its frame object gets texture value
+  `0x108 + k` (monster, Magic/Equip, Trap, Ritual for `k` 0-3), which
+  `DisplayObject_ConfigureSpriteResource` turns into CLUT `(256, 248 + k)`.
+- The 2D small card, `func_80016784` (`duel_card_frame_draw.c`), draws its
+  face through `DisplayObject_SubmitPacket` with CLUT `(256, 241)` plus
+  1/2/3 for Magic/Equip, Trap and Ritual.
+- The 3D field card, `func_80015EF4`, uses row `0xF1 + field_42` of its
+  display object.
+- The Library grid's mini-cards are a separate 4bpp texture with only four
+  16-color palettes, `(0x160-0x190, 247)` (`LIBRARY_CARD_SELECTOR_*`); there
+  is no Fusion or Effect variant to select.
+
+Rows 245/246 and 252/253 are byte-identical in the terrain, Library and
+Build Deck packages; Password's small rows are other graphics, but its large
+rows 252/253 match too. So the two unused frames are resident wherever a
+frame is drawn, and a mod can redirect monsters to them without uploading
+anything (mtmjr92's Card Frame Colors mod does, hooking the three functions
+above).
+
+## Card-image editor dimensions
+
+**Tutorial:** `Introduction to Mod - ENG, 1.2.docx`
+
+The editor introduction requires large card images to be `102x96` pixels with
+256 indexed colors and small images to be `40x32` pixels with 64 indexed
+colors. Those dimensions agree with the retail per-card art record:
+
+| Record offset | Size | Retail role |
+|---:|---:|---|
+| `+0x0000` | `0x2640` | Large art: `102 * 96` bytes of 8-bit palette indices |
+| `+0x2640` | `0x0200` | Large-art CLUT: 256 16-bit BGR555 entries |
+| `+0x2840` | `0x02A0` | Baked card title: `96x14` 4-bpp image |
+| `+0x2AE0` | `0x0500` | Thumbnail: `40 * 32` bytes of 8-bit palette indices |
+| `+0x2FE0` | `0x0080` | Thumbnail CLUT: 64 16-bit BGR555 entries |
+
+The five regions occupy `0x3060` bytes inside each card's `0x3800`-byte,
+seven-sector record. The large-art upload uses a `51x96` rectangle of 16-bit
+VRAM words, which is the expected packed width for `102x96` 8-bpp pixels.
+
+The small image is likewise stored as one byte per pixel. "64 colors"
+describes the number of usable palette entries, not a packed 6-bpp format:
+`40 * 32` accounts for the complete `0x500`-byte image, followed by the
+separate `0x80`-byte CLUT. A byte-identical copy of each card's resulting
+`0x580`-byte thumbnail-plus-CLUT block also occupies that card's standalone
+sector in the first 722 sectors of `WA_MRG.MRG`; all 722 pairs match.
+
+The introduction does not mention the baked title between the two image
+forms. A tool that replaces complete records rather than just its advertised
+image regions must preserve or regenerate that `0x2A0`-byte title payload.
+
+**Confidence:**
+
+- **Confirmed** that the large and small retail image regions have the
+  tutorial's dimensions and palette-entry counts.
+- **Confirmed** that every embedded thumbnail-plus-CLUT block matches its
+  standalone WA sector copy.
+- **High** that these are the editor's intended import constraints; the editor
+  implementation itself is not part of the verified retail inputs.
+
+## Duel-results image and palette package
+
+**Tutorial:** `Results - Paletas.docx`
+
+The tutorial places the results-screen graphics at `WA_MRG.MRG+0xED5800`
+and a second image range at `+0xEDD800`. Resident function `DuelScene_UpdateResultOutro`
+requests 34 sectors beginning at WA sector `0x1DAB`, exactly covering
+`0xED5800-0xEE6800`, during end-of-duel setup:
+
+```text
+0x1DAB * 0x800 = 0xED5800
+0x22   * 0x800 = 0x11000
+```
+
+Its exact matching callback, `func_80020BE4`, assigns the front `0x10000`
+bytes to the image-transfer phase. The two tutorial image offsets are
+therefore the starts of the package's two `0x8000`-byte halves. The tutorial
+associates the first half with the rank, statistics, card, and general
+results backgrounds, and the second with the `YOU` win/lose graphics.
+
+The callback next reads the `0x800` bytes beginning at `0xEE5800` and uploads
+them as a `256 x 4` rectangle of 16-bit colors at VRAM `(0, 248)`. Every
+tutorial palette offset is within this block and aligned to one
+`0x20`-byte, 16-color CLUT:
+
+| Visual role from tutorial | WA palette offset(s) |
+|---|---|
+| Results background | `0xEE5800` |
+| Rank background variants | `0xEE5820`, `0xEE5840`, `0xEE5880-0xEE59A0` at `0x20` strides |
+| Statistics background | `0xEE59C0` |
+| Results cards | `0xEE59E0` |
+| `YOU`, 1P win | `0xEE5A00`; alternate at `0xEE5B00` |
+| `YOU`, 1P lose | `0xEE5A20`; alternate at `0xEE5B20` |
+
+The complete uploaded palette block hashes to:
+
+```text
+SHA-256: bc1bbeb55e28cef036ec35e90d232b070df8221d5d114b4116a9743498fe7776
+```
+
+The tutorial calls the two later `YOU` palettes repeats. They preserve the
+same 15-bit BGR values, but they are not byte-identical: every nonzero entry
+in the later copy has bit `0x8000` set. They are therefore alternate CLUTs
+with the PlayStation STP bit enabled, not redundant duplicate data.
+
+**Confidence:**
+
+- **Confirmed** that the image and palette offsets belong to the
+  34-sector end-of-duel results package.
+- **Confirmed** that each listed palette is a 16-color slot in the
+  `256 x 4` VRAM upload.
+- **Confirmed** that the later win/lose palettes differ only by the STP bit
+  on their nonzero colors.
+- **High** for the tutorial's visual labels within the two image halves; the
+  package boundaries and palette locations are exact, but the image atlas has
+  not been independently segmented.
+
+## Skip the opening Heishin text segment
+
+**Tutorial:** `Remover Heishin.txt`
+
+The tutorial replaces three bytes at SLUS offset `0x1A1A7A` with
+`FD 1C 13`. The file offset maps to loaded address `0x801B127A`, the start of
+global text string 1350. Its retail bytes begin `F7 05 00`; the patch replaces
+that first control with an `FD` text-stream jump.
+
+The `FD` dispatch-table entry is `Text_SetCursorOffset` (`0x80038BA8`). Its
+exact matching C reads a little-endian 16-bit target and replaces only the low
+halfword of the current text pointer. The patched target is therefore:
+
+```text
+FD 1C 13 -> low halfword 0x131C -> 0x801B131C
+```
+
+The destination remains in the same `0x801Bxxxx` text bank and begins with
+valid text controls (`FE F7 0A ...`). Relative to the byte after the inserted
+three-byte jump, the patch skips `0x9F` bytes of the original text stream.
+
+This is not a change to the campaign bytecode interpreter, opponent data, or
+the sound driver. Any skipped Heishin, music, or title presentation is encoded
+inside the bypassed text-stream region.
+
+A controlled in-memory replay applied the three bytes before starting a new
+game. The ordinary dim-room sequence—Heishin walking, finding the treasure,
+and laughing—did not play. After name entry, the patched flow showed a black
+screen with an empty text box while the end-of-scene music played, faded
+through a main-menu-like image, and continued into the Simon Muran
+interaction. The script confirmed that it applied the RAM patch; although its
+cursor-jump breakpoint did not produce the intended detailed log, the human
+observation establishes the visible skip and that the campaign remained
+playable through the next scene.
+
+**Confidence:**
+
+- **Confirmed** that `0x1A1A7A` maps to `0x801B127A` and begins with retail
+  bytes `F7 05 00`.
+- **Confirmed** that `FD 1C 13` redirects the text cursor to `0x801B131C`
+  while preserving its current 64 KiB bank.
+- **Confirmed** by controlled replay that this removes the opening Heishin
+  segment and continues through the transition into the Simon Muran scene.
+
+## Campaign duel records and music selection
+
+**Tutorials:**
+
+- `Trocar Musica.txt`
+- `Heishin Campanha.txt`
+- `Offset Personagens - Por Jean Cabral.docx`
+- `Offset Personagens - Por Jean Cabral 1.2.docx`
+
+The tutorials identify nine-byte records embedded in the global text bank.
+The Heishin record appears verbatim at SLUS offsets `0x1A5964` and
+`0x1A5C93`:
+
+```text
+F8 0D 08 74 75 06 30 72 FF
+```
+
+`F8` dispatches through the 27-entry extended text-control table, where
+subcommand `0x0D` resolves to exact matching C function
+`Text_StartCampaignDuel`.
+That function consumes the record in this order:
+
+| Bytes | Meaning | Heishin value |
+|---|---|---:|
+| `F8 0D` | Extended text-control command and subcommand | `0x0D` |
+| next byte | Opponent ID | `8` |
+| next byte | Post-duel continuation selected for result index `0` | `0x74` |
+| next byte | Post-duel continuation selected for result index `1` | `0x75` |
+| next byte | Duel terrain | `6` (Dark) |
+| next two bytes | Sound command, little endian | `0x7230` |
+| `FF` | End of the containing text string | |
+
+After storing those fields, the handler selects duel mode. `Main_RunDuel`
+later indexes the two continuation values with `D_8009B362 * 2`.
+`FreeDuel_Init` independently uses the same outcome byte to select the
+per-duelist result counter: value `0` leaves the pointer on the wins halfword,
+while value `1` advances it to losses. Index `0` is therefore the win path and
+index `1` is the loss path independently of the tutorial's labels.
+
+The explicit `0x7230` value is later passed to `SD_BGMPlay`, the resident
+BGM-command wrapper. It must be edited as one little-endian halfword, not
+as two independent music bytes. The tutorial's labels for the `0x71D0`-
+`0x72C0` values are behavior reports; static code confirms the command values
+but not every audible track name.
+
+The revised character-offset tutorial labels the observed sound commands as:
+
+| Command | Tutorial label |
+|---:|---|
+| `0x71D0` | Preliminary match |
+| `0x71E0` | Finals match |
+| `0x71F0` | Seto Kaiba |
+| `0x7200` | Egyptian duel |
+| `0x7210` | Mage duel |
+| `0x7220` | High Mage duel |
+| `0x7230` | Heishin |
+| `0x7240` | Priest Seto |
+| `0x7250`, `0x7260` | DarkNite / Nitemare |
+| `0x7270` | Free Duel |
+| `0x7280` | 3D battle |
+| `0x7290` | Seto Kaiba 3D battle |
+| `0x72A0` | Egyptian 3D duel |
+| `0x72B0` | DarkNite 3D battle |
+| `0x72C0` | Free Duel select |
+
+These labels remain tutorial observations rather than static audio
+identifications.
+
+`Text_StartCampaignDuel` also chooses a second sound value from the opponent ID:
+`0x7280` for IDs `9`-`16`, `0x7290` for ID `17`, `0x72B0` for ID `38`, and
+`0x72A0` otherwise. Changing the record's explicit sound command therefore
+does not replace every opponent-dependent sound selection made for the duel.
+
+The campaign tutorial changes the first Heishin record from continuation pair
+`74 75` to `75 61`. This leaves the opponent, terrain, and sound command
+unchanged and redirects only the two post-duel paths. Because the same retail
+record occurs twice, editing `0x1A5964` does not globally modify every
+Heishin encounter.
+
+The two character-offset documents also provide one record for every opponent
+ID from `1` through `38`. Comparing all 38 listed byte sequences against the
+untouched North American executable found 37 exact matches. The exception is
+Bandit Keith: the tutorial lists:
+
+```text
+F8 0D 0C 7D 7C 00 D0 71 FF
+```
+
+but the retail record at SLUS offset `0x1A6A5C` is:
+
+```text
+F8 0D 0C 7C 7D 00 D0 71 FF
+```
+
+The opponent, terrain, and sound command are unchanged; only the two
+post-duel continuation bytes are reversed in the tutorial.
+
+The records are not all unique search anchors. Exact retail duplicates occur
+for Heishin and Teana 2nd, three times each for Ocean, Forest, Mountain,
+Desert, and Meadow Mage, and five times for Labyrinth Mage. The tutorial's
+`0x1A1A8F` is a starting point for searching the dialogue bank, not the first
+duel record itself; Simon Muran's record begins at `0x1A1FA6`.
+
+**Confidence:**
+
+- **Confirmed** that `F8 0D` dispatches to `Text_StartCampaignDuel` and that
+  the record fields have the layout shown above.
+- **Confirmed** that `30 72` is the little-endian sound command `0x7230` and
+  that the two Heishin records occur at the listed SLUS offsets.
+- **Confirmed** that 37 of the 38 character-tutorial records occur verbatim
+  in the untouched SLUS, and that Bandit Keith's retail continuation pair is
+  `7C 7D`, not `7D 7C`.
+- **Confirmed** that `0x74` and `0x75` are respectively the win and loss
+  continuations: `Main_RunDuel` indexes them with `D_8009B362`, while
+  `FreeDuel_Init` independently maps values `0` and `1` to the wins and losses
+  counters.
+- **Tentative** for music names that have not been corroborated by an audio
+  trace.
+
+## Pharaoh Atem final-duel payload
+
+**Tutorial:** `Pharaoh Atem no Ultimo Duelo.txt`
+
+The tutorial writes a `0x642`-byte payload at SLUS offset `0x1B01BE`. That
+range maps to `0x801BF9BE-0x801BFFFF` and ends exactly at file offset
+`0x1B0800`, where the `0x801C0000` global string-offset table begins. The
+payload therefore does not overwrite the offset table, but its destination is
+not empty padding: the retail range contains 339 nonzero bytes through
+`0x1B034D`. Applying the tutorial replaces existing tail text data and clears
+the rest of the bank.
+
+At payload offset `+0x94` (SLUS `0x1B0252`) is this campaign duel record:
+
+```text
+F8 0D 27 02 61 00 40 72 FF
+```
+
+Using the verified `F8 0D` layout, it selects opponent ID `0x27` (decimal
+`39`), post-duel continuation IDs `0x02` and `0x61`, Normal terrain, and sound
+command `0x7240`. Existing game research identifies opponent slot 39 as Duel
+Master K. The payload does not add a new opponent identity or alter that
+opponent's deck, model, portrait, or name; presenting the slot as Pharaoh Atem
+depends on other data changes.
+
+The large zero-filled tail is significant. The payload is sized to the
+remaining text-bank space rather than just the encoded dialogue and duel
+record, so it should be treated as a full replacement of that region, not as
+a short insertion that can be combined blindly with other text mods.
+
+**Confidence:**
+
+- **Confirmed** that the payload exactly fills `0x801BF9BE-0x801BFFFF`
+  without crossing into the string-offset table.
+- **Confirmed** that its embedded duel record launches opponent slot 39 with
+  Normal terrain and sound command `0x7240`.
+- **Confirmed** that the destination overwrites existing nonzero retail text
+  data.
+- **Tentative** that the complete patch produces the tutorial's claimed
+  Pharaoh Atem presentation without additional modified assets or opponent
+  data.
+
+## Attack-trigger trap thresholds
+
+**Tutorials:**
+
+- `Efeito trap.txt`
+- `Offset de Traps e Magicas - Por Wladmir Ghost.txt`
+
+Both tutorials identify the same six consecutive bytes beginning at SLUS
+offset `0x8B724`. These are the initialized
+`gDuel_abTrapAttackThresholds` table rather than instruction immediates and
+map to resident addresses `0x8009AF24`-`0x8009AF29`:
+
+| SLUS offset | Resident address | Retail byte | ATK threshold | Trap card |
+|---:|---:|---:|---:|---|
+| `0x8B724` | `0x8009AF24` | `5` | `500` | House of Adhesive Tape (`681`) |
+| `0x8B725` | `0x8009AF25` | `10` | `1000` | Eatgaboon (`682`) |
+| `0x8B726` | `0x8009AF26` | `15` | `1500` | Bear Trap (`683`) |
+| `0x8B727` | `0x8009AF27` | `20` | `2000` | Invisible Wire (`684`) |
+| `0x8B728` | `0x8009AF28` | `30` | `3000` | Acid Trap Hole (`685`) |
+| `0x8B729` | `0x8009AF29` | `255` | `25500` | Widespread Ruin (`686`) |
+
+The matching trap-selection path in
+[`Duel_SelectAttackTrap`](../src/game/duel_trap_resolution.c) sizes the table
+with
+`DUEL_ATTACK_TRAP_COUNT` and scans from
+`DUEL_ATTACK_TRAP_COUNT - 1` through zero. For each available trap it loads
+the corresponding byte from `gDuel_abTrapAttackThresholds`, multiplies it by
+`DUEL_ATTACK_TRAP_THRESHOLD_SCALE` (100), and compares that product with the
+attacking monster's calculated ATK. The comparison accepts equal values,
+matching the documented "ATK less than or equal to" effects.
+
+The descending scan does not give the broadest trap priority. Every available
+trap whose threshold still covers the attack replaces the current selection,
+and the loop stops once it reaches an available threshold that is too low.
+With the retail table's increasing thresholds, the result is the
+lowest-threshold available trap that can destroy the attacker; Widespread
+Ruin wins only when no narrower set trap qualifies.
+
+That early stop also matters when editing the table. Non-monotonic values can
+make a lower-index trap unreachable whenever an available higher-index trap
+with a smaller threshold terminates the scan first. Keeping thresholds
+nondecreasing from card IDs `681` through `686` preserves the retail
+selection model.
+
+After selecting an index, the function adds
+`DUEL_ATTACK_TRAP_FIRST_CARD_ID` (681) to produce the trap card ID. Together
+with `DUEL_ATTACK_TRAP_COUNT` (6), this independently fixes the table order to
+the first six trap cards. The retail value `255` gives Widespread Ruin an
+effective `25500` threshold, which is why it behaves as the unrestricted
+attack-trigger trap under normal duel stats.
+
+Each edit changes a table byte directly. For example, a desired threshold of
+`5000` uses decimal byte value `50`, encoded as hexadecimal `0x32`; writing
+decimal `50` as hexadecimal `0x50` would instead select `80 * 100 = 8000`.
+Values above `25500` cannot be represented by this one-byte table.
+
+**Confidence:**
+
+- **Confirmed** that `0x8B724`-`0x8B729` are the six threshold bytes consumed
+  by `Duel_SelectAttackTrap`.
+- **Confirmed** that each value is multiplied by
+  `DUEL_ATTACK_TRAP_THRESHOLD_SCALE` (100) and compared inclusively with
+  calculated ATK.
+- **Confirmed** that `DUEL_ATTACK_TRAP_FIRST_CARD_ID` and
+  `DUEL_ATTACK_TRAP_COUNT` map indices `0`-`5` to card IDs `681`-`686` in the
+  trap order shown above.
+- **Confirmed** that, with the retail table order, simultaneous qualifying
+  traps are prioritized from the lowest sufficient threshold upward.
+
+## Guardian Star bonus magnitude
+
+**Tutorial:** `Guardian Star V2 - Por Rafael Ferreira.txt`
+
+The tutorial identifies three little-endian `500` immediates in the SLUS:
+
+| SLUS offset | VRAM | Retail bytes | Instruction role |
+|---:|---:|---|---|
+| `0x10770` | `0x8001FF70` | `F4 01 42 28` | Test whether the displayed modifier is below `500` |
+| `0x10784` | `0x8001FF84` | `F4 01 02 24` | Clamp the displayed modifier to `500` |
+| `0x1D3D0` | `0x8002CBD0` | `F4 01 02 24` | Return the positive Guardian Star matchup modifier |
+
+The first two sites are in `DuelScene_UpdateBattle`. That path advances a signed
+display value by `16` per update, clears its active flag once the value
+reaches the limit, clamps it to `500`, and writes the result to two display
+fields. Both immediates must change together to preserve the same stop and
+clamp value.
+
+The third site is the positive return in the exact matching
+`Duel_CalcGuardianStarMatchup`. Guardian Star IDs `1`-`6` form one advantage
+cycle and IDs `7`-`10` form another. Adjacent values in one direction return
+`500`, adjacent values in the opposite direction return `-500`, and all
+other pairs return zero.
+
+The tutorial changes only the positive `500` return. The negative immediate
+is a separate instruction at SLUS offset `0x1D3E4`, with retail bytes
+`0C FE 02 24` for `-500`. A patch that changes the three listed positive
+values but leaves `0x1D3E4` untouched makes favorable and unfavorable
+matchups asymmetric.
+
+The tutorial's replacement table correctly treats the value as a 16-bit
+little-endian integer: for example, decimal `1000` is hexadecimal `0x03E8`
+and is written as bytes `E8 03`.
+
+**Confidence:**
+
+- **Confirmed** that the first two offsets are the display stop/clamp pair.
+- **Confirmed** that `0x1D3D0` and `0x1D3E4` are the positive and negative
+  matchup returns.
+- **Confirmed** that changing only the tutorial's three offsets leaves the
+  negative matchup modifier at `-500`.
+
+## Spellbinding Circle and Shadow Spell reductions
+
+**Tutorial:** `Shadow Spell e Spellbinding Circle.txt`
+
+The tutorial replaces two paired signed immediates in `func_80025D30`:
+
+| Spell | Role | SLUS offset | Retail bytes/value | Tutorial bytes/value |
+|---|---|---:|---|---|
+| Spellbinding Circle | Active-card modifier | `0x16660` | `0C FE` / `-500` | `44 FD` / `-700` |
+| Spellbinding Circle | Effect-record modifier | `0x1666C` | `0C FE` / `-500` | `44 FD` / `-700` |
+| Shadow Spell | Active-card modifier | `0x16680` | `18 FC` / `-1000` | `F1 D8` / `-9999` |
+| Shadow Spell | Effect-record modifier | `0x16688` | `18 FC` / `-1000` | `F1 D8` / `-9999` |
+
+The function selects the Spellbinding Circle branch when the current effect
+card ID is `0x15D` (decimal `349`). For each occupied monster it allocates a
+type-`0xD` effect object, copies the target card display object's
+`x`/`y`/depth fields into it, and staggers the effect depth by field slot.
+The Spellbinding Circle branch sets effect state `2`, subtracts `500` from
+the target `DuelCardRecord.stat_modifier` at offset `+0x12`, and stores
+`-500` in the effect object's signed `field_12`. The alternate branch sets
+effect state `1` and performs the same paired writes with `-1000`, matching
+Shadow Spell's stronger two-level reduction documented by the card behavior
+research.
+
+The first value in each pair changes the duel state used by card-stat
+calculation. The second is the type-`0xD` presentation object's signed
+reduction payload. Editing only one offset can therefore make the applied
+modifier and the presentation payload disagree.
+
+The tutorial values are signed 16-bit little-endian integers:
+
+```text
+-700  = 0xFD44 -> 44 FD
+-9999 = 0xD8F1 -> F1 D8
+```
+
+Both replacements fit in the signed halfword written by the retail code.
+
+**Confidence:**
+
+- **Confirmed** that the retail pairs are `-500` and `-1000`.
+- **Confirmed** that the first write updates the active card's
+  `stat_modifier`.
+- **Confirmed** that the second write is the signed reduction payload in a
+  newly allocated type-`0xD` effect object positioned from the target card,
+  while `field_1A` selects the spell-specific presentation state.
+
+## Force Exodia wins to S-TEC
+
+**Tutorial:** `Exodia Sempre S-Tec - Por Wladmir Ghost.txt`
+
+The tutorial changes the same signed end-reason value at three code sites:
+
+| SLUS offset | VRAM | Retail instruction | Role |
+|---:|---:|---|---|
+| `0x8BD0` | `0x800183D0` | `addiu $v0, $zero, 40` | Recognize the Exodia end reason in the summon sequence |
+| `0x9BDC` | `0x800193DC` | `addiu $v1, $zero, 40` | Write the winner's Exodia end-reason byte |
+| `0x11DF4` | `0x800215F4` | `addiu $v0, $zero, 40` | Recognize Exodia while building the duel result/rank display |
+
+Retail uses end reason `+40` for Exodia. The writer stores only its low byte,
+and both readers load that field as a signed byte. Replacing each immediate's
+little-endian bytes `28 00` with `81 FF` changes the shared value to `-127`
+while keeping all three producer/consumer sites synchronized.
+
+`Duel_CalcRankScore` starts each score at `50`, adds the signed end-reason
+byte, then adds the ten statistic-table adjustments. Existing exhaustive
+rank research gives a retail maximum of `+139`; because an Exodia reason of
+`+40` contributes to that maximum, the other terms can contribute at most
+`49`:
+
+```text
+patched maximum = 50 - 127 + 49 = -28
+```
+
+A score of `9` or lower maps to S-TEC, so the patched Exodia result remains
+S-TEC regardless of the other tracked duel statistics. Updating the two
+comparison sites as well as the writer preserves the Exodia-specific summon
+and result-display branches despite changing the score contribution.
+
+**Confidence:**
+
+- **Confirmed** that all three retail immediates are the same signed
+  end-reason value.
+- **Confirmed** that `81 FF` encodes `-127` and is stored/read as a signed
+  byte.
+- **Confirmed** from the score bounds that the patched value always produces
+  S-TEC.
+- **High** that both comparison sites preserve the complete Exodia-specific
+  presentation path; their branches are clear in resident assembly, while
+  the surrounding state machines remain only partially named.
+
+## Library 3D-card crash workaround
+
+**Tutorial:** `Tutorial Bug do Library e Bug 3D.txt`
+
+The tutorial writes `5C 02 3C` beginning at SLUS offset `0x1B5ED`. The byte
+immediately before that range is zero, so the complete instruction at
+`0x1B5EC` changes from:
+
+```text
+00 00 00 00    nop
+00 5C 02 3C    lui $v0, 0x5C00
+```
+
+That instruction maps to `0x8002ADEC` in `func_8002ACA4`, which is reached
+from the Library menu update path. Retail code has just loaded the selected
+card's packed word from `gDuel_adwCardStats[card_id - 1]`. It then extracts
+bits `26`-`30` and calls `Model_LoadMonsterMerge` only when the value is less
+than `CARD_TYPE_MAGIC` (`20`):
+
+```text
+type = (gDuel_adwCardStats[card_id - 1] >> 26) & 0x1F
+if (type < 20)
+    Model_LoadMonsterMerge(...)
+```
+
+The inserted `lui` overwrites the loaded word with `0x5C000000`. Its type
+field is `23`, the `CARD_TYPE_EQUIP` value, so the comparison fails and the
+monster-model load is skipped. The patch therefore avoids the reported crash
+by suppressing this 3D setup path; it does not repair the card-name pointer
+described in the first half of the tutorial. It also applies at the shared
+decision point rather than only to the malformed card.
+
+**Confidence:**
+
+- **Confirmed** that the three-byte edit completes the instruction
+  `lui $v0, 0x5C00` at `0x8002ADEC`.
+- **Confirmed** that the replacement produces type value `23` and bypasses
+  the `Model_LoadMonsterMerge` call.
+- **High** that bypassing this call is the complete reason the tutorial's
+  reported Library crash disappears; the failure itself has not been
+  reproduced with the external card editor.

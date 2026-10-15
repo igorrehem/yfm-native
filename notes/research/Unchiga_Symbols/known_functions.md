@@ -1,0 +1,1271 @@
+# Known function names (SLUS_014.11)
+
+> **External-reference provenance.** This file originated in
+> Unchiga/ygofm-decomp and retains its upstream evidence. Memories-decomp may
+> add local reconciliations and corrections; upstream-only paths, tools, and
+> rules are not this repository's policy. See [`README.md`](README.md).
+
+GENERATED from config/symbol_addrs.txt -- regenerate with tools/gen_research_notes.py
+after any naming change. Source tags: `idb2018` = idb_raymond_2018 import, `ramMap` =
+datacrystal RAM map, `dotr` = DotR-style naming, `psyq` = original SDK symbol
+identified by signatures or locally corroborated API behavior, `fleet` =
+behavior-derived by this project. Evidence: NAMING.md.
+
+The roster is divided into game-meaningful, SDK/library, mechanical, and
+module sections. Derive current totals from the rows rather than maintaining a
+duplicate snapshot here.
+
+## Game-meaningful names
+
+Names that say what something IS in the game.
+
+| address | name | source |
+|---|---|---|
+| 0x80012B50 | `Main_Init` | idb2018 |
+| 0x80012CD4 | `Main_VBlankCB` | idb2018 |
+| 0x800136E4 | `File_SetPositionTable` | idb2018 |
+| 0x800138F4 | `File_GetPosition` | idb2018 |
+| 0x80013998 | `File_InitTransferDescriptor` | matching C |
+| 0x80013B68 | `File_RequestSecondaryRangeTransfer` | matching C |
+| 0x80014E1C | `File_RequestAsyncTransfer` | matching C |
+| 0x80014EEC | `File_TryRequestAsyncTransfer` | matching C |
+| 0x80015078 | `File_RequestSecondaryAsyncTransfer` | matching C |
+| 0x800151D8 | `Fade_StepBands` | idb2018 |
+| 0x80015310 | `Fade_Update` | idb2018 |
+| 0x800158B8 | `Fade_InitOut` | idb2018 |
+| 0x80015904 | `Fade_StartOut` | idb2018 |
+| 0x80015B00 | `Fade_WaitOut` | idb2018 |
+| 0x80016DDC | `Duel_UpdateLifePointDisplay` | matching C |
+| 0x80018080 | `Duel_ApplyCardObjectFlags` | matching C |
+| 0x80018CF8 | `Duel_HasAllExodiaPieces` | matching C |
+| 0x8001EE44 | `Duel_CalcGuardianStarBonus` | idb2018 |
+| 0x8001EF1C | `Duel_CalcBattleAttack` | idb2018 |
+| 0x8001EF78 | `Duel_CalcBattleDefense` | idb2018 |
+| 0x80021558 | `Duel_CalcRankScoreChange` | idb2018 |
+| 0x80021598 | `Duel_CalcRankScore` | idb2018 |
+| 0x80021810 | `Duel_SelectCardDrop` | idb2018 |
+| 0x800218F0 | `Duel_MaybeEndOfDuel` | idb2018 |
+| 0x800243F4 | `Duel_ShuffleDeck` | idb2018 |
+| 0x800245A0 | `Duel_ShuffleBothDecks` | idb2018 |
+| 0x800245EC | `Duel_StepCardDataTransfer` | matching C |
+| 0x80024734 | `Duel_RequestCombinedDeckData` | matching C |
+| 0x80024824 | `Duel_PopulateCombinedDeckData` | matching C |
+| 0x8002497C | `Duel_GetTerrainBoost` | idb2018 |
+| 0x800249E0 | `Duel_SetupCardRecord` | matching C |
+| 0x8002892C | `DuelEffect_UpdateState` | matching C |
+| 0x8002BF3C | `Library_MarkOwnedCards` | idb2018 |
+| 0x8002CB80 | `Duel_CalcGuardianStarMatchup` | idb2018 |
+| 0x8002CBF4 | `Duel_GetBaseCardStat` | idb2018 |
+| 0x8002CCA8 | `Campaign_TestStoryFlag` | idb2018 |
+| 0x8002CCE4 | `Library_UpdateCardUsedFlag` | idb2018 |
+| 0x8002CD8C | `Main_ResetFrontendRuntime` | matching C |
+| 0x8002CE08 | `Main_RunDebugMenu` | matching C |
+| 0x8002CE64 | `Main_RunCampaign` | idb2018 |
+| 0x8002CEE8 | `Main_RunDuel` | idb2018 |
+| 0x8002D0E0 | `Main_RunLibraryMenu` | idb2018 |
+| 0x8002D180 | `Main_RunAnimatedBattle` | idb2018 |
+| 0x8002D2D8 | `Main_RunCampaignMap` | idb2018 |
+| 0x8002D370 | `Main_RunBuildDeckMenu` | idb2018 |
+| 0x8002D3F8 | `Main_RunFreeDuelMenu` | idb2018 |
+| 0x8002D588 | `Main_RunMenu` | idb2018 |
+| 0x8002D62C | `Main_RunNameEntry` | idb2018 |
+| 0x8002D684 | `Main_RunPasswordMenu` | live |
+| 0x8002D6C8 | `Main_RunOptionsMenu` | idb2018 |
+| 0x8002D730 | `Main_RunGameOver` | idb2018 |
+| 0x8002D7C4 | `Main_RunHirata` | idb2018 |
+| 0x8002D7CC | `Main_RunTrade` | local |
+| 0x8002DA1C | `Main_RunCredits` | idb2018 |
+| 0x8002DD74 | `Main_Loop` | idb2018 |
+| 0x8002E370 | `DuelEffect_MarkObjectIfActive` | matching C |
+| 0x8002E730 | `Script_OpShowImage` | idb2018 |
+| 0x8002E9A0 | `Script_OpViewportTween` | matching C |
+| 0x8002EA0C | `Script_UpdateViewportTween` | matching C |
+| 0x8002EC74 | `Script_OpSound` | matching C |
+| 0x8002FA54 | `Script_RunTick` | idb2018 |
+| 0x800320BC | `BuildDeck_AddCard` | matching C |
+| 0x80032B60 | `BuildDeck_CompareCard` | idb2018 |
+| 0x80035748 | `Util_FillMemory` | matching C |
+| 0x800358A0 | `Text_EncodeDecimalNoPadding` | matching C |
+| 0x80035AB8 | `TextBox_SetRect` | idb2018 |
+| 0x80035AF0 | `DuelEffect_InitEntry` | local |
+| 0x80035B7C | `TextBox_Destroy` | idb2018 |
+| 0x80035BE4 | `TextBox_Create` | idb2018 |
+| 0x80035C38 | `TextBox_CreateFlagged` | idb2018 |
+| 0x80035CE4 | `DuelEffect_ResetOccupancy` | matching C |
+| 0x80035DB8 | `DuelEffect_ClearMatchingMarker` | matching C |
+| 0x80036DBC | `DuelEffect_UpdateObjectLayout` | matching C |
+| 0x80036F80 | `Dialog_HighlightChoice` | idb2018 |
+| 0x8003700C | `Dialog_ReadChoiceInput` | idb2018 |
+| 0x80037110 | `Widget_UpdatePulseColour` | idb2018 |
+| 0x800371A8 | `Dialog_UpdateChoice` | idb2018 |
+| 0x800374F4 | `Dialog_OpenChoice` | idb2018 |
+| 0x80038530 | `Text_StartCampaignDuel` | matching C |
+| 0x80038798 | `DuelEffect_PlaySoundCommand` | matching C |
+| 0x80038BA8 | `Text_SetCursorOffset` | matching C |
+| 0x80038BF0 | `Text_HandleChoiceCommand` | matching C |
+| 0x800393B0 | `TextBox_BuildStep` | idb2018 |
+| 0x80039934 | `TextBox_SetPos` | idb2018 |
+| 0x80039AAC | `DisplayObjectFade_MarkInitialized` | matching C |
+| 0x80039D64 | `DuelEffect_ProcessEntries` | matching C |
+| 0x8003B744 | `Text_LookupString` | idb2018 |
+| 0x8003B9BC | `Main_InitFreeDuelMenu` | live |
+| 0x8003BC40 | `Text_SjisToGlyphCodes` | idb2018 |
+| 0x8003C568 | `Options_UpdateLayout` | matching C |
+| 0x8003C628 | `Options_Init` | matching C |
+| 0x8003C8CC | `Options_Update` | matching C |
+| 0x8003CCD8 | `Input_UpdatePads` | matching C |
+| 0x8003CE74 | `SaveData_NextMaskWord` | matching C |
+| 0x8003CEB8 | `SaveData_CalcCrc16` | matching C |
+| 0x8003CF14 | `SaveData_WritePrimarySecondaryIntegrity` | matching C |
+| 0x8003CFC8 | `SaveData_WriteTertiaryIntegrity` | matching C |
+| 0x8003D03C | `SaveData_BuildPayload` | matching C |
+| 0x8003D0F4 | `SaveData_ApplyRuntimeState` | matching C |
+| 0x8003D174 | `SaveData_ValidateIntegrity` | matching C |
+| 0x8003D2B8 | `SaveData_MatchesDuelistAndCurrentSequence` | matching C |
+| 0x8003D46C | `DuelEffect_CreateChannel` | matching C |
+| 0x8003F7D4 | `SaveData_RequestLoad` | matching C |
+| 0x8003F810 | `SaveData_PollLoad` | matching C |
+| 0x8003F87C | `SaveData_RequestWrite` | matching C |
+| 0x8003FE80 | `Sound_InitFrontend` | matching C |
+| 0x8003FEE0 | `SD_SEPlayFull` | live |
+| 0x80040390 | `DisplayObject_ResetPool` | matching C |
+| 0x80043230 | `Widget_SlideSine` | idb2018 |
+| 0x80043E68 | `MemCard_CloseIOEvents` | matching C |
+| 0x80046768 | `SD_InitState` | dotr |
+| 0x80046FA0 | `SD_SetOutputType` | live |
+| 0x80048658 | `SD_SEPlay` | live |
+| 0x800492D8 | `SD_Init` | dotr |
+| 0x80049694 | `SD_Term` | dotr |
+| 0x8004B734 | `SD_SequenceTimerCallback` | matching C |
+| 0x8004BB34 | `SD_ReadVariableLengthValue` | matching C |
+| 0x8004BBBC | `SD_FindMidiTrackChunk` | matching C |
+| 0x8004BC2C | `SD_ReadSequenceU32BE` | matching C |
+| 0x8004C8C8 | `SD_ProcessSequenceTracks` | matching C |
+| 0x8004CA60 | `SD_ResetSequenceTracks` | matching C |
+| 0x80053248 | `Model_SetSlotProperties` | matching C |
+| 0x80056504 | `Model_LoadMonsterMerge` | idb2018 |
+| 0x80057F38 | `Model_UpdateViewMetrics` | matching C |
+| 0x80059134 | `Model_InitLightTriplet` | matching C |
+| 0x8005C4F0 | `File_Exists` | idb2018 |
+| 0x80060170 | `Model_RegisterHandlerKey` | matching C |
+| 0x800601D0 | `Model_FindHandlerKey` | matching C |
+| 0x8006041C | `Model_GetPrimitiveHandler` | matching C |
+| 0x8007058C | `AiScript_ReadByte` | idb2018 |
+| 0x800705AC | `AiScript_ReadShort` | idb2018 |
+| 0x800705D8 | `AiScript_Init` | idb2018 |
+| 0x80070650 | `AiScript_Run` | idb2018 |
+| 0x80070710 | `Ai_GetHandSize` | idb2018 |
+| 0x80070738 | `Ai_GetWinningCardRange` | idb2018 |
+| 0x800707C4 | `Ai_GetCardRange` | idb2018 |
+| 0x80070870 | `Ai_IsCardInSet` | idb2018 |
+| 0x800708C4 | `Ai_IsTypeInSet` | idb2018 |
+| 0x80070920 | `Ai_IsCardInSets` | idb2018 |
+| 0x80070988 | `AiScript_Jump` | idb2018 |
+| 0x800709C0 | `AiScript_JumpGreaterEqual` | idb2018 |
+| 0x80070A40 | `AiScript_JumpGreater` | idb2018 |
+| 0x80070AC0 | `AiScript_JumpEqual` | idb2018 |
+| 0x80070B3C | `AiScript_JumpNotEqual` | idb2018 |
+| 0x80070BB8 | `AiScript_JumpBetween` | idb2018 |
+| 0x80070C60 | `AiScript_JumpRandom` | idb2018 |
+| 0x80070D00 | `AiScript_Call` | idb2018 |
+| 0x80070DA8 | `AiScript_Return` | idb2018 |
+| 0x80070E20 | `AiScript_SetRandom` | idb2018 |
+| 0x80070EB4 | `AiScript_Subtract` | idb2018 |
+| 0x80070F1C | `AiScript_PlayFieldCard` | idb2018 |
+| 0x80070FF8 | `AiScript_EndHand` | idb2018 |
+| 0x80071000 | `AiScript_EndField` | idb2018 |
+| 0x80071008 | `AiScript_CalcCardPower` | idb2018 |
+| 0x80071194 | `AiScript_TestHighStat` | idb2018 |
+| 0x80071248 | `AiScript_LoadCardType` | idb2018 |
+| 0x800712B4 | `AiScript_LoadCardID` | idb2018 |
+| 0x80071320 | `AiScript_SetFaceDown` | idb2018 |
+| 0x800713B8 | `AiScript_LoadLifePoint` | idb2018 |
+| 0x80071424 | `AiScript_LoadOpponentID` | idb2018 |
+| 0x80071460 | `AiScript_LoadTerrain` | idb2018 |
+| 0x8007149C | `AiScript_LoadDeckSize` | idb2018 |
+| 0x8007154C | `AiScript_TestPinned` | idb2018 |
+| 0x800715C4 | `AiScript_StartCombo` | idb2018 |
+| 0x8007164C | `AiScript_LoadBestDifference` | idb2018 |
+| 0x80071688 | `AiScript_LoadBestAttacker` | idb2018 |
+| 0x800716C4 | `AiScript_LoadBestTarget` | idb2018 |
+| 0x80071700 | `AiScript_FindStrongest` | idb2018 |
+| 0x80071924 | `AiScript_FindWeakest` | idb2018 |
+| 0x80071B64 | `AiScript_FindKiller` | idb2018 |
+| 0x80071CB0 | `AiScript_FindDefenseStopper` | idb2018 |
+| 0x80071EB8 | `AiScript_CountCards` | idb2018 |
+| 0x80071FC8 | `AiScript_FindFirstCard` | idb2018 |
+| 0x8007214C | `AiScript_FindCard` | idb2018 |
+| 0x800722CC | `AiScript_MatchType` | idb2018 |
+| 0x8007249C | `AiScript_FindEquipTarget` | idb2018 |
+| 0x800725C4 | `AiScript_CheckRitual` | idb2018 |
+| 0x80072640 | `AiScript_FindFirstMonster` | idb2018 |
+| 0x800726F4 | `AiScript_FindFirstType` | idb2018 |
+| 0x800727C0 | `Ai_CompleteFusion` | idb2018 |
+| 0x80072A48 | `AiScript_FindBestCombo` | idb2018 |
+| 0x80072DC0 | `AiScript_EvaluateFusion` | idb2018 |
+| 0x80072F1C | `AiScript_SkipHand` | idb2018 |
+| 0x80072F54 | `AiScript_SkipField` | idb2018 |
+| 0x80072F8C | `AiScript_PlayFaceUp` | idb2018 |
+| 0x80073050 | `AiScript_SetPosition` | idb2018 |
+| 0x8007308C | `AiScript_FindBestAttack` | idb2018 |
+| 0x80073220 | `AiScript_PushComboCard` | idb2018 |
+| 0x800732A0 | `AiScript_PushComboEmpty` | idb2018 |
+| 0x80073300 | `AiScript_HandNop` | idb2018 |
+| 0x80073308 | `AiScript_FieldNop` | idb2018 |
+| 0x80073310 | `AiScript_AddCard` | idb2018 |
+| 0x80073380 | `AiScript_ClearCards` | idb2018 |
+| 0x800733A8 | `AiScript_AddType` | idb2018 |
+| 0x80073420 | `AiScript_ClearTypes` | idb2018 |
+| 0x80073464 | `AiScript_SetUnknownFlag` | idb2018 |
+| 0x80073474 | `AiScript_ClearUnknownFlag` | idb2018 |
+| 0x80073480 | `AiScript_MoveCard` | idb2018 |
+| 0x800734DC | `AiScript_LoadOpponentData` | idb2018 |
+| 0x800735A0 | `AiScript_Store` | idb2018 |
+| 0x800735DC | `AiScript_SetRegister` | idb2018 |
+| 0x80073624 | `AiScript_Add` | idb2018 |
+| 0x800736C4 | `AiScript_Print` | idb2018 |
+| 0x80073758 | `PCread` | idb2018 |
+| 0x800740F0 | `FlushCache` | idb2018 |
+| 0x80074380 | `ChangeClearRCnt` | idb2018 |
+| 0x80074A70 | `ReturnFromException` | idb2018 |
+| 0x80074A80 | `ResetEntryInt` | idb2018 |
+| 0x80074A90 | `HookEntryInt` | idb2018 |
+| 0x80075B20 | `DeliverEvent` | idb2018 |
+| 0x80075BE0 | `SpuSetReverb` | idb2018 |
+| 0x80076D10 | `WaitEvent` | idb2018 |
+| 0x8007E600 | `CdIntToPos_8007E600` | idb2018 |
+| 0x8007E710 | `CdPosToInt_8007E710` | idb2018 |
+| 0x8007E8D0 | `SetDumpFnt` | idb2018 |
+| 0x8007E9B0 | `FntOpen` | idb2018 |
+| 0x8007EC68 | `FntFlush` | idb2018 |
+| 0x8007EF84 | `FntPrint` | idb2018 |
+| 0x800857C0 | `GsSetProjection` | idb2018 |
+| 0x8008B4E0 | `InitCARD2` | idb2018 |
+| 0x8008E680 | `strcmp` | idb2018 |
+| 0x8008FBD0 | `exit` | idb2018 |
+
+## SDK / library names
+
+Original Sony PsyQ names -- meaningful if you know the SDK.
+
+| address | name | source |
+|---|---|---|
+| 0x800129D8 | `__SN_ENTRY_POINT` | psyq |
+| 0x80012A78 | `__main` | psyq |
+| 0x80012AE8 | `__do_global_dtors` | psyq |
+| 0x8002CDE8 | `__builtin_vec_new` | psyq |
+| 0x8004036C | `__builtin_delete` | psyq |
+| 0x80058F10 | `GsGetWorkBase` | psyq |
+| 0x80073704 | `PCopen` | psyq |
+| 0x80073724 | `PCclose` | psyq |
+| 0x80073734 | `PClseek` | psyq |
+| 0x80073818 | `_SN_read` | psyq |
+| 0x80073830 | `InitHeap` | psyq |
+| 0x80073840 | `_bu_init` | psyq |
+| 0x80073850 | `SetMem` | psyq |
+| 0x80073860 | `OpenEvent` | psyq |
+| 0x80073870 | `CloseEvent` | psyq |
+| 0x80073880 | `TestEvent` | psyq |
+| 0x80073890 | `EnableEvent` | psyq |
+| 0x800738A0 | `DisableEvent` | psyq |
+| 0x800738B0 | `EnterCriticalSection` | psyq |
+| 0x800738C0 | `ExitCriticalSection` | psyq |
+| 0x800738D0 | `open` | psyq |
+| 0x800738E0 | `lseek` | psyq |
+| 0x800738F0 | `read` | psyq |
+| 0x80073900 | `write` | psyq |
+| 0x80073910 | `close` | psyq |
+| 0x80073920 | `nextfile` | psyq |
+| 0x80073930 | `Krom2RawAdd` | psyq |
+| 0x80073940 | `ChangeClearPAD` | psyq |
+| 0x80073950 | `SetRCnt` | psyq |
+| 0x800739EC | `GetRCnt` | psyq |
+| 0x80073A24 | `StartRCnt` | psyq |
+| 0x80073A54 | `StopRCnt` | psyq |
+| 0x80073A88 | `ResetRCnt` | psyq |
+| 0x80073AC0 | `firstfile` | psyq |
+| 0x80073C5C | `text_19C` | psyq |
+| 0x80073D60 | `firstfile2` | psyq |
+| 0x80073D70 | `SetInitPadFlag` | psyq |
+| 0x80073D7C | `ReadInitPadFlag` | psyq |
+| 0x80073D8C | `PAD_init` | psyq |
+| 0x80073E1C | `InitPAD` | psyq |
+| 0x80073EAC | `StartPAD` | psyq |
+| 0x80073EDC | `text_16C` | psyq |
+| 0x80073F54 | `text_1E4` | psyq |
+| 0x80073FBC | `text_24C` | psyq |
+| 0x80074000 | `InitPAD2` | psyq |
+| 0x80074010 | `StartPAD2` | psyq |
+| 0x80074020 | `PAD_init2` | psyq |
+| 0x80074030 | `SysEnqIntRP` | psyq |
+| 0x80074040 | `SysDeqIntRP` | psyq |
+| 0x80074050 | `EnablePAD` | psyq |
+| 0x80074078 | `_patch_pad` | psyq |
+| 0x80074100 | `_remove_ChgclrPAD` | psyq |
+| 0x80074170 | `VSync` | psyq |
+| 0x800742E8 | `text_178` | psyq |
+| 0x80074390 | `ResetCallback` | psyq |
+| 0x800743C0 | `InterruptCallback` | psyq |
+| 0x800743F0 | `DMACallback` | psyq |
+| 0x80074420 | `VSyncCallback` | psyq |
+| 0x80074454 | `VSyncCallbacks` | psyq |
+| 0x80074484 | `StopCallback` | psyq |
+| 0x800744B4 | `RestartCallback` | psyq |
+| 0x800744E4 | `CheckCallback` | psyq |
+| 0x800744F4 | `GetIntrMask` | psyq |
+| 0x8007450C | `SetIntrMask` | psyq |
+| 0x80074524 | `text_194` | psyq |
+| 0x800745FC | `text_26C` | psyq |
+| 0x800747CC | `text_43C` | psyq |
+| 0x80074914 | `text_584` | psyq |
+| 0x800749B4 | `text_624` | psyq |
+| 0x80074A2C | `text_69C` | psyq |
+| 0x80074AA0 | `startIntrVSync` | psyq |
+| 0x80074AF8 | `text_58` | psyq |
+| 0x80074B64 | `text_C4` | psyq |
+| 0x80074B90 | `text_F0` | psyq |
+| 0x80074BC0 | `startIntrDMA` | psyq |
+| 0x80074C0C | `text_4C` | psyq |
+| 0x80074D8C | `text_1CC` | psyq |
+| 0x80074E38 | `text_278` | psyq |
+| 0x80074E60 | `SsUtReverbOff` | psyq |
+| 0x80074E80 | `_SpuInit` | psyq |
+| 0x80074F68 | `SpuStart` | psyq |
+| 0x80074FE0 | `_spu_init` | psyq |
+| 0x80075260 | `text_280` | psyq |
+| 0x80075420 | `_spu_FiDMA` | psyq |
+| 0x800754DC | `_spu_Fr_` | psyq |
+| 0x80075584 | `_spu_t` | psyq |
+| 0x80075804 | `_spu_Fw` | psyq |
+| 0x80075888 | `_spu_Fr` | psyq |
+| 0x800758EC | `_spu_FsetRXX` | psyq |
+| 0x80075930 | `_spu_FsetRXXa` | psyq |
+| 0x800759D4 | `_spu_FgetRXXa` | psyq |
+| 0x80075A10 | `_spu_FsetPCR` | psyq |
+| 0x80075A68 | `text_A88` | psyq |
+| 0x80075A90 | `text_AB0` | psyq |
+| 0x80075AB8 | `_spu_Fw1ts` | psyq |
+| 0x80075B30 | `_SpuDataCallback` | psyq |
+| 0x80075B60 | `SpuQuit` | psyq |
+| 0x80075CB0 | `_SpuIsInAllocateArea` | psyq |
+| 0x80075D30 | `_SpuIsInAllocateArea_` | psyq |
+| 0x80075DC0 | `SpuGetReverb` | psyq |
+| 0x80075DE0 | `SpuSetReverbModeParam` | psyq |
+| 0x800762C0 | `_spu_setReverbAttr` | psyq |
+| 0x80076790 | `SpuReserveReverbWorkArea` | psyq |
+| 0x800767E0 | `SpuIsReverbWorkAreaReserved` | psyq |
+| 0x80076820 | `SpuSetReverbVoice` | psyq |
+| 0x80076850 | `_SpuSetAnyVoice` | psyq |
+| 0x80076B10 | `SpuGetReverbVoice` | psyq |
+| 0x80076B40 | `_SpuGetAnyVoice` | psyq |
+| 0x80076B70 | `SpuClearReverbWorkArea` | psyq |
+| 0x80076D20 | `SpuReadDecodedData` | psyq |
+| 0x80076D90 | `SpuSetIRQ` | psyq |
+| 0x80076ED0 | `SpuSetKey` | psyq |
+| 0x80077090 | `SpuGetKeyStatus` | psyq |
+| 0x80077120 | `SpuSetKeyOnWithAttr` | psyq |
+| 0x80077150 | `SpuWrite` | psyq |
+| 0x800771B0 | `SpuSetTransferStartAddr` | psyq |
+| 0x80077210 | `SpuSetTransferMode` | psyq |
+| 0x80077240 | `SpuIsTransferCompleted` | psyq |
+| 0x800772F0 | `SpuRGetAllKeysStatus` | psyq |
+| 0x800773C4 | `SpuGetAllKeysStatus` | psyq |
+| 0x80077450 | `SpuSetVoiceAttr` | psyq |
+| 0x8007758C | `text_13C` | psyq |
+| 0x80077594 | `text_144` | psyq |
+| 0x8007759C | `text_14C` | psyq |
+| 0x800775A4 | `text_154` | psyq |
+| 0x800775AC | `text_15C` | psyq |
+| 0x800775B4 | `text_164` | psyq |
+| 0x8007766C | `text_21C` | psyq |
+| 0x80077674 | `text_224` | psyq |
+| 0x8007767C | `text_22C` | psyq |
+| 0x80077684 | `text_234` | psyq |
+| 0x8007768C | `text_23C` | psyq |
+| 0x80077694 | `text_244` | psyq |
+| 0x80077A50 | `_spu_note2pitch` | psyq |
+| 0x80077B20 | `_spu_pitch2note` | psyq |
+| 0x80077C50 | `SpuGetVoiceEnvelope` | psyq |
+| 0x80077C70 | `SpuSetCommonAttr` | psyq |
+| 0x80077CD0 | `text_60` | psyq |
+| 0x80077CD8 | `text_68` | psyq |
+| 0x80077CE0 | `text_70` | psyq |
+| 0x80077CE8 | `text_78` | psyq |
+| 0x80077CF0 | `text_80` | psyq |
+| 0x80077CF8 | `text_88` | psyq |
+| 0x80077D00 | `text_90` | psyq |
+| 0x80077D88 | `text_118` | psyq |
+| 0x80077D90 | `text_120` | psyq |
+| 0x80077D98 | `text_128` | psyq |
+| 0x80077DA0 | `text_130` | psyq |
+| 0x80077DA8 | `text_138` | psyq |
+| 0x80077DB0 | `text_140` | psyq |
+| 0x80077DB8 | `text_148` | psyq |
+| 0x80077DC0 | `text_150` | psyq |
+| 0x80077FF0 | `SpuSetReverbModeType` | psyq |
+| 0x800781C0 | `StSetRing` | psyq |
+| 0x800781F0 | `CdPosToInt` | psyq |
+| 0x80078270 | `StClearRing` | psyq |
+| 0x800782D0 | `StUnSetRing` | psyq |
+| 0x80078350 | `data_ready_callback` | psyq |
+| 0x800783DC | `StGetBackloc` | psyq |
+| 0x80078440 | `StSetStream` | psyq |
+| 0x800784D0 | `StFreeRing` | psyq |
+| 0x80078580 | `init_ring_status` | psyq |
+| 0x800785C0 | `StGetNext` | psyq |
+| 0x80078680 | `StSetMask` | psyq |
+| 0x800786A0 | `StCdInterrupt` | psyq |
+| 0x80078FBC | `text_91C` | psyq |
+| 0x80078FE8 | `text_948` | psyq |
+| 0x80079190 | `loc_0` | psyq |
+| 0x800793F4 | `text_264` | psyq |
+| 0x800794F4 | `text_364` | psyq |
+| 0x80079540 | `text_3B0` | psyq |
+| 0x800795C0 | `text_430` | psyq |
+| 0x80079640 | `text_4B0` | psyq |
+| 0x800796F4 | `CD_sync` | psyq |
+| 0x80079974 | `CD_ready` | psyq |
+| 0x80079C3C | `CD_cw` | psyq |
+| 0x8007A048 | `CD_vol` | psyq |
+| 0x8007A0D0 | `CD_flush` | psyq |
+| 0x8007A1A4 | `CD_initvol` | psyq |
+| 0x8007A294 | `CD_initintr` | psyq |
+| 0x8007A2E0 | `CD_init` | psyq |
+| 0x8007A4C0 | `CD_datasync` | psyq |
+| 0x8007A628 | `CD_set_test_parmnum` | psyq |
+| 0x8007A634 | `text_14A4` | psyq |
+| 0x8007A710 | `CdIntToPos` | psyq |
+| 0x8007A820 | `CdReady` | psyq |
+| 0x8007A840 | `CdReadyCallback_8007A840` | psyq |
+| 0x8007A860 | `CdDataCallback` | psyq |
+| 0x8007A8C0 | `text_30` | psyq |
+| 0x8007A9AC | `DS_CQ_flush` | psyq |
+| 0x8007AA0C | `text_17C` | psyq |
+| 0x8007AA94 | `text_204` | psyq |
+| 0x8007AC84 | `text_3F4` | psyq |
+| 0x8007ACF4 | `text_464` | psyq |
+| 0x8007AF18 | `text_688` | psyq |
+| 0x8007AFA4 | `DsInit` | psyq |
+| 0x8007B0E8 | `DsReset` | psyq |
+| 0x8007B1F4 | `DsCommand` | psyq |
+| 0x8007B468 | `DsPacket` | psyq |
+| 0x8007B49C | `_DsPacket2` | psyq |
+| 0x8007B5A0 | `text_D10` | psyq |
+| 0x8007B6B0 | `text_E20` | psyq |
+| 0x8007B80C | `text_F7C` | psyq |
+| 0x8007B83C | `DsSync` | psyq |
+| 0x8007BA2C | `DsReady` | psyq |
+| 0x8007BAC0 | `DsQueueLen` | psyq |
+| 0x8007BAD0 | `text_1240` | psyq |
+| 0x8007BB74 | `text_12E4` | psyq |
+| 0x8007BC48 | `text_13B8` | psyq |
+| 0x8007BC80 | `DS_init` | psyq |
+| 0x8007BD20 | `DS_reset_members` | psyq |
+| 0x8007BE00 | `DS_close` | psyq |
+| 0x8007BE40 | `DS_cw` | psyq |
+| 0x8007BEBC | `DS_vsync_callback` | psyq |
+| 0x8007BEC8 | `DS_sync_callback` | psyq |
+| 0x8007BED4 | `DS_ready_callback` | psyq |
+| 0x8007BEE0 | `DS_start_callback` | psyq |
+| 0x8007BEEC | `DS_system_status` | psyq |
+| 0x8007BF04 | `DS_lastcom` | psyq |
+| 0x8007BF14 | `DS_lastmode` | psyq |
+| 0x8007BF24 | `DS_lastpos` | psyq |
+| 0x8007BF30 | `DS_lastseek` | psyq |
+| 0x8007BF40 | `DS_lastread` | psyq |
+| 0x8007BF50 | `DS_status` | psyq |
+| 0x8007BF60 | `DS_shell_open` | psyq |
+| 0x8007BF70 | `DS_cw_system` | psyq |
+| 0x8007BFB0 | `text_330` | psyq |
+| 0x8007C188 | `text_508` | psyq |
+| 0x8007C458 | `text_7D8` | psyq |
+| 0x8007C4E0 | `text_860` | psyq |
+| 0x8007C5F0 | `text_970` | psyq |
+| 0x8007C6E8 | `text_A68` | psyq |
+| 0x8007C710 | `text_A90` | psyq |
+| 0x8007C724 | `text_AA4` | psyq |
+| 0x8007C738 | `text_AB8` | psyq |
+| 0x8007C7D4 | `text_B54` | psyq |
+| 0x8007CA5C | `text_DDC` | psyq |
+| 0x8007CB48 | `text_EC8` | psyq |
+| 0x8007CBDC | `text_F5C` | psyq |
+| 0x8007CC8C | `DS_stop` | psyq |
+| 0x8007CD04 | `DS_restart` | psyq |
+| 0x8007CD14 | `DS_system_active` | psyq |
+| 0x8007CD24 | `parcpy` | psyq |
+| 0x8007CD6C | `rescpy` | psyq |
+| 0x8007CDC0 | `CdMix` | psyq |
+| 0x8007CDE0 | `DsRead` | psyq |
+| 0x8007D0BC | `text_2DC` | psyq |
+| 0x8007D190 | `DsReadSync` | psyq |
+| 0x8007D200 | `DsReadCallback` | psyq |
+| 0x8007D214 | `DsReadBreak` | psyq |
+| 0x8007D234 | `text_454` | psyq |
+| 0x8007D2D0 | `DsReadMode` | psyq |
+| 0x8007D2F0 | `DsRead2` | psyq |
+| 0x8007D3C4 | `text_D4` | psyq |
+| 0x8007D3F0 | `DsSearchFile` | psyq |
+| 0x8007D69C | `text_2AC` | psyq |
+| 0x8007D6A4 | `loc_2B4` | psyq |
+| 0x8007D6A8 | `text_2B8` | psyq |
+| 0x8007D6D0 | `text_2E0` | psyq |
+| 0x8007D6F0 | `text_300` | psyq |
+| 0x8007D9B4 | `text_5C4` | psyq |
+| 0x8007DA58 | `text_668` | psyq |
+| 0x8007DCF4 | `text_904` | psyq |
+| 0x8007DD50 | `DsStartReadySystem` | psyq |
+| 0x8007DDD4 | `DsEndReadySystem` | psyq |
+| 0x8007DE38 | `DsReadySystemMode` | psyq |
+| 0x8007DE4C | `text_FC` | psyq |
+| 0x8007E024 | `loc_2D4` | psyq |
+| 0x8007E048 | `loc_2F8` | psyq |
+| 0x8007E04C | `text_2FC` | psyq |
+| 0x8007E10C | `text_3BC` | psyq |
+| 0x8007E128 | `text_3D8` | psyq |
+| 0x8007E1E0 | `text_490` | psyq |
+| 0x8007E288 | `ER_active` | psyq |
+| 0x8007E298 | `ER_clear` | psyq |
+| 0x8007E2F0 | `DS_sync` | psyq |
+| 0x8007E350 | `CdFlush` | psyq |
+| 0x8007E390 | `DsFlush` | psyq |
+| 0x8007E3D0 | `CdGetSector` | psyq |
+| 0x8007E3F0 | `CD_getsector` | psyq |
+| 0x8007E4F0 | `CdGetSector2` | psyq |
+| 0x8007E510 | `CD_getsector2` | psyq |
+| 0x8007E790 | `DsLastPos` | psyq |
+| 0x8007E7F0 | `CdControlB` | psyq |
+| 0x8007E860 | `CdReadyCallback` | psyq |
+| 0x8007E880 | `CdSyncCallback` | psyq |
+| 0x8007E8A0 | `CdDataCallback_8007E8A0` | psyq |
+| 0x8007F350 | `ResetGraph` | psyq |
+| 0x8007F4C4 | `SetGraphDebug` | psyq |
+| 0x8007F520 | `SetGraphQueue` | psyq |
+| 0x8007F5C4 | `GetGraphDebug` | psyq |
+| 0x8007F5D4 | `DrawSyncCallback` | psyq |
+| 0x8007F634 | `SetDispMask` | psyq |
+| 0x8007F6CC | `DrawSync` | psyq |
+| 0x8007F734 | `text_3E4` | psyq |
+| 0x8007F850 | `ClearImage` | psyq |
+| 0x8007F8E0 | `ClearImage2` | psyq |
+| 0x8007F978 | `LoadImage` | psyq |
+| 0x8007F9D8 | `StoreImage` | psyq |
+| 0x8007FA38 | `MoveImage` | psyq |
+| 0x8007FAF0 | `ClearOTag` | psyq |
+| 0x8007FBB8 | `ClearOTagR` | psyq |
+| 0x8007FC64 | `DrawPrim` | psyq |
+| 0x8007FCC0 | `DrawOTag` | psyq |
+| 0x8007FD30 | `PutDrawEnv` | psyq |
+| 0x8007FDF0 | `DrawOTagEnv` | psyq |
+| 0x8007FEC8 | `GetDrawEnv` | psyq |
+| 0x8007FEFC | `PutDispEnv` | psyq |
+| 0x80080014 | `loc_CC4` | psyq |
+| 0x80080028 | `loc_CD8` | psyq |
+| 0x8008003C | `loc_CEC` | psyq |
+| 0x800800E0 | `loc_D90` | psyq |
+| 0x800803F4 | `GetDispEnv` | psyq |
+| 0x80080428 | `GetODE` | psyq |
+| 0x80080458 | `SetDrawArea` | psyq |
+| 0x800804D8 | `SetDrawOffset` | psyq |
+| 0x80080518 | `SetDrawEnv` | psyq |
+| 0x80080710 | `text_13C0` | psyq |
+| 0x80080980 | `text_1630` | psyq |
+| 0x800809A0 | `text_1650` | psyq |
+| 0x80080A38 | `text_16E8` | psyq |
+| 0x80080AD0 | `text_1780` | psyq |
+| 0x80080AEC | `text_179C` | psyq |
+| 0x80080B6C | `text_181C` | psyq |
+| 0x80080B84 | `text_1834` | psyq |
+| 0x80080C64 | `text_1914` | psyq |
+| 0x80080E94 | `text_1B44` | psyq |
+| 0x800810D0 | `text_1D80` | psyq |
+| 0x80081350 | `text_2000` | psyq |
+| 0x80081364 | `text_2014` | psyq |
+| 0x8008136C | `text_201C` | psyq |
+| 0x800813AC | `text_205C` | psyq |
+| 0x800813F4 | `text_20A4` | psyq |
+| 0x80081424 | `text_20D4` | psyq |
+| 0x80081448 | `text_20F8` | psyq |
+| 0x800816F8 | `text_23A8` | psyq |
+| 0x80081770 | `loc_2420` | psyq |
+| 0x800818A8 | `loc_2558` | psyq |
+| 0x80081944 | `loc_25F4` | psyq |
+| 0x80081958 | `text_2608` | psyq |
+| 0x80081A94 | `text_2744` | psyq |
+| 0x80081BD0 | `text_2880` | psyq |
+| 0x80081D48 | `text_29F8` | psyq |
+| 0x80081DE8 | `LoadImage2` | psyq |
+| 0x80081ED4 | `StoreImage2` | psyq |
+| 0x80081FC0 | `MoveImage2` | psyq |
+| 0x80082104 | `DrawOTag2` | psyq |
+| 0x80082200 | `_GPU_ResetCallback` | psyq |
+| 0x80082228 | `text_2ED8` | psyq |
+| 0x80082250 | `GPU_cw` | psyq |
+| 0x80082260 | `SetVideoMode` | psyq |
+| 0x80082274 | `GetVideoMode` | psyq |
+| 0x80082290 | `BreakDraw` | psyq |
+| 0x80082324 | `IsIdleGPU` | psyq |
+| 0x80082384 | `ContinueDraw` | psyq |
+| 0x800824B0 | `LoadTPage` | psyq |
+| 0x800825A0 | `LoadClut` | psyq |
+| 0x80082610 | `LoadClut2` | psyq |
+| 0x80082680 | `SetDefDrawEnv` | psyq |
+| 0x80082740 | `SetDefDispEnv` | psyq |
+| 0x80082780 | `GetTPage` | psyq |
+| 0x800827C0 | `GetClut` | psyq |
+| 0x800827E0 | `AddPrim` | psyq |
+| 0x80082820 | `TermPrim` | psyq |
+| 0x80082840 | `SetSemiTrans` | psyq |
+| 0x80082870 | `SetShadeTex` | psyq |
+| 0x800828A0 | `SetPolyF3` | psyq |
+| 0x800828C0 | `SetPolyFT3` | psyq |
+| 0x800828E0 | `SetPolyG3` | psyq |
+| 0x80082900 | `SetPolyGT3` | psyq |
+| 0x80082920 | `SetPolyF4` | psyq |
+| 0x80082940 | `SetPolyFT4` | psyq |
+| 0x80082960 | `SetPolyG4` | psyq |
+| 0x80082980 | `SetPolyGT4` | psyq |
+| 0x800829A0 | `SetSprt8` | psyq |
+| 0x800829C0 | `SetTile` | psyq |
+| 0x800829E0 | `SetDrawMode` | psyq |
+| 0x80082A80 | `OpenTIM` | psyq |
+| 0x80082A90 | `ReadTIM` | psyq |
+| 0x80082AF4 | `text_74` | psyq |
+| 0x80082C10 | `Krom2RawAdd2` | psyq |
+| 0x80082CC0 | `kanjitrans` | psyq |
+| 0x80082DC4 | `text_104` | psyq |
+| 0x80082E40 | `text_180` | psyq |
+| 0x80082EC0 | `text_200` | psyq |
+| 0x80082F3C | `text_27C` | psyq |
+| 0x80082FEC | `text_32C` | psyq |
+| 0x800830BC | `text_3FC` | psyq |
+| 0x800831F0 | `GsSortBg` | psyq |
+| 0x80083A40 | `_mk_spr_packet` | psyq |
+| 0x80083A80 | `_mk_xpndsp` | psyq |
+| 0x80083D44 | `_mk_normsp` | psyq |
+| 0x80083FB0 | `GsSortLine` | psyq |
+| 0x80084090 | `_make_packet` | psyq |
+| 0x80084130 | `GsSortGLine` | psyq |
+| 0x80084240 | `GsSortBoxFill` | psyq |
+| 0x80084320 | `GsSortPoly` | psyq |
+| 0x800844F0 | `GsSortSprite` | psyq |
+| 0x800849F0 | `GsSortFastSprite` | psyq |
+| 0x80084B70 | `GsSortFlipSprite` | psyq |
+| 0x80084DD0 | `GsInitGraph` | psyq |
+| 0x80084F60 | `GsInitGraph2` | psyq |
+| 0x80084FC8 | `text_1F8` | psyq |
+| 0x800851E8 | `GsSortClear` | psyq |
+| 0x80085320 | `GsGetActiveBuff` | psyq |
+| 0x80085330 | `GsSetDrawBuffOffset` | psyq |
+| 0x80085440 | `GsSetDrawBuffClip` | psyq |
+| 0x800854C0 | `GsInitVcount` | psyq |
+| 0x80085500 | `GsSwapDispBuff` | psyq |
+| 0x800855B0 | `GsSetOrign` | psyq |
+| 0x800855D0 | `GsSetLsMatrix` | psyq |
+| 0x80085600 | `GsSetLightMatrix` | psyq |
+| 0x800856A0 | `GsDefDispBuff` | psyq |
+| 0x80085740 | `GsInit3D` | psyq |
+| 0x800857E0 | `GsSetFlatLight` | psyq |
+| 0x80085C98 | `text_4B8` | psyq |
+| 0x80085CFC | `text_51C` | psyq |
+| 0x80085D50 | `GsSetAmbient` | psyq |
+| 0x80085D80 | `GsDrawOt` | psyq |
+| 0x80085DB0 | `GsClearOt` | psyq |
+| 0x80085E10 | `GsSortOt` | psyq |
+| 0x80085ED0 | `gte_rotate_z_matrix` | psyq |
+| 0x80085F90 | `gte_scale_matrix` | psyq |
+| 0x800860B0 | `gte_init` | psyq |
+| 0x80086100 | `GsGetTimInfo` | psyq |
+| 0x800861F0 | `Gssub_make_matrix` | psyq |
+| 0x8008626C | `text_7C` | psyq |
+| 0x80086284 | `text_94` | psyq |
+| 0x8008629C | `text_AC` | psyq |
+| 0x800862B0 | `text_C0` | psyq |
+| 0x800862D0 | `GsGetLs` | psyq |
+| 0x800865A0 | `GsMulCoord2` | psyq |
+| 0x80086620 | `GsMulCoord3` | psyq |
+| 0x800866A0 | `rsin` | psyq |
+| 0x800866DC | `sin_1` | psyq |
+| 0x80086770 | `rcos` | psyq |
+| 0x80086810 | `SetFogNearFar` | psyq |
+| 0x80086920 | `ccos` | psyq |
+| 0x800869F0 | `csincos` | psyq |
+| 0x80086B10 | `csin_1` | psyq |
+| 0x80086BB0 | `csin` | psyq |
+| 0x80086CF0 | `catan` | psyq |
+| 0x80086E50 | `SquareRoot0` | psyq |
+| 0x80086ECC | `loc_7C` | psyq |
+| 0x80086EE0 | `gteMIMefunc` | psyq |
+| 0x80086F60 | `MulMatrix0` | psyq |
+| 0x80087070 | `ApplyMatrixLV` | psyq |
+| 0x800871D0 | `PushMatrix` | psyq |
+| 0x80087210 | `loc_40` | psyq |
+| 0x80087274 | `PopMatrix` | psyq |
+| 0x800872B0 | `loc_E0` | psyq |
+| 0x80087320 | `ReadRotMatrix` | psyq |
+| 0x80087370 | `MulMatrix` | psyq |
+| 0x80087480 | `MulMatrix2` | psyq |
+| 0x80087590 | `ApplyMatrix` | psyq |
+| 0x800875E0 | `ApplyMatrixSV` | psyq |
+| 0x80087640 | `TransMatrix` | psyq |
+| 0x80087670 | `ScaleMatrix` | psyq |
+| 0x800877B0 | `SetRotMatrix` | psyq |
+| 0x800877E0 | `SetLightMatrix` | psyq |
+| 0x80087810 | `SetColorMatrix` | psyq |
+| 0x80087840 | `SetTransMatrix` | psyq |
+| 0x80087860 | `ReadGeomScreen` | psyq |
+| 0x80087870 | `SetBackColor` | psyq |
+| 0x80087890 | `SetFarColor` | psyq |
+| 0x800878B0 | `SetGeomOffset` | psyq |
+| 0x800878D0 | `SetGeomScreen` | psyq |
+| 0x800878E0 | `RotTransPers` | psyq |
+| 0x80087910 | `RotTransPers3` | psyq |
+| 0x80087970 | `RotTrans` | psyq |
+| 0x800879A0 | `NormalClip` | psyq |
+| 0x800879D0 | `RotTransPers4` | psyq |
+| 0x80087A50 | `RotAverage3` | psyq |
+| 0x80087AB0 | `RotAverage4` | psyq |
+| 0x80087B30 | `RotAverageNclip3` | psyq |
+| 0x80087BC0 | `RotAverageNclip4` | psyq |
+| 0x80087C70 | `RotColorDpq` | psyq |
+| 0x80087CC0 | `RotTransPersN` | psyq |
+| 0x80087D30 | `RotMatrix` | psyq |
+| 0x80087FC0 | `RotMatrixYXZ` | psyq |
+| 0x80088250 | `RotMatrixZYX` | psyq |
+| 0x800884E0 | `RotMatrixX` | psyq |
+| 0x80088680 | `RotMatrixY` | psyq |
+| 0x80088820 | `RotMatrixZ` | psyq |
+| 0x800889C0 | `RotMatrixZXY` | psyq |
+| 0x80088C50 | `RotMatrixZYX_gte` | psyq |
+| 0x80088E50 | `RotMatrix_gte` | psyq |
+| 0x80089060 | `RotMatrixYXZ_gte` | psyq |
+| 0x80089260 | `DivideFT4` | psyq |
+| 0x80089460 | `ReadSZfifo4` | psyq |
+| 0x80089480 | `RCpolyFT4` | psyq |
+| 0x80089488 | `RCpolyFT4A` | psyq |
+| 0x800894E0 | `loc_60` | psyq |
+| 0x8008953C | `loc_BC` | psyq |
+| 0x80089570 | `loc_F0` | psyq |
+| 0x800895BC | `loc_13C` | psyq |
+| 0x800895F0 | `loc_170` | psyq |
+| 0x800899A0 | `ratan2` | psyq |
+| 0x80089B20 | `_patch_gte` | psyq |
+| 0x80089C00 | `SetDQA` | psyq |
+| 0x80089C10 | `SetDQB` | psyq |
+| 0x80089C20 | `NormalColorCol` | psyq |
+| 0x80089C40 | `Square0` | psyq |
+| 0x80089C70 | `AverageZ3` | psyq |
+| 0x80089C90 | `AverageZ4` | psyq |
+| 0x80089CC0 | `RotTransSV` | psyq |
+| 0x80089CF0 | `RotAverageNclip3_nom` | psyq |
+| 0x80089D30 | `GsScanAnim` | psyq |
+| 0x80089DD8 | `GsLinkAnim` | psyq |
+| 0x80089E20 | `GsU_00000000` | psyq |
+| 0x80089E40 | `GsU_02000000` | psyq |
+| 0x80089ED0 | `GsU_02000001` | psyq |
+| 0x80089F80 | `GsScanUnit` | psyq |
+| 0x8008A138 | `GsGetHeadpUnit` | psyq |
+| 0x8008A150 | `GsSortUnit` | psyq |
+| 0x8008A280 | `GsMapUnit` | psyq |
+| 0x8008A420 | `GsMapCoordUnit` | psyq |
+| 0x8008A4A0 | `GsGetLwUnit` | psyq |
+| 0x8008A760 | `GsGetLsUnit` | psyq |
+| 0x8008AA30 | `GsGetLwsUnit` | psyq |
+| 0x8008AD50 | `GsSetRefView2` | psyq |
+| 0x8008B120 | `text_3D0` | psyq |
+| 0x8008B20C | `text_4BC` | psyq |
+| 0x8008B2F0 | `TransposeMatrix` | psyq |
+| 0x8008B330 | `_card_info` | psyq |
+| 0x8008B340 | `_card_load` | psyq |
+| 0x8008B350 | `_card_write` | psyq |
+| 0x8008B360 | `_card_read` | psyq |
+| 0x8008B370 | `_new_card` | psyq |
+| 0x8008B380 | `_card_status` | psyq |
+| 0x8008B390 | `_card_wait` | psyq |
+| 0x8008B3A0 | `_card_clear` | psyq |
+| 0x8008B3E0 | `InitCARD` | psyq |
+| 0x8008B470 | `StartCARD` | psyq |
+| 0x8008B4B8 | `StopCARD` | psyq |
+| 0x8008B4F0 | `StartCARD2` | psyq |
+| 0x8008B500 | `StopCARD2` | psyq |
+| 0x8008B510 | `_patch_card_info` | psyq |
+| 0x8008B554 | `text_44` | psyq |
+| 0x8008B5C4 | `text_B4` | psyq |
+| 0x8008B5EC | `_patch_card` | psyq |
+| 0x8008B680 | `_patch_card2` | psyq |
+| 0x8008B6F0 | `_copy_memcard_patch` | psyq |
+| 0x8008B730 | `_ExitCard` | psyq |
+| 0x8008B7B0 | `MemCardInit` | psyq |
+| 0x8008B7E0 | `MemCardEnd` | psyq |
+| 0x8008B800 | `PushCallbackFunc` | psyq |
+| 0x8008B828 | `PullCallbackFunc` | psyq |
+| 0x8008B850 | `McrdGetGlobalStructure` | psyq |
+| 0x8008B85C | `MemCardStart` | psyq |
+| 0x8008B8CC | `MemCardStop` | psyq |
+| 0x8008B90C | `MemCardExist` | psyq |
+| 0x8008B974 | `text_174` | psyq |
+| 0x8008BC90 | `MemCardAccept` | psyq |
+| 0x8008BCF8 | `text_4F8` | psyq |
+| 0x8008BD38 | `text_538` | psyq |
+| 0x8008BD70 | `text_570` | psyq |
+| 0x8008BDFC | `text_5FC` | psyq |
+| 0x8008BE1C | `text_61C` | psyq |
+| 0x8008BE40 | `text_640` | psyq |
+| 0x8008BF40 | `text_740` | psyq |
+| 0x8008BF88 | `text_788` | psyq |
+| 0x8008BFA0 | `MemCardOpen` | psyq |
+| 0x8008C128 | `MemCardClose` | psyq |
+| 0x8008C16C | `MemCardReadData` | psyq |
+| 0x8008C224 | `text_A24` | psyq |
+| 0x8008C3D4 | `MemCardWriteData` | psyq |
+| 0x8008C48C | `text_C8C` | psyq |
+| 0x8008C638 | `MemCardReadFile` | psyq |
+| 0x8008C750 | `text_F50` | psyq |
+| 0x8008C858 | `MemCardWriteFile` | psyq |
+| 0x8008C970 | `text_1170` | psyq |
+| 0x8008CA78 | `MemCardGetDirentry` | psyq |
+| 0x8008CCD4 | `MemCardCallback` | psyq |
+| 0x8008CCE8 | `MemCardSync` | psyq |
+| 0x8008CE04 | `MemCardCreateFile` | psyq |
+| 0x8008CF00 | `MemCardFormat` | psyq |
+| 0x8008CF74 | `text_1774` | psyq |
+| 0x8008CFC8 | `text_17C8` | psyq |
+| 0x8008D074 | `text_1874` | psyq |
+| 0x8008D0D0 | `UserFuncInit` | psyq |
+| 0x8008D0E0 | `UserFuncOpen` | psyq |
+| 0x8008D15C | `UserFuncExecute` | psyq |
+| 0x8008D1C8 | `UserFuncComplete` | psyq |
+| 0x8008D1E0 | `funcEvSpIOE` | psyq |
+| 0x8008D1F4 | `funcEvSpError` | psyq |
+| 0x8008D208 | `funcEvSpTimeout` | psyq |
+| 0x8008D21C | `funcEvSpNewcard` | psyq |
+| 0x8008D230 | `funcEvSpIOEx` | psyq |
+| 0x8008D244 | `funcEvSpErrorx` | psyq |
+| 0x8008D258 | `funcEvSpTimeoutx` | psyq |
+| 0x8008D26C | `funcEvSpNewcardx` | psyq |
+| 0x8008D280 | `_card_open` | psyq |
+| 0x8008D2B0 | `_card_start` | psyq |
+| 0x8008D48C | `_card_close` | psyq |
+| 0x8008D4AC | `_card_stop` | psyq |
+| 0x8008D560 | `_clr_card_event` | psyq |
+| 0x8008D668 | `_get_card_event` | psyq |
+| 0x8008D740 | `_get_card_event_x` | psyq |
+| 0x8008D818 | `_chk_card_event` | psyq |
+| 0x8008D854 | `_chk_card_event_x` | psyq |
+| 0x8008D890 | `_card_format2` | psyq |
+| 0x8008DC60 | `_card_create2` | psyq |
+| 0x8008E320 | `bcopy` | psyq |
+| 0x8008E360 | `bzero` | psyq |
+| 0x8008E390 | `memcpy` | psyq |
+| 0x8008E3D0 | `memset` | psyq |
+| 0x8008E400 | `qsort` | psyq |
+| 0x8008E590 | `rand` | psyq |
+| 0x8008E5C0 | `srand` | psyq |
+| 0x8008E5D0 | `strcat` | psyq |
+| 0x8008E6F0 | `strcpy` | psyq |
+| 0x8008E740 | `strlen` | psyq |
+| 0x8008E780 | `strncmp` | psyq |
+| 0x8008E800 | `strncpy` | psyq |
+| 0x8008E870 | `printf` | psyq |
+| 0x8008E8B0 | `prnt` | psyq |
+| 0x8008E96C | `text_BC` | psyq |
+| 0x8008E990 | `text_E0` | psyq |
+| 0x8008E998 | `text_E8` | psyq |
+| 0x8008EA8C | `text_1DC` | psyq |
+| 0x8008EA9C | `text_1EC` | psyq |
+| 0x8008EAA4 | `text_1F4` | psyq |
+| 0x8008EAC0 | `text_210` | psyq |
+| 0x8008EAC4 | `text_214` | psyq |
+| 0x8008EB08 | `text_258` | psyq |
+| 0x8008EB44 | `text_294` | psyq |
+| 0x8008EB48 | `text_298` | psyq |
+| 0x8008EB7C | `text_2CC` | psyq |
+| 0x8008EBEC | `text_33C` | psyq |
+| 0x8008EBF0 | `text_340` | psyq |
+| 0x8008EC24 | `text_374` | psyq |
+| 0x8008EC30 | `text_380` | psyq |
+| 0x8008EEE0 | `text_630` | psyq |
+| 0x8008EEF4 | `text_644` | psyq |
+| 0x8008EF50 | `memchr` | psyq |
+| 0x8008EFA0 | `_putchar` | psyq |
+| 0x8008F09C | `_putchar_flash` | psyq |
+| 0x8008F0D8 | `putchar` | psyq |
+| 0x8008F200 | `sprintf` | psyq |
+| 0x8008F4C0 | `text_2C0` | psyq |
+| 0x8008F4D8 | `text_2D8` | psyq |
+| 0x8008F504 | `text_304` | psyq |
+| 0x8008F55C | `text_35C` | psyq |
+| 0x8008F67C | `text_47C` | psyq |
+| 0x8008F77C | `text_57C` | psyq |
+| 0x8008F790 | `text_590` | psyq |
+| 0x8008F79C | `text_59C` | psyq |
+| 0x8008F8A8 | `text_6A8` | psyq |
+| 0x8008F8C8 | `text_6C8` | psyq |
+| 0x8008F954 | `text_754` | psyq |
+| 0x8008FA80 | `memmove` | psyq |
+| 0x8008FAF0 | `puts` | psyq |
+| 0x8008FB50 | `setjmp` | psyq |
+| 0x8008FB8C | `longjmp` | psyq |
+| 0x8008FBE0 | `DecDCTReset` | psyq |
+| 0x8008FC14 | `DecDCTGetEnv` | psyq |
+| 0x8008FCA0 | `DecDCTPutEnv` | psyq |
+| 0x8008FD38 | `DecDCTin` | psyq |
+| 0x8008FDB4 | `DecDCTout` | psyq |
+| 0x8008FDD4 | `DecDCTinSync` | psyq |
+| 0x8008FE10 | `DecDCToutSync` | psyq |
+| 0x8008FE58 | `DecDCTinCallback` | psyq |
+| 0x8008FE7C | `DecDCToutCallback` | psyq |
+| 0x80090020 | `text_440` | psyq |
+| 0x800900AC | `text_4CC` | psyq |
+| 0x80090140 | `text_560` | psyq |
+| 0x800901D4 | `text_5F4` | psyq |
+| 0x800901EC | `text_60C` | psyq |
+| 0x80090270 | `DecDCTvlcSize2` | psyq |
+| 0x80090290 | `loc_20` | psyq |
+| 0x800902A0 | `DecDCTvlc2` | psyq |
+| 0x800905B8 | `loc_348` | psyq |
+| 0x800905F0 | `DecDCTvlcBuild` | psyq |
+
+## Mechanical names
+
+Fleet-written descriptions of verified *mechanics*, not game meaning (e.g. `flag80_test_and_set` tests-and-sets bit 0x80 of something). Accurate but low readability; each is a candidate for a meaningful upgrade when evidence appears.
+
+| address | name | source |
+|---|---|---|
+| 0x80012D4C | `call_four_update_funcs` | fleet |
+| 0x80012D84 | `call_80012d4c_n_times` | fleet |
+| 0x80012E5C | `gpu_disp_buff_swap_and_ot_sort_dispatch` | fleet |
+| 0x800143DC | `File_ActivateTransfer` | fleet |
+| 0x800154E4 | `Fade_DrawOverlay` | fleet |
+| 0x800157DC | `call_80015780_flags_and_8001572c` | fleet |
+| 0x80015870 | `reset_9ec8_state_if_flag145` | fleet |
+| 0x80015998 | `loop_call_four_update_funcs_while_flag80` | fleet |
+| 0x80015B50 | `call_800158b8_flag_80015870_and_loop` | fleet |
+| 0x80015C0C | `call_80015780_flag_and_8001572c` | fleet |
+| 0x80016D04 | `forward_fields_30_32_to_80016784` | fleet |
+| 0x80016D2C | `draw_digit_sprites` | fleet |
+| 0x80016E70 | `Duel_DrawLifePointsAndDeckCounts` | local |
+| 0x8001700C | `card_flag_test_c000` | fleet |
+| 0x80017034 | `card_pick_on_up` | fleet |
+| 0x800170C8 | `Duel_CalcCardStats` | local |
+| 0x800171A8 | `Duel_LoadPackageStage` | fleet |
+| 0x8001755C | `call_530c4_533d8_56250` | fleet |
+| 0x800176D0 | `Duel_ClearHandSlots` | fleet |
+| 0x80018DB4 | `duel_field_slot_spawn_dispatch` | fleet |
+| 0x80019564 | `spawn_container_marker_obj` | fleet |
+| 0x80019A08 | `Duel_CheckEquip` | local |
+| 0x80019A60 | `Duel_CheckFusion` | local |
+| 0x80019B2C | `counter_tween_tick` | fleet |
+| 0x80019BA0 | `counter_tween_start` | fleet |
+| 0x80019CC8 | `call_ccce4_guarded_offset288` | fleet |
+| 0x8001B0CC | `project_slot_to_screen_x` | fleet |
+| 0x8001B780 | `card_slot_set_xy` | fleet |
+| 0x8001B8B8 | `hand_slots_dim` | fleet |
+| 0x8001BAF0 | `deck_swap_redeal` | fleet |
+| 0x8001BD48 | `Duel_CheckQuitInput` | matching C |
+| 0x8001D3C4 | `tick_lerp_position_toward_target` | fleet |
+| 0x8001F364 | `duel_flags_state_and_field_spawn_dispatch` | fleet |
+| 0x80020D4C | `update_orbiting_effect_obj` | fleet |
+| 0x80021894 | `Duel_AwardCard` | local |
+| 0x80022EEC | `apply_stat_template_or_delete` | fleet |
+| 0x800235C0 | `update_active_move_record` | fleet |
+| 0x80023FBC | `decode_status_flags_call_80023d08` | fleet |
+| 0x800240B0 | `Duel_UpdateCardPickCursor` | local |
+| 0x80024704 | `Util_CompareS16` | local |
+| 0x80024C1C | `spawn_card_type_icon_obj` | fleet |
+| 0x80024D34 | `opponent_field_record_fill` | fleet |
+| 0x80024DC8 | `init_800eb26c_fields_from_args` | fleet |
+| 0x80024E24 | `flag80_test_and_set` | fleet |
+| 0x800255FC | `DuelEffect_UpdateFieldMarker` | matching C |
+| 0x80025BEC | `spawn_or_rearm_field_effect_marker` | fleet |
+| 0x800262D4 | `obj_lifecycle_state_dispatch` | fleet |
+| 0x80026C6C | `Duel_CollectFieldCardsBelowType` | local |
+| 0x80026D18 | `Duel_CollectFieldCardsByType` | local |
+| 0x80028220 | `init_801ab00c_pair` | fleet |
+| 0x800291E0 | `init_container_entry_objs` | fleet |
+| 0x80029528 | `call_4036c_clear_entry_fields` | fleet |
+| 0x80029EB0 | `list_entry_byte` | fleet |
+| 0x8002A660 | `scroll_follow_cursor` | fleet |
+| 0x8002C518 | `test_byte_flag_591_else_find_id_index` | fleet |
+| 0x8002C598 | `reset_pool_800ead88` | fleet |
+| 0x8002C6C8 | `duel_phase_overlay_dispatch` | fleet |
+| 0x8002C7E8 | `Duel_CheckRitual` | local |
+| 0x8002C9B4 | `collect_field_slot_ptrs` | fleet |
+| 0x8002CD48 | `call_ccca8_then_cce4_if_zero` | fleet |
+| 0x8002DC38 | `mask_test_800eb26c_reinit_and_poll` | fleet |
+| 0x8002E470 | `stream_read_index_and_check_ready` | fleet |
+| 0x8002F9D4 | `read_stream_u16le_call_8002ee5c` | fleet |
+| 0x80030198 | `init_duel_field_state` | fleet |
+| 0x80030250 | `init_800eb2c0_fields_from_args` | fleet |
+| 0x80030CB0 | `guarded_init_and_poll_result` | fleet |
+| 0x80030D5C | `guarded_init_and_notify` | fleet |
+| 0x80030E30 | `mask_test_call_800eb2eb_state3` | fleet |
+| 0x80030E7C | `mask_test_call_800eb2eb_state4` | fleet |
+| 0x80031E04 | `call_31cd4_loop` | fleet |
+| 0x80032328 | `call_14e1c_137e4` | fleet |
+| 0x80032BD4 | `compare_rec_two_level_std` | fleet |
+| 0x800338E4 | `BuildDeck_UpdatePaneTransition` | matching C |
+| 0x800355C8 | `relink_active_ptr_and_flag4` | fleet |
+| 0x800356A0 | `Util_CopyWords` | local |
+| 0x800357E8 | `Text_EncodeDecimalDigits` | local |
+| 0x800358FC | `Rand_GetInterval` | local |
+| 0x80035DF4 | `DuelEffect_ResetEntryMarkers` | fleet |
+| 0x80036BCC | `find_entry_by_be16_id` | fleet |
+| 0x80036D70 | `read_stream_u32be` | fleet |
+| 0x8003735C | `DuelEffect_HasActiveEntry` | fleet |
+| 0x800374A8 | `set_field81_call_373c8` | fleet |
+| 0x800384E4 | `read_stream_byte_set_bit12` | fleet |
+| 0x80038B08 | `call_4036c_reset_field48_81_98` | fleet |
+| 0x80038DB8 | `append_stream_word_and_advance_field88` | fleet |
+| 0x80039140 | `derive_layout_bounds_from_src` | fleet |
+| 0x800391E4 | `init_highlight_and_shadow_slots` | fleet |
+| 0x80039A14 | `poll_call_393b0_until_bit13` | fleet |
+| 0x80039A60 | `poll_call_393b0_until_bit13_v2` | fleet |
+| 0x80039F44 | `init_fields_call_8e590_field62` | fleet |
+| 0x80039F90 | `call_4036c_clear_three_words` | fleet |
+| 0x8003A920 | `propagate_pos_to_slots` | fleet |
+| 0x8003A95C | `set_pos_propagate` | fleet |
+| 0x8003B714 | `DuelEffect_InitEntryDefaultFlags` | local |
+| 0x8003B734 | `Input_IsPad1ConfirmPressed` | local |
+| 0x8003B7E0 | `read_stream_byte_advance` | fleet |
+| 0x8003BBF8 | `register_handler_8003BA14` | fleet |
+| 0x8003BEB8 | `register_handler_8003BD14` | fleet |
+| 0x8003C498 | `register_handler_8003C328` | fleet |
+| 0x8003C7A0 | `Options_HandleInput` | matching C |
+| 0x8003CB7C | `Input_ResetPads` | matching C |
+| 0x8003CBE8 | `Input_InitPads` | matching C |
+| 0x8003CC38 | `Input_ReadRawPads` | matching C |
+| 0x8003CDF8 | `Input_BackupPad1AndUsePad2` | matching C |
+| 0x8003CE48 | `Input_RestorePad1FromBackup` | matching C |
+| 0x8003D288 | `SaveData_HasSameDuelistCode` | local |
+| 0x8003D334 | `draw_tiled_bg_sprites` | fleet |
+| 0x8003D614 | `reload_timer_or_delete_and_age_slot` | fleet |
+| 0x8003E46C | `set_flag_bits_mode` | fleet |
+| 0x8003E7D4 | `arm_and_call_8003E490` | fleet |
+| 0x8003E80C | `arm_and_call_8003E490_full` | fleet |
+| 0x8003E858 | `memcard_save_state_step` | fleet |
+| 0x8003EE90 | `arm_and_call_8003E854` | fleet |
+| 0x8003F70C | `call_8003F454_or_default` | fleet |
+| 0x8003FCD8 | `arm_and_call_8003F8D4_state29` | fleet |
+| 0x8003FE70 | `SaveData_SetMaskSeed` | matching C; fleet `rng_seed` |
+| 0x8003FF08 | `SD_BGMPlay` | matching C; fleet `call_masked_and_store_orred` |
+| 0x8003FF34 | `SD_BGMFadeOut` | matching C; fleet `call_80047430_neg8_0` |
+| 0x8003FF58 | `SD_BGMFadeOutWithStep` | matching C; fleet `call_set_1582_1584_negated` |
+| 0x8003FF88 | `call_80048658_flagged` | fleet |
+| 0x8003FFB4 | `call_80045334_masked_flag` | fleet |
+| 0x8003FFD8 | `call_80047314_masked_flag` | fleet |
+| 0x8003FFFC | `SD_StopAll` | matching C; fleet `call_800473f0_dual_then_80047ec4` |
+| 0x8004002C | `find_free_slot_0x10_0x60` | fleet |
+| 0x8004006C | `find_free_slot_0x0_0x60` | fleet |
+| 0x800400AC | `get_or_init_D_800EFE48_slot` | fleet |
+| 0x800403F0 | `reset_rec_flags_trigger` | fleet |
+| 0x80040424 | `set_kind_and_clear_bit4` | fleet |
+| 0x8004044C | `set_pos_and_kind` | fleet |
+| 0x80040468 | `init_obj_id_pos_flags` | fleet |
+| 0x800404CC | `set_30_32_and_call_80040468` | fleet |
+| 0x80040814 | `run_active_rec_chain` | fleet |
+| 0x80040BF8 | `update_all_efe48_slots` | fleet |
+| 0x8004143C | `accum_add_le16` | fleet |
+| 0x80041464 | `accum_add_le16_xor_flag` | fleet |
+| 0x800427DC | `reset_obj_and_set_5A_flag08` | fleet |
+| 0x80042874 | `call_80040468_store54` | fleet |
+| 0x800428A8 | `call_800404CC_store54` | fleet |
+| 0x800428EC | `sub_table_lookup_set_flag` | fleet |
+| 0x80042918 | `sub_from_global_set_flag` | fleet |
+| 0x8004293C | `sub_from_global_set_flag3` | fleet |
+| 0x80042960 | `call_f24_check_flags_c0` | fleet |
+| 0x800429A8 | `read_le16` | fleet |
+| 0x800429BC | `get_ptr_le16_offset` | fleet |
+| 0x800429D8 | `reset_obj_state` | fleet |
+| 0x80042A00 | `update_pos_frac_x` | fleet |
+| 0x80042A28 | `update_pos_frac_y` | fleet |
+| 0x80042A50 | `update_pos_frac` | fleet |
+| 0x80042A78 | `update_pos_frac_xy` | fleet |
+| 0x80042AA4 | `update_pos_frac_xyz` | fleet |
+| 0x80042B08 | `clamp_approach_zero` | fleet |
+| 0x80042B40 | `find_active_rec_by_id` | fleet |
+| 0x80042B98 | `obj_flag80_test_and_set` | fleet |
+| 0x80042BC0 | `decay_countdown_or_delete` | fleet |
+| 0x80043178 | `save_prev_pos` | fleet |
+| 0x8004318C | `lerp_position_toward_midpoint` | fleet |
+| 0x80043E30 | `init_memcard_and_pad` | fleet |
+| 0x80043EBC | `MemCard_InitIOEvents` | local |
+| 0x800440B4 | `try_acquire_slot_536` | fleet |
+| 0x80044608 | `memcard_save_clear_load_poll_dispatch` | fleet |
+| 0x80044CFC | `MemCard_SetIOResultCompleteCB` | local |
+| 0x80044D0C | `MemCard_SetIOResultTimeoutCB` | local |
+| 0x80044D20 | `MemCard_SetIOResultErrorCB` | local |
+| 0x80044D34 | `MemCard_SetIOResultNewCardCB` | local |
+| 0x80044DA0 | `set_8009b45c_514_515` | fleet |
+| 0x80044E90 | `set_field514_515_range_flags` | fleet |
+| 0x80044FE4 | `get_8009b45c_510` | fleet |
+| 0x8004503C | `set_8009b45c_512_49` | fleet |
+| 0x800451E0 | `call_80045208_masked_128` | fleet |
+| 0x8004544C | `SD_ClearBusyFlag` | fleet |
+| 0x8004545C | `SD_ArmBusyCallback` | fleet |
+| 0x80045484 | `entry_has_marker_byte` | fleet |
+| 0x80046F58 | `sound_shutdown_full` | fleet |
+| 0x80047008 | `get_8009b45c_48` | fleet |
+| 0x8004701C | `set_8009b45c_f4a_low_nibble` | fleet |
+| 0x8004703C | `get_8009b45c_40` | fleet |
+| 0x80047278 | `call_split_word_halves` | fleet |
+| 0x80047314 | `call_8004733C_masked_flag` | fleet |
+| 0x800473CC | `call_800473F0_neg32` | fleet |
+| 0x80047430 | `call_set_1582_1584_masked` | fleet |
+| 0x80047458 | `call_set_1582_1584_masked_b` | fleet |
+| 0x80048A28 | `combat_status_flag_dispatch` | fleet |
+| 0x800490F0 | `set_8009b45c_1582_1584` | fleet |
+| 0x80049108 | `set_8009b45c_1582_1584_b` | fleet |
+| 0x80049120 | `get_8009b45c_1582_nonzero` | fleet |
+| 0x80049200 | `call_80049230_sign16` | fleet |
+| 0x80049434 | `reset_8009b458_idle_state` | fleet |
+| 0x80049594 | `set_8009b458_81c` | fleet |
+| 0x800495A4 | `call_8004B9E0_if_flag814` | fleet |
+| 0x800495DC | `clear_8009b458_815` | fleet |
+| 0x800495EC | `set_8009b458_815` | fleet |
+| 0x80049600 | `set_8009b458_510_validated` | fleet |
+| 0x800498F8 | `clear_8009b458_4A4_if_set` | fleet |
+| 0x80049CB0 | `reset_slot_7E0_if_active` | fleet |
+| 0x80049EC8 | `set_pos_masked_and_notify` | fleet |
+| 0x80049F10 | `set_pos_514_and_notify` | fleet |
+| 0x8004A6D8 | `call_8004A518_wrapper` | fleet |
+| 0x8004B854 | `guarded_start_stream_and_set_handle` | fleet |
+| 0x8004BAA0 | `SD_CompareBytes` | fleet |
+| 0x8004BAE4 | `SD_ReadSequenceByte` | fleet |
+| 0x8004BCA8 | `SD_ReadSequenceU16BE` | fleet |
+| 0x8004BCE8 | `setup_track_tempo_and_division` | fleet |
+| 0x8004BE6C | `int_add_inplace` | fleet |
+| 0x8004BE88 | `handle_seq_meta_event` | fleet |
+| 0x8004C420 | `midi_command_dispatch` | fleet |
+| 0x8004CABC | `check_records_flag_all_set` | fleet |
+| 0x8004CB0C | `init_duelist_record_and_scan_hand` | fleet |
+| 0x8004D914 | `relink_ot_table_by_type_bucket` | fleet |
+| 0x8004FE2C | `duel_action_resolution_dispatch` | fleet |
+| 0x800507D0 | `duel_phase_transition_dispatch` | fleet |
+| 0x80052528 | `blend_camera_zoom_target` | fleet |
+| 0x800533D8 | `reset_gpu_state_and_flags` | fleet |
+| 0x800559D4 | `duel_state_debug_dispatch` | fleet |
+| 0x800580D4 | `build_obj_lwtransform_800f2c40` | fleet |
+| 0x80058434 | `update_3d_position` | fleet |
+| 0x80058DD8 | `get_D_800F2C40_slot_status` | fleet |
+| 0x80058E3C | `get_D_800F2C40_slot_field` | fleet |
+| 0x80058E68 | `get_D_800F2C40_slot_field_bf5` | fleet |
+| 0x80058E94 | `get_D_800F2C40_slot_field_e06` | fleet |
+| 0x80058EC0 | `get_D_800F2C40_slot_bf5_indexed_u16` | fleet |
+| 0x80058F20 | `get_D_800F2C40_slot_entry_clamped` | fleet |
+| 0x80058F74 | `get_D_800F2C40_slot_entry` | fleet |
+| 0x80058FB0 | `Model_CopySlotU16Values` | fleet |
+| 0x800591C0 | `get_D_800F39B0_slot_sub` | fleet |
+| 0x80059284 | `set_D_800F2C40_slot_field` | fleet |
+| 0x8005949C | `get_D_800F39F0_slot` | fleet |
+| 0x80059590 | `set_D_800F2C40_slot_bytes` | fleet |
+| 0x80059DD8 | `call_slot_handler_800fc1c_rows` | fleet |
+| 0x8005A1F4 | `dist_to_stored_pos` | fleet |
+| 0x8005A8C4 | `Model_HasInsufficientBufferSpace` | fleet |
+| 0x8005B64C | `MainMenu_LoadPackageStage` | memories-decomp |
+| 0x8005BFC8 | `str_stream_wait_and_decode_frame` | fleet |
+| 0x8005C388 | `lookup_speed_and_start_read` | fleet |
+| 0x8005D994 | `setup_positional_sfx` | fleet |
+| 0x80069E44 | `gte_ot_insert_transformed_tris_flat` | fleet |
+| 0x80069F94 | `gte_ot_insert_transformed_tris_flat_3field` | fleet |
+| 0x8006A3F0 | `gte_ot_insert_transformed_tris_flat_r18` | fleet |
+| 0x8006A540 | `gte_ot_insert_transformed_tris_flat_3field_r1C` | fleet |
+| 0x800775BC | `text_16C_800775BC` | fleet |
+| 0x8007769C | `text_24C_8007769C` | fleet |
+| 0x80077CC8 | `text_58_80077CC8` | fleet |
+| 0x8007A890 | `loc_0_8007A890` | fleet |
+| 0x8007CF10 | `text_130_8007CF10` | fleet |
+| 0x8007CF44 | `text_164_8007CF44` | fleet |
+| 0x8007E258 | `text_508_8007E258` | fleet |
+| 0x8007E370 | `call_ds_shell_open` | fleet |
+| 0x8007E910 | `upload_tpage_and_clut` | fleet |
+| 0x8007EF94 | `format_string_scan_dispatch` | fleet |
+| 0x80081C04 | `gpu_dma_timeout_check` | fleet |
+| 0x80082D0C | `text_4C_80082D0C` | fleet |
+| 0x80084E44 | `text_74_80084E44` | fleet |
+| 0x80089910 | `text_490_80089910` | fleet |
+| 0x8008B2D4 | `text_584_8008B2D4` | fleet |
+| 0x8008BD84 | `text_584_8008BD84` | fleet |
+| 0x8008E550 | `text_150_8008E550` | fleet |
+| 0x8008E95C | `text_AC_8008E95C` | fleet |
+| 0x8008E974 | `text_C4_8008E974` | fleet |
+| 0x8008E9A0 | `text_F0_8008E9A0` | fleet |
+| 0x8008EA28 | `text_178_8008EA28` | fleet |
+| 0x8008EA30 | `text_180_8008EA30` | fleet |
+| 0x8008EA94 | `text_1E4_8008EA94` | fleet |
+| 0x8008EB8C | `text_2DC_8008EB8C` | fleet |
+| 0x8008F4CC | `text_2CC_8008F4CC` | fleet |
+| 0x8008F988 | `text_788_8008F988` | fleet |
+| 0x8008FEA0 | `text_2C0_8008FEA0` | fleet |
+| 0x8008FF90 | `text_3B0_8008FF90` | fleet |
+| 0x80168FB4 | `FreeDuel_Entry` | fleet |
+
+## Module symbols
+
+Only true while that screen's module is resident (config/modules/README.md). Source: live trace.
+
+### free_duel
+
+| address | name |
+|---|---|
+| 0x80168004 | `FreeDuel_UpdateScrollbar` |
+| 0x80168090 | `FreeDuel_PlaceCursor` |
+| 0x801681B4 | `FreeDuel_SpawnSparkle` |
+| 0x8016824C | `FreeDuel_Init` |
+| 0x8016899C | `FreeDuel_GetSparkleSlot` |
+| 0x801689D4 | `FreeDuel_UpdateSparkle` |
+| 0x80168A9C | `FreeDuel_UpdateCursorTween` |
+| 0x80168C7C | `FreeDuel_UpdateScreen` |
+
+### name_entry
+
+| address | name |
+|---|---|
+| 0x801683EC | `NameEntry_Init` |
+| 0x8016868C | `TextBox_GetGlyphAt` |
+| 0x80168CDC | `NameEntry_SpawnGlyphSprite` |
+| 0x801689B4 | `NameEntry_UpdateCaretTween` |
+| 0x8016909C | `NameEntry_AdjustLength` |
+| 0x8016913C | `NameEntry_UpdateKeyboard` (historical reference: `NameEntry_UpdateScreen`) |
+| 0x80169734 | `NameEntry_UpdateDialog` |
+| 0x80169C08 | `NameEntry_PollCompletion` |
+| 0x8016A930 | `NameEntry_BuildStarterDeck` |
+| 0x8016AA6C | `NameEntry_Main` |
+
+### password
+
+| address | name |
+|---|---|
+| 0x80169C30 | `Password_RefreshDigitDisplay` |
+| 0x80169D10 | `Password_RefreshStarchipDisplay` |
+| 0x80169D84 | `Password_CreateMessageBox` |
+| 0x80169F38 | `Password_UpdateDigitCursorDecoration` |
+| 0x8016A00C | `Password_SetDigitCursorTarget` |
+| 0x8016A304 | `Password_LookupCardID` |
+
+### overworld
+
+| address | name |
+|---|---|
+| 0x80168004 | `CampaignMap_ClearLocationObjects` |
+| 0x80168050 | `CampaignMap_RebuildLocationObjects` |
+| 0x8016818C | `CampaignMap_CreateLocationLabel` |
+| 0x801681E8 | `CampaignMap_SetCameraFromLocation` |
+| 0x80168258 | `CampaignMap_UpdateView` |
+| 0x80168310 | `CampaignMap_ResetCamera` |
+| 0x80168388 | `CampaignMap_MoveCameraDpad` |
+| 0x80168588 | `CampaignMap_CreateLocationMarker` |
+| 0x8016866C | `CampaignMap_SetLocation` |
+| 0x801688BC | `CampaignMap_StartCameraTween` |
+| 0x80168AA8 | `CampaignMap_UpdateLocationTransition` |
+| 0x80168E0C | `CampaignMap_PickExit` |
+| 0x80168FCC | `CampaignMap_UpdateLocation` |
+
+### main_menu
+
+| address | name |
+|---|---|
+| 0x80180FD8 | `MainMenu_StartValueSetup` |
+| 0x80181CB8 | `MainMenu_UpdateValueWidgetTween` |
+| 0x80181E30 | `MainMenu_FinishValueSetup` |
+| 0x80181EEC | `MainMenu_CountDecimalDigits` |
+| 0x80181F20 | `MainMenu_StartValueWidgetTween` |

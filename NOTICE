@@ -1,0 +1,16 @@
+This project starts from a copy of Yu-Gi-Oh! Forbidden Memories Recompiled
+by Unchiga and its contributors:
+
+  https://github.com/Unchiga/Yu-Gi-Oh-Forbidden-Memories-Recompiled
+  base commit d46eda5eee87a1873a35b3b2b2d3abb3d24b0475 (2026-10-14)
+
+The native PC port from that project (src/pc/, tools/pc/, tests/pc/, mods/,
+examples/, CMakeLists.txt, build-pc.sh, play.sh and play.bat) is MIT licensed;
+its copyright notice is kept in LICENSE.
+
+The decompilation it builds on comes from memories-decomp
+(https://github.com/krystalgamer/memories-decomp) and belongs to its authors.
+That repository declares no license.
+
+Yu-Gi-Oh! and Forbidden Memories, the game and its data, belong to Konami.
+No game data is included; bring your own North American disc image.

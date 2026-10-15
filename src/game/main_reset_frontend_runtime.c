@@ -1,0 +1,21 @@
+#include "../types.h"
+#include "display_object_core.h"
+#include "graphics_frame.h"
+#include "func_80035A64.h"
+#include "input.h"
+#include "main_reset_frontend_runtime.h"
+#include "main_services.h"
+#include "menu_record_reset.h"
+#include "duel_effect.h"
+
+void Main_ResetFrontendRuntime(void)
+{
+    D_8009B0C0 = 0;
+    DisplayObject_Reset();
+    func_80035A64();
+    func_80039E9C();
+    Main_ClearFrameServiceCallbacks();
+    gInput_bRepeatDelay = INPUT_REPEAT_THRESHOLD;
+    gDuel_bEffectState = 0;
+    gInput_bRepeatInterval = INPUT_REPEAT_RELOAD_VALUE;
+}

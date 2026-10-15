@@ -1,0 +1,218 @@
+# DuelEffect Shared Structures
+
+This pass is limited to the shared records rooted at `D_800EB0F8` and
+`D_800EB288`. The types in `src/game/duel_effect.h` describe verified storage
+widths and offsets, not recovered original Konami names. Offset-based field
+names remain where semantics or signedness are uncertain.
+
+## `D_800EB0F8`: four `0x64`-byte channels
+
+`DuelEffectChannel` has size `0x64`, and `D_800EB0F8` is declared as four
+entries. The following local evidence establishes the stride and extent:
+
+- `DuelEffect_InitEntry`, `TextBox_SetRect`, `func_8003D614`, and
+  `MemCardDialog_CreateObject` independently index or advance entries by `0x64`.
+- `MemCardDialog_CreateObject` scans exactly four entries.
+- `D_800EB288 - D_800EB0F8` is `0x190`, exactly `4 * 0x64`; linker aliases
+  such as `D_800EB15C` also land on `0x64` entry boundaries.
+- Target assembly, GMS pseudocode, and Unchiga's same-address sources agree on
+  the `25 * u32`/100-byte indexing. GMS and reference types are treated only
+  as guesses; the local matching code and target instructions are decisive.
+
+Verified channel fields used by matching C include:
+
+| Offset | Shared field | Evidence |
+|---:|---|---|
+| `0x28`, `0x2C` | `field_28`, `field_2C` | cleared across four entries by `func_80035A64` |
+| `0x30` | `field_30` | pointer-sized assignment in `DuelEffect_UpdateDialogState`; cleared by `func_80035A64` |
+| `0x34` | `flags_34` | `0x10`, `0x2000`, and `0x8000` tests; reset by `func_80035A64` |
+| `0x36`-`0x3A` | `field_36`, `field_38`, `field_3A` | halfword initialization in `DuelEffect_InitEntry` |
+| `0x3C`-`0x42` | `field_3C`-`field_42` | four halfword writes in `TextBox_SetRect` |
+| `0x51` | `state_51` | low five bits dispatch `D_80090E64` in `TextBox_BuildStep`; the contiguous callbacks in `duel_effect_state_callbacks.c` latch `0x80` and write a new state |
+| `0x52` | `delay_52` | reloaded from `field_53` in `TextBox_BuildStep` and from `0xFF` in `func_80037B40`, decremented once per tick, gating the rest of the tick while nonzero |
+| `0x53`-`0x5B` | byte fields and `index_57` | initialization sequence in `DuelEffect_InitEntry` |
+| `0x56` | `field_56` | cleared by `TextBox_BuildStep`; keeps the offset for a name, as the other files reaching `0x56` do so on other records |
+| `0x58` | `stream_58` | signed word index selecting which of the leading pointer words is the live byte stream; scaled by four in `TextBox_BuildStep`, [`duel_effect_object_commands.c`](../src/game/duel_effect_object_commands.c), and [`duel_effect_command.c`](../src/game/duel_effect_command.c) |
+| `0x5C`, `0x5E` | `range_start_5C`, `range_count_5E` | adjacent `gDuelEffect_awEntryRangeBoundaries` bounds |
+| `0x61` | `field_61` | byte clear in `DuelEffect_InitEntry` |
+
+Matching C users across the duel-effect and text-box paths include the shared
+header and use `DuelEffectChannel`. In particular, `TextBox_BuildStep` passes
+the record through `TextBoxStateCallback`, defined with the other game-owned
+text/script value types in `ygo_types.h` and declared
+`void (*)(DuelEffectChannel *)`; all eighteen entries of `D_80090E64` have
+typed parameters and the table requires no function-pointer casts. The casts
+that remain in `Dialog_UpdateChoice` mark calls to helpers that still take
+`u8 *`, not uncertainty about the callback record.
+
+The public text-box build/wait pair and `TextBox_SetPos` now also take
+`DuelEffectChannel *`. Typed producers such as `TextBox_Create` and
+`DuelEffect_CreateChannel` pass their results directly. A few exact-code
+consumers retain raw byte cursors internally and cast only at the call
+boundary; `TextBox_SetPos` likewise keeps its repeated member casts because a
+typed local changes the GCC 2.8.1 prologue schedule. The occupancy-release
+helper `DisplayObjectFade_ReleaseChannel` takes `DuelEffectChannel *`, which removes the
+incompatible-pointer calls from both fade callbacks. It reads the channel's
+byte at `0x10`, `field_10`, as the object's index into the `D_800EAF08`
+occupancy table and clears that table entry. It then zeroes the next byte,
+`field_11`, as part of the release.
+
+## `D_800EB288`: 620 `0x1C`-byte entries
+
+`DuelEffectEntry` has size `0x1C`, and `D_800EB288` is declared as 620
+entries. Exact local C repeatedly uses 28-byte pointer increments, while the
+target assembly computes the same stride as `(index * 8 - index) * 4`.
+`DuelEffect_ClearMatchingMarker` and `DuelEffect_ResetEntryMarkers` each scan
+620 records. The resulting modeled extent is `0x43D0` bytes; the next linker
+symbol, `gInput_abRawPadBuffers`, begins 16 bytes later, so the intervening
+bytes are not claimed by this type.
+
+Verified entry fields are:
+
+| Offset | Shared field | Evidence |
+|---:|---|---|
+| `0x11` | `flags_11` | bit `0x80` gates exact scans; target `Text_CompletePageAdvance` and `DuelEffect_ProcessEntries` agree |
+| `0x12` | `field_12` | compared with the requested marker plus one |
+| `0x13` | `field_13` | active-value test/write in the bounded scan pair |
+| `0x15` | `field_15` | second byte written by `func_800373C8` |
+| `0x18` | `field_18` | range write in `DuelEffect_SetEntryRangeLayout`; `DuelEffect_UpdateObjectLayout` reads it |
+
+Exact C for `DuelEffect_ProcessEntries` (`0x80039D64`) copies complete
+seven-word (`0x1C`) records and advances both pointers by `0x1C`,
+independently confirming that the named bytes belong to one record rather
+than parallel arrays. Unchiga's same-address sketches and GMS pseudocode
+corroborate these accesses but do not determine the shared types.
+
+## Dialog and active-handler control bytes
+
+`duel_effect.h` also owns three scalar control contracts used by the resident
+state machine. `D_8009B244` is the message identifier passed to
+`TextBox_Create` by `func_80028310`. `D_8009B248` is that dialog's two-stage
+latch: bit `0x80` records that the box was created, and bit `0x40` records that
+its choice object was opened. `DuelEffect_UpdateState` clears the latch when a
+new request starts. `D_8009B24A` holds the active handler index copied from
+`D_8009B254` before the request byte receives its started bit.
+
+The header names only the two proven `D_8009B248` flags. It leaves the three
+symbols separate because the bytes between their addresses are live or
+unexplained; this is declaration centralization, not a claim that they form a
+single packed structure.
+
+The Build Deck mode-7 entry pair has a related but separate byte at
+`D_8009B2F8`. `BuildDeck_EnterWideConfirmMode` sets its high bit before
+entering state 7; that bit selects the wide confirmation dialog in
+`func_800339D0`. In narrow mode, a nonzero choice cancels the pending exit.
+The flag lives beside `BuildDeckTransitionState` rather than in local
+magic-number uses. Its local scalar declarations remain because the byte also
+has candidate-only array views whose relocation contracts are reviewed
+separately.
+
+`DuelEffect_UpdateObjectLayout` now provides an additional exact-C read of
+`DuelEffectEntry.field_18`. It selects the display-object coordinate layout
+from `field_18 % 10` after resolving the entry through the channel's
+`gDuelEffect_awEntryRangeBoundaries` range index.
+
+The complete `D_80090F68` display-effect step table now carries
+`void (*)(MenuRecord *)`, matching `DisplayEffect_ProcessMenuRecords`, which
+selects its callback from a `D_800EB010` record. The easing callback, portrait
+callback, three dialog transitions and dialog-channel transition expose that
+type directly. The lifecycle and VRAM callbacks retain explicit table casts
+because the two repeated lifecycle slots and the single VRAM slot expose
+narrower public views of the same storage.
+Handlers whose accepted bodies depend on byte arithmetic keep those
+expressions through preprocessor aliases rather than introducing a second
+live pointer that could change GCC 2.8.1 register allocation.
+
+`DuelEffect_PlaySoundCommand` is now exact C in the effect-handler dispatch
+family. It consumes one 16-bit script value, uses the high bit to select the
+flagged sound path, and arms effect state `0x11` with a follow-up value.
+
+Six pure-C functions now use the shared declaration:
+`DuelEffect_ClearMatchingMarker`, `DuelEffect_ResetEntryMarkers`,
+`DuelEffect_HasActiveEntry`, `func_800373C8`, `Text_CompletePageAdvance`, and
+`DuelEffect_SetEntryRangeLayout`.
+
+## Runtime state and channel lifecycle
+
+Matching `DuelEffect_UpdateState` defines the global dispatcher lifecycle.
+State zero is inactive. On the first update of a nonzero state, the function
+copies its value to `gDuel_bActiveEffectState`, sets bit `0x80` in
+`gDuel_bEffectState` as the initialized latch, clears
+`gDuel_bEffectHandlerFlags`, and reports active. A later bit `0x40` completes
+and clears the state; otherwise the latched index dispatches through
+`gDuelEffect_apfnStateHandler`. The complete five-slot contract is documented
+in [`duel-effect-state-runtime.md`](duel-effect-state-runtime.md).
+
+That dispatcher byte is separate from `D_8009B3C1`. In the later callback
+state family, `DUEL_EFFECT_STATE_FLAG_INITIALIZED` (`0x80`) is the shared
+one-shot entry latch. The matching callbacks in `dialog_transition.c`,
+`func_8003DA40.c` and the load/save callbacks in
+`mem_card_dialog_load_save.c` test and set it before their first-frame object or
+companion-state setup, so subsequent frames skip that initialization. This is
+a state-machine flag, not the unrelated `0x80` bit in
+`DuelEffectEntry.flags_11`.
+
+`DuelEffect_CreateChannel` resets the current dialog choice to `-1`, creates a
+`DuelEffectChannel` through `TextBox_Create` using the low 15 bits of its
+request value, and stamps `field_59` from the shared sequence byte minus one.
+A nonzero setup argument adds flags `0x1008`; otherwise a high request bit
+selects the alternate `func_80039A14` setup path before the channel is
+returned.
+
+`DuelEffect_MarkObjectIfActive` scans the separate three-entry table at
+`D_800EB010` from the last entry backward. It sets object flag `0x2` when any
+entry has a nonnegative signed marker, and leaves the object unchanged when
+all three markers are negative. `DisplayEffect_ProcessMenuRecords` walks the
+same three records forward, applies their transition update when field
+`0x32` requests it, and dispatches `display_effect_step` through the mapped
+`D_80090F68` lifecycle table. `DuelEffect_InitEntryDefaultFlags` is the
+zero-flags wrapper around `DuelEffect_InitEntry`, making the default entry
+construction path explicit without broadening either shared structure.
+
+## Deferred and exact-code exceptions
+
+Matching-C functions implemented with inline assembly remain unchanged:
+
+- `Main_RunCredits` references `D_800EB0F8`;
+- `DebugMenu_UpdateCampaignEntry` references both globals through explicit relocations.
+
+`DuelEffect_UpdateObjectLayout` is also matching C, but it retains a minimal
+local `EffectEntry` view and is not counted among the six shared-header users.
+`DuelEffect_ProcessEntries` likewise remains on its local complete-record view
+so its accepted source does not broaden the shared declaration.
+`func_8003DA40` is matching C as well, and now takes its dialog channel as a
+`DuelEffectChannel *`, both the one `DuelEffect_CreateChannel` returns and the
+`D_800EB0F8` element it selects later (`flags_34`, `field_30`). The index it
+selects that element with is still the raw byte at `+0x1A` of its
+`MenuRecord`, which `dialog_transition.c` reads the same way.
+`func_8003D74C`, which coordinates the duel-intro card reveal, likewise
+takes its channel as a `DuelEffectChannel *` and selects it by the same
+`+0x1A` byte.
+
+The changing assembly-user lists for `D_800EB0F8` and `D_800EB288` are not
+duplicated here. [`global-usage.csv`](global-usage.csv) is the generated
+authority: filter by `global_address` and a `function_status` other than
+`matching_c`. Regenerate it with `make global-usage` whenever source or symbol
+changes affect these globals.
+
+`DuelEffect_HasActiveEntry` and `func_800373C8` in
+`duel_effect_entry_control.c` are the sole raw-view exceptions among migrated
+pure-C users. Both include the shared header and use its typed global
+declaration, but retain byte-pointer field expressions. Replacing those
+expressions with direct `DuelEffectEntry` member access shortened the two
+exact functions by eight bytes in total and failed the resident text-size
+check. The retained expressions preserve GCC 2.8.1's address-adjustment and
+register schedule; they are not a competing layout declaration. The third
+function in that grouped source, `Text_CompletePageAdvance`, uses the shared
+`DuelEffectEntry` fields directly.
+
+The shared field syntax was exact-tested successfully in the other migrated
+users, including direct indexing in `DuelEffect_InitEntry` and both marker
+functions in `duel_effect_entry_occupancy.c`.
+
+## Validation
+
+The completed pass retained the full executable SHA-256
+`84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88` with
+`MAKEFLAGS=-j2 make match`. `make basic-types`, `make global-usage`, and
+`make check-global-usage` also passed after the final source changes.

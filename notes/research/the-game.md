@@ -1,0 +1,2572 @@
+# Yu-Gi-Oh! Forbidden Memories — a clean-room description of the whole game
+
+This is a specification of the game as it behaves, written so that someone —
+or an agent — who has never played it can be handed "decompile the campaign"
+and know what the campaign *is*: which screens it owns, what it reads from the
+save, what it writes back, which shared systems it calls into, and where it
+hands control to. Every screen and every mechanic is described, and every
+section ends with the same block:
+
+> **Entered from · Exits to · Persistent state read · Persistent state written
+> · Shared systems used**
+
+so the relationships are on the page next to the behaviour, not in an
+introduction nobody scrolls back to.
+
+**How to read the brackets.** A bracketed item like
+[`Main_RunDuel` `0x8002CEE8`]
+is something *located in `SLUS_014.11`* (NTSC-U) and measured there: an
+address, a function, a table, a stride. Those are the parts an agent can grep
+for. Everything else — the flow of the story, what a screen looks like, what a
+card does — is the game as it plays, written from the game itself and from the
+community's twenty years of documentation of it (the sources are listed at the
+end). Where a sentence is a *reading* rather than a measurement it says so.
+Nothing here is copied from a guide; the dialogue option labels quoted in
+angle brackets are the game's own text.
+
+**What this replaces.** An earlier version of this document was a research
+note with code pointers. It also carried three errors that are corrected here
+and called out where they appear: the rank table's category labels, the names
+attached to the per-duelist drop blocks (which were off by one), and the seven
+-rank list (there are ten).
+
+---
+
+## 1. The system in one page
+
+The program is one loop that runs whichever **mode** is current
+[`Main_Loop` `0x8002DD74`, mode table `0x80090B64`, 17 entries]. The low five
+bits of `D_8009B26C` select a top-level activity; not every visible screen is
+a separate mode, because menu layouts and dialogs can remain inside one
+handler. `gMain_bMenuID` (`0x80184594`) is instead the loaded main-menu
+module's entry ID — the byte the debug-menu cheat writes. The modes, in table
+order:
+
+| slot | mode | what it is |
+|---|---|---|
+| 0 | `Main_RunDebugMenu` [`0x8002CE08`] | developer menu (unreachable normally) |
+| 1 | `Main_RunAnimatedBattle` [`0x8002D180`] | the 3-D battle cut-scene inside a duel |
+| 2 | `Main_RunCampaign` [`0x8002CE64`] | story dialogue scenes and scripted events |
+| 3 | `Main_RunDuel` [`0x8002CEE8`] | a duel, any kind |
+| 4 | `Main_RunLibraryMenu` [`0x8002D0E0`] | the card Library |
+| 5 | `Main_RunCampaignMap` [`0x8002D2D8`] | the campaign's location map |
+| 6 | `Main_RunFreeDuelMenu` [`0x8002D3F8`] | Free Duel opponent select |
+| 7 | `Main_RunBuildDeckMenu` [`0x8002D370`] | Build Deck |
+| 8 | `Main_RunMenu` [`0x8002D588`] | title screen and both main menus |
+| 9 | `Main_RunNameEntry` [`0x8002D62C`] | name entry for a new game |
+| 10 | `Main_RunPasswordMenu` [`0x8002D684`] | the Password shop |
+| 11 | `Main_RunOptionsMenu` [`0x8002D6C8`] | Options |
+| 12 | `Main_RunGameOver` [`0x8002D730`] | campaign loss |
+| 13 | `Main_RunUnusedDeveloperMode` [`0x8002D7C4`] | an eight-byte empty developer-mode stub |
+| 14 | `Main_RunTrade` [`0x8002D7CC`] | Trade and the shared two-save flow |
+| 15 | `Main_RunCredits` [`0x8002DA1C`] | the ending |
+| 16 | `Main_RunTwoPlayerDuelSetup` [`0x8002DC38`] | 2P Duel starting-LP setup |
+
+These are the repository's accepted semantic names, backed by the dispatcher
+and local function evidence. The older `*Loop` labels imported from a
+community IDA database helped identify the handlers, but they are analyst
+names rather than recovered Konami symbols.
+
+**What persists.** Everything the player accumulates lives in one `0x680`-byte
+state block [`0x801D0200`–`0x801D087F`] and is written to the memory card as
+one file:
+
+| what | where | shape |
+|---|---|---|
+| the deck | `0x801D0200` | 40 × u16 card ids |
+| the trunk (chest) | `0x801D0250` | 722 bytes, one per card: copies owned |
+| duelist code | `0x801D0534` (state `+0x334`) | u32; generated nonzero for a new save and compared by `SaveData_HasSameDuelistCode` |
+| player name | `gSaveData_aPlayerNameSjis` (`0x801D060C`, state `+0x40C`) | 12-byte Shift-JIS field; runtime conversion uses a six-character bound |
+| the **flag array** | `0x801D0618` | 256 bytes = 2048 one-bit flags, numbered 0–0x7FF, MSB first within each byte [tested by `Campaign_TestStoryFlag`, set/cleared by `Library_UpdateCardUsedFlag`]. Known ranges: `0x20`–`0x45` a per-duelist flag set together with the unlock (`0x1F + id`; reading: defeated in campaign — nothing that tests it was traced); `0x47`–`0x6F` the story's own flags, mapped one by one in §7.11; `0x121`–`0x3F2` card *seen* for the Library (`0x120 + card`); `0x401`–`0x6D2` password *already used* (`0x400 + card`, tested and set by the shop); `0x6E1`–`0x706` Free Duel *unlocked* (`0x6E0 + id`, bytes `0x801D06F4`–`0x801D06F8`). |
+| Free Duel grid records | `gFreeDuel_aDuelistRecords` (`0x801D071C`) | 40 × {u16 wins, u16 losses}; slot 0 is the Build Deck tile, duelist IDs 1–39 begin at `0x801D0720` |
+| recently acquired cards | `0x801D07BC` | 16 × s16; exact C compacts all slots, ending at `0x801D07DC` |
+| starchips | `0x801D07E0` | u32 |
+
+Campaign progress — where the story is, which shrines are cleared, which
+Millennium Items are held — is not a variable but **flags in that array**,
+set and tested by the campaign's event script and by the dialogue texts
+themselves (§7.10, §7.11).
+
+**Encoded flag requests.** The matching flag helpers use that same shared
+bank, not separate story and Library storage. The low eleven request bits
+select the flag; byte `id >> 3` uses mask `0x80 >> (id & 7)`.
+[`Campaign_TestStoryFlag`](../../src/game/campaign_test_story_flag.c) does
+not write: an ordinary query returns zero or the selected mask, not always
+`1`. Adding modifier `0x8000` instead tests for a clear bit and returns
+normalized `0` or `1`.
+[`Library_UpdateCardUsedFlag`](../../src/game/library_update_card_used_flag.c)
+sets the bit by default and clears it with that modifier.
+
+The script and text handlers use `0x4000` to select a write rather than a
+test, stripping that command bit while preserving `0x8000`. Thus encoded
+writes `0x4000 | id` and `0xC000 | id` set and clear respectively.
+Matching [`Campaign_EnsureStoryFlag`](../../src/game/campaign_ensure_story_flag.c) applies a change
+only when the requested predicate was false and returns the **prior** test
+result. Its zero return after applying a change is not an error code.
+These are encoding and operation contracts, not new meanings assigned to
+undocumented flag IDs.
+
+**What is shared.** Five systems are used by more than one mode and are worth
+knowing by name before reading any of them:
+
+* the **card database** — 722 records of stats, type, attribute, level,
+  guardian stars, password and cost [packed stats at `0x801D4244`, names at
+  `0x801D6001`, attribute/level bytes at `0x801D5332`, passwords and costs on
+  disc];
+* the **duel engine** — the field, the hand, fusion/equip/ritual lookup, the
+  battle resolver, the scoring counters [cards in play `0x801A7AD8`, 28-byte
+  records; per-side record `0x800E9FF0`, stride `0x20`];
+* the **AI interpreter** — a bytecode VM that runs each opponent's script
+  [`AiScript_Run` `0x80070650`, 67 handlers at `0x800916E0`, VM state
+  `0x800F5BE8`];
+* the **disc loader** — loads sector ranges from several runtime files,
+  including WA screen/duel packages and the SU main-menu image, with
+  per-screen callbacks that route the chunks
+  [`File_RequestAsyncTransfer`; §12];
+* the **screen-fade system** — shared transition state and box rendering,
+  used by menu entry/exit paths rather than stored in a save
+  [`Fade_DrawOverlay` `0x800154E4`, state `0x800E9EC8`; §1.1].
+
+**How the modes connect** (arrows are the exits described in each section):
+
+```
+ boot ─► title/main menu ─► New Game ─► name entry ─► campaign
+                         ├► Load ──────────────────► loaded menu ─┬► Campaign ─► overworld ◄─► dialogue scenes ◄─► duel ─► (win) back / (loss) game over
+                         ├► 2P Duel ─► trade/2P setup ─► duel     ├► Free Duel ─► opponent select ─► duel ─► back
+                         ├► Trade   ─► trade/2P setup             ├► Build Deck ─► back
+                         └► Option  ─► options ─► back            ├► Library ─► back
+                                                                  ├► Password ─► back
+                                                                  └► Save ─► back
+ campaign final duel won ─► ending ─► credits ─► (save prompt) ─► title
+```
+
+Every duel, whatever started it, runs in `Main_RunDuel` and returns to whoever
+started it; the 3-D battle animation is a sub-mode the duel enters and leaves.
+The card shop inside the campaign is not a mode of its own: it is a dialogue
+scene whose menu jumps into Build Deck, Save and the "loaded" main menu.
+
+### 1.1 Shared screen fades
+
+Changing menus can include a blocking visual transition, not just a new mode
+number. The matched `Main_RunMenu` and `Main_RunBuildDeckMenu` call
+`Fade_WaitIn` during initialization to start and wait for a transition
+toward level `255`. On exit they call `SD_BGMFadeOut`, then `Fade_WaitOut`
+[`0x80015B00`] before processing the destination. That wait repeatedly calls
+`Main_AdvanceFrame` until the fade's active flag clears: the caller waits while
+the frame-update helper continues, rather than freezing the whole console.
+
+**The banded path.** A shared `0x28`-byte record contains current and target
+levels, tint, flags, a configured step, a signed sweep head, and 30 band
+levels [`0x800E9EC8`]. The renderer uses thirty `320x8` boxes; paired bands
+`i` and `29-i` share a level. The historically captured black-menu fades
+close from the top/bottom edges and open from the middle. Matching
+`Fade_StepBands` establishes the two traversal directions, but the observed
+step `8` and roughly 48-frame duration are not universal: the final color
+helpers can override a banded request with non-band flags and step `12`.
+
+There is also a bounded frame-advance factor. Matching `Graphics_SyncFrame`
+[`0x80012DB4`] samples the VBlank counter `D_8009B0C8`, takes its low byte,
+and publishes `D_8009B0D8 = 1` when that byte is zero or `2` otherwise.
+The band walker multiplies the head advance by this factor, not the unclamped
+level spacing between band pairs: with step `8`, the factor gives an advance of
+`8` or `16` per update. It is not an exact elapsed-time or unlimited
+catch-up count. The frame pump draws the fade **before** the sync helper
+publishes its next factor, so a post-sync sample is not automatically the
+factor used by the preceding fade update.
+
+**When the overlay is drawn.** `Fade_DrawOverlay` updates the state first,
+then draws if the active flag is set, or if the separate byte `D_8009B141`
+is nonzero and the current level is not `255`. A nonzero control byte alone
+does not mean a black cover is still being painted during loading. Nor is
+level `255` a universal "finished" marker: completion depends on reaching
+the target, and the active flag can still allow band rendering at that
+level.
+
+**Remaining presentation question.** Non-band mode submits a full-screen
+box. Combining band mode with flag `0x02` instead submits the 30 bands plus
+an extra height-8 box at descriptor position `(0,240)`, not a restored
+full-screen box. The SDK also applies its current position offsets, so
+whether that extra box is visible, and which screens use the combination,
+remain unverified. The [fade-state evidence](../fade-transition-state.md)
+separates matching game routines, SDK assembly, and the older menu
+observations; these are not new emulator measurements.
+
+> **Entered from:** shared menu initialization and departure paths. **Exits
+> to:** the waiting caller when the active flag clears. **Reads/Writes:** no
+> persistent save data in the fade helpers; the transition record, draw
+> controls and color latches are transient. **Uses:** the frame-update
+> helper and the SDK's `GsSortBoxFill` ordering-table submission.
+
+---
+
+## 2. Boot, title and the two main menus
+
+**Boot.** The console shows the licence screens, the game plays an intro movie
+[`MOVIE.STR`], and the title screen appears. The file contains five
+3460-sector copies of the same movie, but the
+only populated stream-range entry plays frames 1 through 303 from the first
+3080 sectors of copy 0; no range selects the later copies.
+
+**Startup seeding.** The [`Main_Init`](../../src/game/main_init.c) implementation
+calls [`func_80013154`](../../src/game/main_services.c), whose
+graphics/input initialization ends with `srand(0x56)`. After that helper
+returns and `Sound_InitFrontend` runs, `Main_Init` calls
+`srand(0x55555555)`. The two seed values and this call order are code-backed.
+They do not identify which image was visible at either call.
+
+The community claim that seeding happens during the Konami logo and
+consumption begins during the intro remains **unverified screen timing**
+(Data Crystal). The pending `rng_boot_timing` trace reinstalls its breakpoints
+at the BIOS shell after a hard reset, before either game seed, and records both
+calls plus subsequent consumption through title. A boot-seed hit without the
+initial `0x56` is reported as a partial capture rather than evidence that the
+initializer did not run. The [RNG evidence and trace scope](../rng.md) keep
+these static facts separate from the visible milestones that only a human run
+can establish.
+
+Pressing Start on the title opens the **initial menu**:
+
+* **New Game** — start from nothing: goes to name entry (§2.1), then into the
+  campaign's opening scene with a freshly generated starter deck (§4.3).
+* **Load** — read a save from a memory card (§10), then show the loaded menu.
+* **2P Duel** — a duel between two saves on two memory cards (§9.1).
+* **Trade** — move cards between two saves (§9.2).
+* **Option** — sound settings (§2.2).
+
+Once a game is running — after New Game or Load — leaving the campaign's
+card shop with "Return to Title" shows the **loaded menu** instead:
+
+* **Campaign** — resume the story where it was (§7).
+* **Free Duel** — pick any unlocked duelist and duel (§8).
+* **Build Deck** (§4.1) · **Library** (§4.4) · **Password** (§4.5) · **Save**
+  (§10).
+
+The two menus are the same mode [`Main_RunMenu`]; which set is offered depends
+on whether a game is loaded. The main-menu module's eleven entry objects and
+live cursor confirm the entry/result IDs: 00 New Game, 01 Load, 02 2P Duel,
+03 Trade, 04 Option, 05 Campaign, 06 Free Duel, 07 Build Deck, 08 Library,
+09 Password and 0A Save. The forced value 0B opens the Debug Menu, but is not
+an ordinary table slot: resident `Main_ApplyMenuSelection` accepts normal results only
+when they are below `0x0B`.
+
+Static resident code establishes the hidden Debug Menu's input layout, but not
+the labels visible beside it. [`DebugMenu_Update`](../../src/game/debug_menu_update.c)
+maintains a selection from 0 through 19 as two columns of ten: left/right
+subtracts/adds 10, while up/down wraps independently within the selected
+column. Circle first moves the cursor to entry 19; pressing Circle there
+selects state 20. With the initially selected dispatch table, the next tick
+calls `DebugMenu_Exit`, which fades out, clears the display objects and returns
+through the debug mode's saved `longjmp` context. Cross or Square selects the
+current entry plus one. Select toggles the dispatch-table selector and
+rebuilds the text box; the alternate table has only two declared entries, so
+the behavior of selecting a higher state while it is active is not
+established. These are static control and dispatch deductions; without a human
+trace they do not establish the entries' displayed names or visible results.
+
+> **Entered from:** boot; every other mode's "back". **Exits to:** name entry,
+> campaign, Free Duel, Build Deck, Library, Password, trade/2P, options, save.
+> **Reads:** whether a game is loaded; the save block after Load. **Writes:**
+> nothing itself. **Uses:** memory-card I/O for Load; the disc loader for each
+> screen's assets.
+
+### 2.1 Name entry
+
+A keyboard screen where the player types the save's name (the prince's name;
+the game addresses him by it — "Prince ____" — and it is also the name shown
+on the 2P Duel and Trade screens). Confirming goes straight into the
+campaign's first scene. [`Main_RunNameEntry` `0x8002D62C`; scene text "Player's
+Name" is Data Crystal scene 002.]
+
+Matching `NameEntry_Main` fixes the new-save order: it zeros the
+`0x801D0000-0x801D2FFF` workspace, runs name entry to completion, builds the
+starter deck, and then writes a nonzero duelist code at state offset `+0x334`.
+The code combines a frame-counter or `rand()` value shifted left by eight with
+the XOR of all 12 bytes in the name field at `+0x40C`; if the result is zero,
+the random high component is retried. The two-save path later compares this
+field through matching `SaveData_HasSameDuelistCode`.
+
+> **Entered from:** New Game. **Exits to:** campaign opening. **Reads:** —.
+> **Writes:** the name and duelist code in the save block, the starter deck
+> and its seen flags; the cleared state leaves 0 starchips, no unlocks and no
+> records. **Uses:** the starter-deck generator (§4.3).
+
+### 2.2 Options
+
+The naturally reachable setting is sound output: **stereo** (`0`) or **mono**
+(`1`). The selection byte is initialized to row zero, and a complete retail
+instruction scan finds no later store or address formation for it. Up/down
+are not tested, and Cross/Square do nothing while the selection remains zero.
+Right changes stereo to mono, Left changes mono to stereo, and Circle exits;
+the sound driver and stored runtime byte update immediately on a successful
+horizontal change. [`Main_RunOptionsMenu` `0x8002D6C8`]
+
+Matching code retains two nonzero selection positions and confirm branches,
+but they are not naturally reachable: selection 1 enters an empty state that
+no longer handles input, while selection 2 returns to the input state on the
+next update. Options initialization also loads two distinct 32 KiB
+PocketStation payloads to `0x80140000`, with the second overwriting the first
+before the screen begins. This proves disabled or vestigial machinery, not the
+labels of additional NTSC-U options. See the
+[full static contract](../options-screen.md); the pending human trace is still
+needed for visible labels and observed directional behavior.
+
+> **Entered from:** initial menu. **Exits to:** initial menu. **Reads/writes:**
+> the runtime sound setting. Save creation normalizes an unset negative value
+> to zero and stores the byte at save offset `+0x5DE`. A successful load
+> reapplies that byte through `SD_SetOutputType` only while
+> `gSD_bOutputType` remains negative. This proves persistence on that
+> unset-runtime path without claiming that a later load replaces an already
+> active setting. **Uses:** the sound driver and save-data
+> normalization/application paths.
+
+### 2.3 Memory-card dialogues
+
+Every save, load, trade and 2P-duel path goes through the same card dialogue,
+whose messages are the complete list of what can happen (Data Crystal scene
+IDs 0BA–0DF, UNVERIFIED as IDs, the texts are the game's):
+
+* prompts — `LOAD? YES NO`, `SAVE? YES NO`, `OVERWRITE? YES NO`, `FORMAT? NO
+  YES`, `DOWNLOAD? YES NO`, `BACKUP DATA LOAD? START QUIT`;
+* progress — `ACCESSING MEMORY CARD`, `LOADING...`, `SAVING...`,
+  `DOWNLOADING...`, `NOW FORMATTING...`, `NOW TRADING CARD(S)`;
+* results — `LOAD COMPLETE!`, `SAVE COMPLETE!`, `FORMAT COMPLETE!`,
+  `DOWNLOAD COMPLETE!`, `TRADE COMPLETE!`, and the failures `LOAD
+  INCOMPLETE!`, `SAVE INCOMPLETE!`, `DOWNLOAD INCOMPLETE!`, `FORMAT
+  INCOMPLETE!`, `TRADE FAILED!`;
+* conditions — `MEMORY CARD NOT PLUGGED!`, `MEMORY CARD REQUIRED!`, `MEMORY
+  CARD NOT FORMATTED!`, `NOT ENOUGH FREE MEMORY BLOCKS!`, `UNABLE TO ACCESS
+  MEMORY CARD!`, `UNABLE TO LOCATE LOAD DATA!`, `NO DATA!`, `ILLEGAL DATA!`,
+  `MEMORY CARD slot 1 HAS BEEN REPLACED!`, `DO NOT PLUG/UNPLUG MEMORY CARD IN
+  slot 1`.
+
+A save takes one memory-card block.
+
+---
+
+## 3. The cards
+
+There are **722** cards, numbered 1–722; the number is the card's identity
+everywhere (deck, trunk, tables, passwords). By kind [counted from the card
+table in the executable]:
+
+The complete machine-readable inventory is
+[`notes/card-catalog.csv`](../card-catalog.csv), with extraction and
+cross-check details in [`notes/card-catalog.md`](../card-catalog.md).
+
+| kind | count | ids |
+|---|---|---|
+| Monster | 621 | 1–300, 351–650, 701–720, 722 |
+| Magic | 33 | 320, 329–350 (incl. the 6 field cards 330–335), 653, 655–656, 660–664, 669, 672 |
+| Equip | 34 | 301–319, 321–328, 651–652, 654, 657–659, 668 |
+| Ritual | 24 | 665–667, 670–671, 673–680, 691–700, 721 |
+| Trap | 10 | 681–690 |
+
+Non-monster ids sit in three runs, 301–350, 651–700 and 721 — a fact that
+matters to anyone scanning a table for "equip keys": they are not all below
+350. Card 721 is Dark Magic Ritual and 722 is Magician of Black Chaos, the two
+added over the Game Boy predecessor's 720. There is also an unusable story
+card, the Millennium Card, that is not one of the 722.
+
+**A monster** has ATK and DEF (0–5000, stored in tens), a level (1–12 stars),
+a **type** — one of twenty: Dragon, Spellcaster, Zombie, Warrior, Beast-
+Warrior, Beast, Winged Beast, Fiend, Fairy, Insect, Dinosaur, Reptile, Fish,
+Sea Serpent, Machine, Thunder, Aqua, Pyro, Rock, Plant [type ids 0–19 in that
+order; Magic/Trap/Ritual/Equip are 20–23 in the same field] — and **two
+guardian stars**. Monsters also carry one of six **attributes**: Light, Dark,
+Earth, Water, Fire or Wind. The stats are one packed word per card
+[`0x801D4244`: ATK bits 0–8 ×10, DEF bits 9–17 ×10, second star bits 18–21,
+first star bits 22–25, type bits 26–30]. A separate byte table indexed
+directly by card ID [`gDuel_abCardLevelAttr` `0x801D5332`] stores attribute in
+the high nibble and level in the low nibble. Its only identified resident
+reference copies both nibbles into a card-display record; no duel calculation
+is known to consume the attribute, so it is stored metadata rather than a
+proven matchup mechanic.
+
+**Guardian stars** are ten, in two cycles that never touch:
+
+* Mars → Jupiter → Saturn → Uranus → Pluto → Neptune → Mars (six);
+* Mercury → Sun → Moon → Venus → Mercury (four).
+
+"A → B" means A is strong against B. A monster's two stars are whatever its
+card lists — 181 of the 621 monsters have both stars in the same cycle, the
+rest one in each.
+The bonus is decided at battle time (§5.8) [`0x8002CB80`: +500 if the
+attacker's star immediately precedes the defender's in its cycle, −500 if it
+immediately follows, 0 otherwise or across cycles].
+
+**Passwords and starchip costs.** Every card has an eight-digit password
+(the number printed on the real card) and a cost in starchips, from 10 up to
+999,999 [on disc: `WA_MRG.MRG` @ `0xFB9808`, u32 cost + 4-byte reversed BCD
+password, 722 records]. The 999,999 cards are the ones the Japanese version
+obtained through the PocketStation lottery; in the NTSC-U release they can
+only be dropped or traded, and 24 of them carry a sentinel password.
+
+**Names** are stored as a custom-encoded, 0xFF-delimited blob
+[`0x801D6001`]; the picture and the flavour text come from the disc.
+
+> **Used by:** every mode. **Written by:** nothing — the card database is
+> read-only; what changes is the trunk (§4.2).
+
+---
+
+## 4. Your cards: trunk, deck, Library, Password
+
+### 4.1 Build Deck
+
+Two lists side by side: the **trunk** (everything you own, left) and the
+**deck** (right). Moving the cursor onto a card and pressing × moves one copy
+across; ○ leaves the screen. △ shows the card's full detail. L1/R1 jump ten
+cards, L2/R2 jump a hundred. Start or Select cycles seven sort orders, shown
+as icons along the top. Six are shared: by number, by name, by the stronger
+of ATK or DEF (with the weaker stat breaking ties), by ATK, by DEF, and by
+type. The seventh is pane-specific: **New** puts recently acquired cards first
+in the trunk, while **Shuffle** assigns fresh random keys to the deck each
+time it is selected.
+
+The 16-entry recent-card history is not permanent. `func_80032370`
+removes any listed card whose current trunk quantity is zero, then compacts the
+surviving IDs toward the front without changing their order. **New** therefore
+means a recent acquisition that is still represented in the trunk; moving the
+last trunk copy into the deck or trading it away removes that ID at the next
+cleanup.
+
+Switching between panes animates the shared `gGraphics_sViewportX` from
+`0` to `320` or back over 16 ticks through `BuildDeck_UpdatePaneTransition`.
+The paired `gGraphics_sViewportY` remains zero during Build Deck list
+scrolling; that list keeps its own cursor/window state rather than moving the
+global viewport.
+
+Rules the screen enforces:
+
+* the deck must hold **exactly 40** cards to be usable — leaving with fewer
+  is allowed, but every mode that starts a duel refuses (`YOUR DECK ISN'T
+  READY!`, `YOU MUST PREPARE A DECK TO PLAY THE CAMPAIGN MODE!`, and for the
+  second player `1P'S DECK IS NOT READY`);
+* at most **3 copies** of one card, and at most **1** of each of the five
+  Exodia pieces [both limits are immediates in the executable — the hacking
+  community's "card limit" patch changes the 3 at file offset `0x24070` and
+  the Exodia 1 at `0x24020`];
+* you can only put in what the trunk holds; a card in the deck is not in the
+  trunk count shown.
+
+The screen edits a working deck first. A live trace that removed card 9 and
+added card 452 left `gDuel_awPlayerDeck` unchanged while the working count was
+39, then replaced the persistent deck with the compacted, sorted 40-card
+result while Build Deck was still active. Exiting is therefore not the only
+commit point; restoring a valid 40-card deck can synchronize it before the
+screen closes.
+
+The campaign's card shop opens this same screen. [`Main_RunBuildDeckMenu`
+`0x8002D370`]
+
+> **Entered from:** loaded menu; card shop. **Exits to:** whoever opened it.
+> **Reads:** trunk, deck, card database. **Writes:** deck and trunk counts.
+> **Uses:** card database, disc loader (card pictures).
+
+### 4.2 The trunk
+
+One byte per card [`0x801D0250`, 722 bytes]: the number of copies owned.
+(The Library's "seen" test reads flag `0x120 + card` in the save's flag
+array, §1, not this byte; whether the byte also carries a bit was not
+checked.) Cards move in
+through duel drops, passwords and trades; they move out only through trades
+(nothing in the game destroys a card permanently — a "temporary" card seen
+in a duel, §4.4 and §5.4, is never in the trunk at all).
+
+### 4.3 The starter deck
+
+A new game deals **40 random cards** from seven pools, by ATK+DEF band: 16
+monsters below 1100, 16 from 1100 to 1599, 4 from 1600 to 2099, 1 of 2100 or
+more, plus **one magic card, one field card and one equip** — so every
+starter has a Raigeki or a Dark Hole, one terrain, and one equip.
+
+This classification is verified directly from two byte-identical tables in
+`WA_MRG.MRG` at `0xF92BD4` and `0xFBDBD4`. Each table has seven `0x5B8`-byte
+records containing a draw count, 722 card weights and 18 zero bytes. The draw
+counts are `16, 16, 4, 1, 1, 1, 1`, and every row's weights total 2048.
+The typed `gNameEntry_apStarterDeckPools` list at `0x8016D3DC` contains seven
+pool pointers followed by a null pointer. Its contents determine the pool
+count and order, rather than a hard-coded seven-iteration loop. Each target
+is a checked `NameEntryStarterDeckPool` record rooted at
+`gNameEntry_aStarterDeckPools` (`0x8016ABD4`); see the
+[complete table and retry contract](../starter-deck-pools.md).
+Cross-checking the nonzero weights against the verified card catalogue gives
+monster ATK+DEF ranges `450-1050`, `1100-1550`, `1600-2050` and `2100-2450`,
+then exactly Dark Hole/Raigeki, the six terrain cards, and 28 equip cards.
+
+For a threshold uniformly distributed over `1..2048`, the three one-card
+pools' per-draw probabilities are exactly their weight fractions. Dark Hole
+and Raigeki each have weight 1024, so the magic card is a 50/50 choice under
+that model. Forest, Wasteland, Mountain and Sogen each have weight 344
+(`43/256`), while Umi and Yami each have weight 336 (`21/128`). In the equip
+row, Dragon Treasure, Magical Labyrinth, Salamandra and Winged Trumpeter each
+have weight 80 (`5/128`); the other 24 equip cards each have weight 72
+(`9/256`).
+
+The four monster pools are also weighted rather than uniform:
+
+| ATK+DEF band | Supported cards | Weight distribution |
+|---|---:|---|
+| `450-1050` | 42 | 38 cards at 48, 4 cards at 56 |
+| `1100-1550` | 84 | 80 cards at 24, 4 cards at 32 |
+| `1600-2050` | 97 | 35 cards at 16, 62 cards at 24 |
+| `2100-2450` | 86 | 2 cards at 16, 84 cards at 24 |
+
+Each distribution totals 2048. These are the static per-card pool weights;
+the rows that draw multiple monsters are not simple uniform choices within
+their ATK+DEF bands.
+
+No card ID appears in more than one row. Altogether the generator can select
+345 of the 722 cards: 309 monsters plus Dark Hole, Raigeki, the six terrain
+cards and 28 equips. No trap or ritual has a nonzero starter weight, so the
+other 377 cards cannot be dealt into an unmodified new-game deck.
+
+Matching
+[`NameEntry_BuildStarterDeck`](../../src/overlays/password/name_entry_main.c)
+scans only zero-based indices `0`-`719`
+despite the 722 stored weights, so Dark Magic Ritual (721) and Magician of
+Black Chaos (722) are structurally unreachable here. It tracks each card's
+count and retries a draw that would add a fourth copy. The retail final two
+weights are zero and every first-720 sum is still 2048, so the stock tables
+fill all 40 slots with at most three copies of any card. The generator's
+variable RNG consumption is detailed in [`rng.md`](../rng.md).
+
+For every accepted draw, the generator also calls
+`Library_UpdateCardUsedFlag(i + 289)`. Since the resulting card ID is `i + 1`,
+that argument is exactly the Library's `0x120 + card` seen flag. Every distinct
+card in the starter deck is therefore already marked seen when the new game
+begins, before it appears in a duel.
+
+Resetting until the magic card is Raigeki is the community's standard opening.
+
+### 4.4 Library
+
+A catalogue of all 722 cards in number order. A card you have **seen** shows
+its picture, name, type, level, guardian stars, ATK/DEF and text, and its
+password; a card you have not is an unknown entry. "Seen" is set by owning
+the card and also by having it appear in a duel — a fusion result or a ritual
+summon you made counts, and those show with a semi-transparent icon because
+you saw them without owning them [the mark is flag `0x120 + card` in the
+flag array, set by `Library_MarkOwnedCards` (`0x8002BF3C`) and by the shop on
+purchase]. The
+completion figure counts both. From a
+card's page, pressing right or × shows the card in **3-D**, rotating [a cheat
+freezes the rotation by writing `0x800F284A`]. [`Main_RunLibraryMenu`
+`0x8002D0E0`; the "have you seen it" test that decides whether a card is
+displayed is the branch at `0x8002C320` inside `0x8002BFCC`, which the
+"all cards in Library" cheat deletes.]
+
+> **Entered from:** loaded menu. **Exits to:** loaded menu. **Reads:** trunk
+> bytes (count + seen flag), card database. **Writes:** nothing. **Uses:** card
+> database, disc loader (pictures, 3-D model).
+
+### 4.5 Password
+
+The shop. The screen shows your starchips (`STARCHIP ×N`) and asks
+`Please enter 'PASSWORD'`: type a card's eight digits. If the number is a real card's password, its cost is
+shown; confirming deducts the starchips and puts one copy in the trunk.
+Three rules:
+
+* a card can be bought **once** — a second entry of the same password is
+  refused [the shop tests flag `0x400 + card` and, on purchase, sets it
+  "used" and `0x120 + card` "seen" in the flag array; the
+  "buy again" cheat patches the test's branch at `0x8016A6E0`, and the
+  "unlimited passwords" cheat zeroes exactly the bytes those flags occupy,
+  `0x801D0698`–`0x801D06F3`];
+* you must be able to afford it; the cost is deducted [the subtraction is
+  `subu $v1, $v1, $s0` at `0x8016A87C` in that overlay];
+* the bought card is delivered when you leave the screen [the "arrive
+  immediately" cheat removes the branch at `0x8016A880`].
+
+A successful purchase also shifts the 16-entry `gDuel_awRecentCardDrops` list
+at `0x801D07BC` and inserts the bought card at the front. Build Deck's
+**New** sort therefore includes password purchases as well as duel drops; the
+list is recent acquisition history, not a duel-only reward record.
+
+The shop does not enforce the deck's three-copy limit on trunk ownership: a
+live purchase of Mystical Elf raised its trunk quantity from 3 to 4. The deck
+editor still permits at most three copies of that card in the active deck.
+
+Costs run from 10 starchips (the cheapest cards) to 999,999 for the lottery cards;
+a starchip is earned only by winning duels (§6.3), 1–5 per win, so a 999,999
+card is not a realistic purchase — the cost exists to say "obtain this some
+other way". The password-use bitfield in the save [`0x801D0534 + 0x164`] is
+what the "unlimited passwords" cheat zeroes. [`Main_RunPasswordMenu`
+`0x8002D684`; the executable's own part of the flow is `0x80038BF0`, where
+`$a2` carries the star cost.]
+
+> **Entered from:** loaded menu. **Exits to:** loaded menu. **Reads:**
+> starchips, trunk, password/cost table (disc). **Writes:** starchips, trunk,
+> the password-use record. **Uses:** card database, the password-shop overlay
+> loaded from disc (§12).
+
+---
+
+## 5. The duel
+
+Every duel — campaign, Free Duel, two-player — is the same engine
+[`Main_RunDuel` `0x8002CEE8`] with the same rules. This section is the rules in
+full, in the order things happen.
+
+### 5.1 Setup
+
+* Each side's authoritative life points start at **8000** [player LP at
+  `0x800EA004`, opponent `0x800EA024`; each side's record is 32 bytes,
+  `0x800E9FF0 + side * 0x20`]. The on-screen figure two bytes earlier starts
+  at zero, then `Duel_UpdateLifePointDisplay` counts it up toward the true
+  value with larger steps while the gap is large. The next halfword at
+  record `+0x16` is also initialized to 8000 and is the side's maximum LP:
+  `DuelEffect_ApplyLifePointRecovery` caps recovery at it, while direct damage
+  changes only the
+  authoritative value at `+0x14`.
+* Each side's 40-card deck is shuffled and each draws five. Matching
+  `Duel_ShuffleBothDecks` passes the player source to
+  `gDuel_awPlayerShuffledDeck` (`0x80177FE8`) with permutation buffer
+  `gDuel_awPlayerDeckShuffle` (`0x80177F94`), then the opponent source to
+  `gDuel_awOpponentShuffledDeck` (`0x80178038`) with
+  `gDuel_awOpponentDeckShuffle` (`0x80177FBC`).
+  Within each matching [`Duel_ShuffleDeck`](../../src/game/duel_shuffle_deck.c)
+  call, 160 full-range pair swaps follow deck preparation, rather than a
+  shrinking-range Fisher-Yates pass.
+  Each swap consumes two `rand() % 40` results and moves the card ID and its
+  permutation byte together, even when both indices coincide. The swap
+  stage therefore consumes 320 RNG values per deck; a null source first
+  generates cards from the opponent pool with additional, retry-dependent
+  calls. See [the RNG contract](../rng.md#duel-start-shuffle-stream-consumption).
+* The **player always moves first** against the computer.
+* The terrain starts as **normal** unless the opponent is fought on a home
+  terrain: Sebek and Neku are fought on Yami (sourced); the five shrine
+  mages on their shrine's field and the finale on Yami (readings from the
+  guides' strategy notes, not stated outright). The terrain byte is also what
+  selects which of the seven disc copies of the duel data is loaded (§12)
+  [`0x8009B364`].
+* A duel that is entered with an incomplete deck never starts (§4.1).
+
+The field is two rows of five per side: a **monster row** (up to five
+monsters) and a **magic/trap row** (up to five magic, trap, ritual or equip
+cards). Together with the hands, these use one array of **30 records** at
+`0x801A7AD8`, each 28 bytes (`0x1C`), with ATK at `+0xE` and DEF at `+0x10`:
+
+| Side (one-player role) | Hand records | Monster records | Magic/trap records |
+|---|---|---|---|
+| 0 (player) | 0-4 | 5-9 | 10-14 |
+| 1 (opponent) | 15-19 | 20-24 | 25-29 |
+
+The retail field map at `D_800907D8` contains two 20-byte views of the
+field-record indices. In either view, the first five entries are the
+**other side's magic/trap row**, not the viewing side's own field.
+Matching [`DuelScene_UpdateDrawPhase`](../../src/game/duel_phase_entry.c) independently
+places the five hand records at `side * DUEL_CARD_SIDE_RECORD_COUNT`,
+where the per-side record count is 15.
+
+The five visible hand slots are signed
+indices at `+0x1A` in each side's 32-byte state record (player
+`0x800EA00A`, opponent `0x800EA02A`). They select an 80-entry array of
+6-byte per-deck-card records at `gDuel_aDeckCardRecords` (`0x801A7E20`):
+player entries 0–39, opponent entries 40–79, with the signed card ID at
+`+0x00`, the record index at `+0x02`, the loaded data-block index at `+0x03`,
+and the card-table flags at `+0x04`.
+`Duel_HasAllExodiaPieces` follows exactly those five indices, while
+`func_80027DF8` walks from the side's draw cursor at state offset `+0x18`
+through the remaining records in its 40-card half.
+
+### 5.2 A turn
+
+1. **Draw** up to five cards. If the deck is empty when a draw is due, that
+   player has **lost** (§5.10).
+2. **Play exactly one card** — or one *combination* — from the hand (§5.3).
+   One card must be placed every turn, even onto a full field (it then lands
+   on a card already there, §5.4); the way to "pass" is to play something
+   face-down in defence.
+3. **Battle**: any monster in attack position may attack once (§5.8); attack
+   positions may be changed, magic cards on the field activated, rituals
+   attempted, in any order, until Start ends the turn.
+4. **End of turn** (Start). Timed effects tick down; the AI takes its turn
+   (§5.11).
+
+There is no tribute/level requirement to play any monster, no summoning
+sickness — a monster played this turn may attack this turn — and no limit on
+how many cards may sit in the magic/trap row beyond the five zones. The
+resident code initializes a newly placed card as occupied with its per-turn
+used bit clear, and the attack selector accepts that state; see the
+[turn-action eligibility contract](../duel-turn-action-eligibility.md).
+
+### 5.3 Playing cards from the hand
+
+Move the cursor over the hand; **up** on the d-pad raises a card and gives it
+a number (1, 2, 3…) — the order in which the raised cards will be combined.
+For an ordinary single-card play, leave the cards unnumbered and confirm the
+cursor card. A numbered combination needs at least two cards: the normal
+hand-input branch of `DuelScene_UpdateHandActions` accepts Cross or Square (`pressed &
+0xC0`) but does not advance if the raised-card count is exactly `1`
+[`0x8001C824..0x8001C860`]. One numbered card must first be unmarked or joined
+by another. Multiple numbered cards are **combined in order** (§5.4).
+L2/R2 show the field before choosing.
+
+The remaining choices are card-dependent, not one universal zone-first
+sequence. Ordinary face-up Magic and Ritual use can bypass zone selection
+(§5.5). Where applicable, the controls include:
+
+* which **zone** — an empty zone of the right row, or **on top of a card
+  already on your field** (which is another way to combine: the played card
+  is fused with, equipped to, or replaces the one it lands on);
+* **face-up or face-down**;
+* for a monster, **attack or defence** position (L1/R1 toggle; attack is
+  upright, defence is sideways);
+* for a monster, **which of its two guardian stars** to use for as long as it
+  stays on the field.
+
+A face-down monster is hidden from the opponent (except from Pegasus, whose
+script reads your hand and field; §5.11). A face-down magic/trap card stays
+hidden until it activates.
+
+### 5.4 Combining cards — fusion, equip, and failure
+
+When two cards meet — two raised in the hand, or one played onto the field —
+the game tries, in this order:
+
+1. **Fusion.** The pair is looked up in the **fusion table**
+   [`Duel_CheckFusion` (`0x80019A60`), table at `0x8017C2D8`, 64 KB, indexed by
+   the *smaller* id: a `u16 offset[723]` then packed
+   `FUSION_TABLE_ENTRY_SIZE`-byte records holding
+   `FUSION_TABLE_PAIRS_PER_ENTRY` (partner, result) pairs each]. If a recipe
+   exists, the two become the result card, face-up, with the result's stats.
+   **25,131 recipes** exist,
+   producing 204 distinct results. Some are specific (Thunder Dragon +
+   Thunder Dragon → Twin-headed Thunder Dragon); most are by type and
+   strength (any Dragon with a Thunder monster → Twin-headed Thunder Dragon;
+   Time Wizard with any Dragon → Thousand Dragon), which is why the same few
+   results — Nekogal #2 (1,200 recipes lead to it), Mystical Sand (1,174),
+   Cyber Soldier (1,008) — keep appearing when a beginner fuses at random.
+2. **Equip.** If one card is an equip and the other a monster, the **equip
+   table** is consulted [`Duel_CheckEquip` (`0x80019A08`), table at
+   `0x8017A1D8`: for each of the 34 equips, the list of monsters it fits —
+   4,041 pairs in all; Megamorph fits 621 monsters, Legendary Sword 63]. A
+   valid equip raises the monster's ATK and DEF by 500 per level of the
+   equip (most are one level, Megamorph two, so +500 or +1000), permanently
+   for that monster. The equip card is consumed.
+3. **Ritual** (§5.7) is not a combination: it is activated from the field.
+4. **Failure.** If neither applies: when only one of the two is a monster,
+   the monster stays and the other card is discarded; when both are monsters
+   (or neither), the card played **first** is discarded and the second
+   remains. So a failed two-monster fusion costs you the first card, and a
+   wasted equip costs the equip.
+
+A chain of three or more raised cards is processed pairwise: first two, then
+the result with the third, and so on — each step can succeed or fail by the
+same rules, and the survivor of the whole chain is what gets placed.
+Combining on the field (playing onto a monster) follows the same table but
+the result keeps the field zone, position choices are asked again, and — for
+scoring — it counts as a *field* fusion rather than an initiated one (§6.1).
+
+The complete decoded fusion recipes, per-result and per-material indexes, and
+accepted equip pairs are in
+[`fusion-and-drop-tables/`](fusion-and-drop-tables/README.md).
+
+**Playing a non-monster onto your own monster** with no valid equip/fusion is
+how a magic card is wasted; **playing a monster onto your magic/trap row** is
+not allowed — the zone choice only offers legal rows.
+
+### 5.5 Magic cards
+
+Magic cards need not first wait on the field for a second selection. In the
+normal unnumbered hand path, confirming a face-up Magic card enters its
+**use sequence directly**. Setting it face down follows the field-placement
+route instead; that route is not a prerequisite for every magic use.
+
+The hand handler `DuelScene_UpdateHandActions` is still unmatched assembly. Its branch at
+`0x8001CD38..0x8001CDA8` requires a packed card type of at least `20`,
+excludes types `21` (Trap) and `23` (Equip), and requires the hand object's
+orientation byte `+0x21` to be zero (face-up). Among the defined retail types,
+this admits Magic (`20`) and Ritual (`22`). It stores the selected object in
+`D_800E9EF0`, removes its hand index, and selects hand substate
+`D_8009B174 = 5`, bypassing the field-selection branch.
+
+The retail jump-table entry at `0x80010158` sends that substate to
+`0x8001D1C4`. After its `D_8009B162` gate clears, the code at
+`0x8001D214..0x8001D218` selects **duel state 6**.
+The [`func_80024200`](../../src/game/func_80024200.c) dispatcher reads
+through `gDuel_apfnSceneStateHandler[gDuel_wSceneStateFlags &
+DUEL_SCENE_PHASE_MASK]`; the retail entry at `0x800909B0`
+maps state 6 to [`DuelScene_UpdateCardUse`](../../src/game/func_80019608.c).
+That handler begins with the selected object and issues the later effect
+requests documented in §6.1. "Direct" describes this control-flow route, not
+zero-frame execution or guaranteed effect success: timing, transfer, and
+effect gates still apply. This is static evidence for the normal single-card
+branch, not a new runtime trace or an audit of every combination/AI path.
+
+The game does not read the card's text; it reads its **number**. The card-use
+presentation sequence
+[`DuelScene_UpdateCardUse`](../../src/game/func_80019608.c) hands the id to a guard
+[`DuelEffect_StartCardEffect`] that accepts
+301–350, 651–700 and 721, converts it to an index, and a per-tick dispatcher
+[`DuelEffect_UpdateCardEffect`] looks that index up in a 104-byte table
+[`0x80090AD4`] to
+get an **effect group**, 0–13, and calls the group's handler pair from a
+30-entry table [`0x80090A5C`]. So every spell is one of fourteen behaviours,
+and which cards share a behaviour is data:
+
+The corresponding resident application symbols and their evidence boundaries
+are collected in [the magic-effect group dispatch contract](../magic-effect-groups.md).
+
+| group | cards | effect |
+|---|---|---|
+| 0 | all 34 equips and all 10 traps | nothing at play time — equips resolve when attached, traps when triggered |
+| 1 | Forest, Wasteland, Mountain, Sogen, Umi, Yami | sets the **terrain** for both sides and recomputes every monster's bonus (§5.6) |
+| 2 | Mooyan Curry, Red Medicine, Goblin's Secret Remedy, Soul of the Pure, Dian Keto the Cure Master | restores your LP by 200 / 500 / 1000 / 2000 / 5000 (per-card parameter) |
+| 3 | Sparks, Hinotama, Final Flame, Ookazi, Tremendous Fire | deals 50 / 100 / 200 / 500 / 1000 damage to the opponent's LP |
+| 4 | Dark Hole, Dragon Capture Jar | one handler that walks every monster on the field (as read); Dark Hole's own text says it "sucks up every card in play", while Dragon Capture Jar is selected by `DUEL_DRAGON_CAPTURE_JAR_CARD_ID` (`329`) and takes the opponent's Dragons |
+| 5 | Warrior Elimination, Eternal Rest, Stain Storm, Eradicating Aerosol, Breath of Light, Eternal Draught, Crush Card | destroys the opponent's monsters selected by a per-card parameter: Warriors, Zombies, Machines, Insects, Rocks, Fish respectively — and Crush Card takes every opposing monster with **ATK ≥ 1500** (its parameter is a threshold, not a type) |
+| 6 | Stop Defense | flips one opposing defending monster to attack position |
+| 7 | Raigeki | destroys every monster on the opponent's field |
+| 8 | Dark-piercing Light | reveals the opponent's face-down monsters |
+| 9 | Spellbinding Circle, Shadow Spell | lowers **all** opposing monsters by one level (−500) / two levels (−1000), on a timer |
+| 10 | Swords of Revealing Light | reveals the opponent's field and stops their monsters attacking for three turns |
+| 11 | Cursebreaker | cancels every level reduction on your monsters (undoes Spellbinding Circle / Shadow Spell) |
+| 12 | all 24 rituals | validates the tributes and performs the summon (§5.7) |
+| 13 | Harpie's Feather Duster | destroys every magic/trap card the opponent has in play |
+
+Group 10 is now traced end to end in
+[the Swords of Revealing Light runtime contract](../swords-of-revealing-light.md).
+Its second handler installs an internal count of four on the opposing side;
+draw entry decrements before play, producing the three visible locked turns,
+and both the AI script test and normal attack-selection path consume the same
+per-side byte.
+
+Within group 2, matching `DuelEffect_ApplyLifePointRecovery` subtracts
+`DUEL_LIFE_POINT_RECOVERY_FIRST_CARD_ID` (`338`) to map the five cards to
+recovery-table indices `0`-`4`. During presentation setup, finding
+`DUEL_BAD_REACTION_TO_SIMOCHI_CARD_ID` (`688`) shifts only the effect-object
+index into `5`-`9` and returns before a table lookup. The later application
+phase recomputes `0`-`4`: the normal path adds and caps the recovery amount,
+while the alternate path subtracts it and floors LP at zero.
+
+Within group 9, matching `DuelEffect_ApplyStatPenalty` identifies Spellbinding
+Circle with
+`DUEL_SPELLBINDING_CIRCLE_CARD_ID` (`349`) and subtracts one
+`DUEL_STAT_PENALTY_PER_LEVEL` (`500`) from each occupied target's
+`stat_modifier`; Shadow Spell uses two such levels (`1000`). The same signed
+reduction is stored in the type-`0xD` presentation object, so the card-record
+penalty and its displayed effect carry the same amount.
+
+Groups 6, 7, 8, 10, 11 and 13 share one animated zone-by-zone scan, which is
+why they play out visibly one slot at a time. A magic card that has nothing
+to act on is simply consumed.
+
+### 5.6 Terrain
+
+The field has one terrain for both sides — normal, or one of **Forest,
+Wasteland, Mountain, Sogen (meadow), Umi (sea), Yami (dark)** [`0x8009B364`,
+values 0–6 in that order]. Playing a field card replaces the terrain; it
+stays until replaced. Each monster **type** is helped or hurt by each
+terrain by exactly **±500**, looked up per type per terrain
+[`Duel_GetTerrainBoost` (`0x8002497C`), an `s8[20][6]` at `0x800909D4` × 10].
+The whole table, read from the executable:
+
+| type | Forest | Wasteland | Mountain | Sogen | Umi | Yami |
+|---|---|---|---|---|---|---|
+| Dragon | · | · | +500 | · | · | · |
+| Spellcaster | · | · | · | · | · | +500 |
+| Zombie | · | +500 | · | · | · | · |
+| Warrior | · | · | · | +500 | · | · |
+| Beast-Warrior | +500 | · | · | +500 | · | · |
+| Beast | +500 | · | · | · | · | · |
+| Winged Beast | · | · | +500 | · | · | · |
+| Fiend | · | · | · | · | · | +500 |
+| Fairy | · | · | · | · | · | −500 |
+| Insect | +500 | · | · | · | · | · |
+| Dinosaur | · | +500 | · | · | · | · |
+| Reptile | · | · | · | · | · | · |
+| Fish | · | · | · | · | +500 | · |
+| Sea Serpent | · | · | · | · | +500 | · |
+| Machine | · | · | · | · | −500 | · |
+| Thunder | · | · | +500 | · | +500 | · |
+| Aqua | · | · | · | · | +500 | · |
+| Pyro | · | · | · | · | −500 | · |
+| Rock | · | +500 | · | · | · | · |
+| Plant | +500 | · | · | · | · | · |
+
+Reptile is the one type no terrain touches. The bonus is applied to the
+monster's displayed ATK/DEF while the terrain holds and removed when it
+changes; it stacks with equips and the guardian-star bonus.
+
+### 5.7 Traps and rituals
+
+**Traps** (ten cards, ids 681–690) are set face-down in the magic/trap row
+and fire by themselves on the opponent's action; the player never chooses
+when. Their triggers, from the cards' own text:
+
+| trap | fires when… | effect |
+|---|---|---|
+| House of Adhesive Tape | an opposing monster with ATK ≤ 500 attacks | attacker destroyed |
+| Eatgaboon | … ATK ≤ 1000 attacks | attacker destroyed |
+| Bear Trap | … ATK ≤ 1500 attacks | attacker destroyed |
+| Invisible Wire | … ATK ≤ 2000 attacks | attacker destroyed |
+| Acid Trap Hole | … ATK ≤ 3000 attacks | attacker destroyed |
+| Widespread Ruin | any opposing monster attacks | attacker destroyed |
+| Goblin Fan | the opponent plays a direct-damage magic (Sparks … Tremendous Fire) | the damage is reflected onto them |
+| Bad Reaction to Simochi | the opponent plays an LP-recovery magic | the recovery becomes damage |
+| Reverse Trap | the opponent plays a power-up | the power-up becomes a power-down |
+| Fake Trap | it is attacked or targeted | nothing — a decoy that absorbs the opponent's trap-removal |
+
+The six "attacker destroyed" traps only fire on an attack whose ATK is within
+the limit; a stronger attacker is unaffected and the trap stays. One trap
+fires per attack, and once fired it is gone. If several set traps qualify, the
+game chooses the available trap with the lowest threshold that still covers
+the attack. Widespread Ruin is therefore selected only when no narrower set
+trap can destroy that attacker.
+
+The normal battle lookup also has a **Fake Trap fallback**, beyond the
+card-text trigger summary above. Matching
+[`Duel_SelectAttackTrap`](../../src/game/duel_trap_resolution.c) searches the
+same
+opposing magic/trap row for occupied card ID `690` if no threshold-qualified
+ID `681`-`686` was selected. It publishes that card through the same selected
+ID and record-index fields. This path consumes and credits the selected
+Fake Trap through the sequence in §6.1; its selection is not limited to an
+explicit trap-removal effect. The final attack outcome is a separate
+question from this selection and accounting evidence.
+
+**Rituals** (24 cards) use the same activation sequence, including the
+ordinary face-up hand route in §5.5; prior field placement is not mandatory.
+On success, the three required monsters are sacrificed for the recipe's
+result monster; if the required materials are missing, the ritual card is
+consumed without a summon.
+
+The
+[`Duel_CheckRitual`](../../src/game/duel_check_ritual.c) source checks the recipe
+against three **distinct occupied monster-row records** on the acting side.
+It tests `DUEL_CARD_FLAG_OCCUPIED` and the required card IDs, not the
+face-down or defence-position bits. Face-down matching tributes are therefore
+eligible in this predicate; the earlier face-up requirement was unsupported.
+Repeated tribute IDs still require separate field records.
+
+The checker returns the recipe's result ID when all three matches are found,
+or zero when the recipe/material search fails. It does not consume the field
+cards: it only removes matched pointers from a temporary candidate list and,
+when requested, exports the three records' object words. Matching
+[`DuelEffect_StartRitual`](../../src/game/duel_ritual_effect.c) uses a query
+with no
+output buffer. The later execution routine `DuelEffect_ApplyRitual` (still
+unmatched assembly)
+requests the output at `0x800262F8`, then calls
+[`DuelCard_DeactivateRecord`](../../src/game/duel_card_record_lifecycle.c) for the three
+selected records at `0x800263BC`, `0x800263E0`, and `0x80026404`.
+Eligibility and later tribute removal are separate steps, not a destructive
+test. This is code-backed selection/removal evidence, not a new runtime trace
+or a complete audit of the remaining summon presentation.
+
+The table at `0x801799D8` contains 24 records of
+{ritual, tribute, tribute, tribute, result}; the routine scans to a zero
+ritual ID rather than enforcing a fixed recipe count.
+The full list is on the disc and is decoded by the extractor (§12.2); three
+examples:
+Black Luster Ritual = Beaver Warrior + Gaia the Fierce Knight + Kuriboh →
+Black Luster Soldier; Ultimate Dragon = three Blue-eyes White Dragon →
+Blue-eyes Ultimate Dragon; Gate Guardian Ritual = Sanga of the Thunder +
+Kazejin + Suijin → Gate Guardian. Dark Magic Ritual (721) is the 24th and
+makes Magician of Black Chaos (722).
+
+### 5.8 Battle
+
+An attack-position monster attacks one target on the opponent's field, or —
+**if the opponent has no monsters at all — attacks directly**, and the
+attacker's full ATK is taken from the opponent's LP.
+
+Matching [`Duel_CalcCardStats`](../../src/game/duel_calc_card_stats.c)
+first adds the record's stat and terrain modifiers to its stored ATK and
+DEF, clamping each combined value to `0..9999`. The guardian-star relation
+then supplies a **signed relative adjustment**: `+500` for the left card's
+advantage, `-500` for its disadvantage, or zero. The selected star comes
+from each card's guardian-choice flag, not both stars at once. The label
+under the card reads yellow for advantage and red for disadvantage.
+
+The actual comparison is asymmetric. Matching
+[`func_8001EFD4`](../../src/game/duel_battle_stats.c) selects ATK or DEF from
+each card according to its position, adds the guardian adjustment only to
+the **left comparison value**, caps that result at `9999`, and subtracts
+the right card's unadjusted pre-matchup value. There is no second lower
+clamp after the guardian adjustment. Thus the familiar "+500 to the
+advantaged side" description is a relative-margin shorthand, not a rule
+to independently boost and clamp both sides.
+
+For example, two pre-matchup values of `9999` with the left card at a
+guardian disadvantage produce margin `-500`, not a tie from separately
+capping a boosted right value. These are internal comparison values, not
+writes of negative stats to card records. See the
+[exact calculation and return conventions](../duel-card-record.md#stat-computation-and-comparison).
+For the ordinary battle outcomes, use those compared values:
+
+* **against an attack-position monster** — the higher ATK wins; the loser is
+  destroyed and the *difference* is taken from its owner's LP; equal ATK
+  destroys both, no damage;
+* **against a defence-position monster** — attacker's ATK against defender's
+  DEF; if ATK is higher the defender is destroyed and nobody loses LP; if ATK
+  is lower the attacker survives and the difference is taken from the
+  *attacker's* LP; equal, nothing happens;
+* a **face-down** defender is flipped by the attack and resolved as above;
+  its identity and stars are revealed.
+
+The field-card text path prepares a separate **pre-matchup stat payload**.
+[`func_80023144`](../../src/game/duel_field_display_objects.c) writes ATK and
+DEF from `Duel_CalcCardStats` into the first two words at `D_801D5608` only
+for an occupied monster record. An opponent-dependent guardian adjustment
+is not added to those assignments; one request variant obtains a separate
+comparison indicator. The constructor does not refresh those words in its
+non-monster or unoccupied-record branches, and Free Duel also writes them.
+Their contents alone therefore prove neither the current visible card nor
+what a hidden-card template displays. See the
+[guarded payload contract](../duel-card-record.md#card-information-text-payload).
+
+Pressing □ instead of × on the attack plays the battle as a **3-D
+animation** [`Main_RunAnimatedBattle` `0x8002D180`] — cosmetic; the result is
+the same.
+
+Attack selection requires the source record to be occupied, in attack
+position, and clear of `DUEL_CARD_FLAG_USED_THIS_TURN`. Both targeted and
+direct attacks enter scene state 9, where the attacker receives that bit.
+The same bit gates the L1/R1 position-change path and is cleared at the next
+draw-phase entry. Placement starts with it clear, so this simultaneously
+establishes that a newly played monster may attack, that each monster attacks
+at most once per turn, and that a monster that has attacked cannot change
+position again that turn. See the
+[complete flag lifecycle and state transitions](../duel-turn-action-eligibility.md).
+
+### 5.9 The 3-D battle and the "Poly Mode"
+
+The duel's 3-D presentation runs through matching
+[`Main_RunAnimatedBattle`](../../src/game/main_run_animated_battle.c)
+(`0x8002D180`). This is a stateful mode tick, not a read-only display of
+two combatants. Every call sets the GTE projection center to `(160, 120)`
+and projection-plane distance to `300`, before testing the initialization
+bit `D_8009B26C & 0x40`.
+
+When that bit is clear, the handler sets it, writes `D_8009B0C0 = 1`, and
+calls the view/model setup helpers. The ordinary branch passes two
+successive eight-byte records at `D_800EF658` to
+[`Model_SetSlotProperties`](../../src/game/func_80052D2C.c)
+for slots 0 and 1, then passes **the current terrain** (`gDuel_bTerrain`)
+to slot 2. A first record halfword of `0x309` instead selects the separate
+`Model_StartExodiaPresentation` path and sets mode bit `0x20`; it does not
+make those three slot-property calls. Both initialization paths then call
+`Fade_WaitInitIn`. The wrapper alone does not identify the selector, but the
+caller-side handover in section 5.10 establishes a use of `0x309` for
+**Exodia presentation**. No fusion-recipe index interpretation is established.
+
+Initialization and polling occupy separate branches. On later calls,
+mode bit `0x20` selects `Model_IsExodiaPresentationComplete`; otherwise the
+handler polls `ModelDebug_UpdateController`. A nonzero result calls `SD_KeyOffVoiceSlots`
+and `SD_BGMFadeOut`, then replaces the **whole mode byte** `D_8009B26C` with
+`D_8009B269`, rather than hard-coding a return to duel mode. The subsequent
+`Model_UpdateScene` runs on this polling branch even when completion has
+just been consumed.
+
+That call enters the shared model pipeline, not a battle-only helper. Matching
+`func_800528AC` processes up to ten active timed tint requests: it interpolates
+three color bytes, temporarily applies the result and requested part values to
+one of two model slots, redraws that slot, then restores the previous model
+state. Its request clock advances by the shared frame factor and clears the
+active bit at the recorded duration. An inactive model pauses the request
+without advancing it; insufficient model-buffer space skips the redraw but
+still advances the clock. This establishes the renderer contract, not which
+battle effects or other model-viewing modes enqueue each tint.
+
+Thus the earlier "reads only the combatants, writes nothing" description
+was incorrect: terrain, mode control, model state, GTE state, and sound
+are involved. The wrapper does not directly write LP or rank counters;
+this is not a proof about every callee's effects or a complete account of
+the Library viewer and finale's Poly Mode presentation paths.
+
+### 5.10 Winning and losing
+
+The three normal win/loss conditions are:
+
+* a side's **LP reaches 0** — the message is `TOTAL ANNIHILATION`;
+* a side **cannot draw** at the start of its turn — the other side wins by
+  `VICTORY BY ATTRITION` (the deck-out; this is the route to the TEC ranks,
+  §6.2);
+* a side holds **all five Exodia pieces in its hand** — an automatic win,
+  `SUMMON Exodia` [the check exists in the executable; the community's
+  "disable Exodia" patch flips two bytes at file offsets `0x952C`/`0x959C`].
+
+The normal draw-resolution path has a source-backed Exodia check.
+Matching
+[`Duel_HasAllExodiaPieces`](../../src/game/duel_draw_resolution.c)
+requires card IDs `0x11..0x15` in the current hand. On its post-draw branch,
+`DuelScene_UpdateDrawResolution` runs that check after `DisplayObject_FindAllocatedByTag(1)` returns zero; a
+successful check sets `gDuel_wSceneStateFlags = 0xE`. This is a gated transition, not
+evidence that every action tests all win conditions or that presentation
+finishes in the same frame.
+
+The [duel dispatcher](../../src/game/func_80024200.c) and
+[main loop](../../src/game/main_loop.c) use different tables. Their retail
+words connect the Exodia sequence to the animated-battle request:
+
+| Dispatch selection | Table word address | Target |
+|---|---|---|
+| Duel state `0xE` | `0x800909D0` | `DuelScene_UpdateExodiaResult` (`0x80018FEC`) |
+| Main mode `1` | `0x80090B68` | `Main_RunAnimatedBattle` (`0x8002D180`) |
+| Main mode `3` | `0x80090B70` | `Main_RunDuel` (`0x8002CEE8`) |
+
+The still-unmatched `DuelScene_UpdateExodiaResult` stages the five piece objects. Its later
+handover stores `0x309` in the first halfword of `D_800EF658` at
+`0x800193D8`, records the acting side as `gDuel_bWinnerSide` at
+`0x800193EC`, writes the `+40` Exodia end adjustment at `0x800193F0`,
+and clears the opposing LP halfword at `0x80019408`. It then stores
+`D_8009B269 = 3` at `0x80019430` and `D_8009B26C = 1` at `0x80019438`.
+The winner, end-adjustment, and LP writes therefore precede the animated-mode
+request.
+
+This caller requests the special `0x309` path described in section 5.9 and
+supplies duel mode `3` as its return target. On completion, the wrapper's
+generic copy from `D_8009B269` restores that target; the main loop's normal
+initialization and fade gates still apply. The selector is decimal `777`,
+outside the ordinary card-ID range `1..722`, but this does not decode its
+model/asset representation or establish that Exodia is its only possible
+user. The handover and table evidence comes from retail bytes, not the
+sequencer's nonmatching stored C candidate or a new runtime trace.
+
+In **2P Duel only**, Select on the active player's turn offers
+`QUIT DUEL? NO YES`, with No selected by default. The input check
+[`Duel_CheckQuitInput`] is gated by the negative opponent id used for two-player
+battles, so the prompt is not a single-player surrender option. Choosing Yes
+fades to black and returns to the initial menu. 2P Duel does not use the
+single-player score/drop or Free Duel grid-record paths; its separate
+per-save counter path is distinguished in §6.5 and §9.1. What a normal win
+or loss *means* is decided by the caller (§6, §7.12, §8).
+
+### 5.11 The opponent
+
+The computer's turn is played by a **bytecode script** per opponent,
+interpreted by a small VM
+[`AiScript_Run`](../../src/game/ai_script_vm.c) (`0x80070650`): the loop
+fetches an opcode, dispatches through a **67-entry handler table**
+[`0x800916E0`], and returns when the handler is one of three terminal ones
+(end of hand phase, end of field phase, field play). After any other
+completed handler it queries `VSync(1)`: a value below `0xF0` (240) continues
+the loop; a value at or above that threshold returns zero to the caller.
+The terminal tests come first, so the timing threshold does not override a
+completed terminal command.
+
+This is a **post-instruction timing query**, not a wait for the next VBlank
+or an established "every sixteenth of a second" schedule. The retail
+mode-1 query reads a counter delta from the SDK's shared saved baseline;
+`AiScript_Run` does not reset that baseline on entry. At least one valid
+instruction executes before the first timing query, and the query does not
+preempt an in-progress handler. The return codes and SDK branch evidence
+are detailed in [the AI notes](../ai-structures.md#interpreter-dispatch-and-yielding);
+per-pass instruction counts and visible decision times remain unmeasured.
+
+The instruction set is real: `aiInstJump`, `aiInstJumpGe`,
+`aiInstJumpEq`, `aiInstJumpNeq`, `aiInstJumpRand`, `aiInstCall`,
+`aiInstRetn`, `aiInstRand`, `aiInstSub`, `aiInstStrongest`,
+`aiInstBestCombo`, `aiInstFindFirst`… [VM state `0x800F5BE8`; the script
+area is `0x801A8000`, which the duel loader fills with a 6 KB chunk of the
+per-terrain disc blob — that the chunk *is* the script is a reading; the
+source file the VM's asserts name is `src/hirata/H_mctrl1.c`]. What the
+scripts *do*, as observed by every guide since 1999:
+
+* the opponent fuses aggressively from its hand and with its field, and
+  fuses **more** when you open with a face-down card or a face-down
+  magic/trap — the standard TEC-farming trick is to open face-down so the
+  opponent burns cards fusing;
+* it changes the terrain back to its home terrain whenever you change it
+  (the five High Mages);
+* Pegasus's script reads your face-down cards, so hiding is useless against
+  him;
+* Duel Master K's duel setup passes your deck as both inputs to the shuffle
+  helper, so the computer receives a **copy of your own deck** (§8);
+* the scripts differ per duelist in aggression and in what they fuse for,
+  and each opponent's deck is drawn from a per-duelist **weight table** rather
+  than being a fixed 40. Retail only considers card ids 1–720 while building
+  that deck, so Dark Magic Ritual (721) and Magician of Black Chaos (722)
+  cannot be selected from their final two weights (§6.4).
+
+The scripts can also request an explicit card-power value
+[`AiScript_CalcCardPower`, `0x80071008`]. For monsters they choose ATK, DEF, or
+the higher stat. For non-monsters, mode 0 recognizes only Sparks through
+Tremendous Fire (IDs 343–347) and returns their direct-damage values
+`50, 100, 200, 500, 1000`; every other non-monster case returns zero. This
+lookup is independent of the non-monster effect-group table in §5.5, so
+changing a card's activation handler does not automatically change this AI
+valuation.
+
+> **Entered from:** campaign scenes, Free Duel select, 2P setup, the debug
+> menu. **Exits to:** the caller, with win/loss and the scoring counters
+> filled. **Reads:** both decks, the opponent id [`0x8009B361`], the terrain
+> [`0x8009B364`], the rule tables (fusion, equip, ritual, terrain), the AI
+> script. **Writes:** the per-side records, the cards-in-play array, the
+> statistics record that scoring reads (§6.1); nothing persistent — the
+> trunk and starchips are touched by the *caller* after the duel. **Uses:**
+> the duel engine, the AI VM, the card database, the 3-D battle mode, the
+> disc loader (the per-terrain blob and the per-duelist block, §12).
+
+### 5.12 Controls (duel)
+
+| button | in the duel |
+|---|---|
+| × | select / confirm |
+| □ | confirm an attack with the 3-D animation |
+| ○ | cancel / back |
+| △ | card details |
+| L1 / R1 | toggle attack/defence position |
+| L2 / R2 | view the field before playing |
+| d-pad up | raise a hand card into the combination order |
+| Start | end turn |
+| Select | in 2P Duel, open the quit-duel prompt |
+
+---
+
+## 6. After a duel: score, rank, starchips, the dropped card
+
+What happens after a duel is decided by whoever started it (campaign §7,
+Free Duel §8, two-player §9). Against the computer in either single-player
+mode the sequence is always: **score → rank → starchips → one card**, then
+the win/loss record and the unlock bit.
+
+### 6.1 The score
+
+During the duel the engine keeps a **statistics record** per side [it is the
+per-side record at `0x800E9FF0 + side * 0x20`: the counters are bytes at
++1…+9 and +0x18, the LP the halfword at +0x14 — the player's `0x800EA004`
+cited everywhere — so "cards used" is the byte at `0x800EA008`, which is
+exactly the address a long-dismissed GameShark code labels "cards used by
+you"]. In C, the first 13 bytes are the typed `DuelRankStatistics rank`
+subrecord, while the draw cursor remains at `DuelSideState.deck_draw_cursor`.
+At the end [`Duel_CalcRankScore` (`0x80021598`)] each side's calculated score
+starts at **50**. The signed `rank.result_adjustment` byte at record +0 is
+added directly as the way-the-duel-ended adjustment, and each counter is run
+through one row of a **ten-row table** [`Duel_CalcRankScoreChange`
+(`0x80021558`); the table is 200 bytes at `0x801798A8`, loaded from the
+per-duelist disc block and identical for all 39 duelists]: a row is five
+(threshold, value) pairs walked upward, and the first threshold above the
+counter supplies the value added to the score. The rows, measured:
+
+| row | record offset | C member | value by count | category |
+|---|---|---|---|---|
+| 0 | +0x01 | `rank.turns_taken` | 0–4: +12 · 5–8: +8 · 9–28: 0 · 29–32: −8 · 33+: −12 | **turns** taken |
+| 1 | +0x02 | `rank.effective_attacks` | 0–1: +4 · 2–3: +2 · 4–9: 0 · 10–19: −2 · 20+: −4 | **effective attacks** (attacks that destroyed an attack-position monster and dealt damage) |
+| 2 | +0x03 | `rank.defensive_wins` | 0–1: 0 · 2–5: −10 · 6–9: −20 · 10–14: −30 · 15+: −40 | **defensive wins** (your defender survived an attack) |
+| 3 | +0x04 | `rank.face_down_plays` | 0: 0 · 1–10: −2 · 11–20: −4 · 21–30: −6 · 31+: −8 | **face-down plays** |
+| 4 | +0x05 | `rank.pure_magic_used` | 0: +2 · 1–3: −4 · 4–6: −8 · 7–9: −12 · 10+: −16 | **pure magic** cards used |
+| 5 | +0x06 | `rank.traps_triggered` | 0: +2 · 1–2: −8 · 3–4: −16 · 5–6: −24 · 7+: −32 | **traps** triggered |
+| 6 | +0x18 | `deck_draw_cursor` | 0–8: +15 · 9–12: +12 · 13–32: 0 · 33–36: −5 · 37+: −7 | **cards used** |
+| 7 | +0x14 (halfword) | `life_points` | 0–99: −7 · 100–999: −5 · 1000–6999: 0 · 7000–7999: +4 · 8000: +6 | **remaining LP** |
+| 8 | +0x08 | `rank.fusions_initiated` | 0: +4 · 1–4: 0 · 5–9: −4 · 10–14: −8 · 15+: −12 | **INITIATE FUSION** — successful fusions initiated from the hand |
+| 9 | +0x09 | `rank.equips_used` | same as row 8 | **EQUIP MAGIC** — valid equips used |
+
+**When "turns" advances.** Row 0 reads the unsigned byte at the side record's
+`+0x01`. Matching [`DuelScene_UpdateDrawPhase`](../../src/game/duel_phase_entry.c) binds the
+record to the current side, `D_8009B1D5`, and increments that byte in its
+draw-entry initialization branch, guarded by
+`gDuel_wSceneStateFlags & DUEL_SCENE_FLAG_INITIALIZED`.
+The increment precedes the used-card flag reset and hand reconstruction,
+including the refill request. Later calls while that flag remains set only
+poll for the message state to finish; they do not increment the counter.
+
+[`Duel_CalcRankScore`](../../src/game/duel_result_runtime.c) copies this byte
+to displayed-stat slot 15 and passes it to `DUEL_RANK_RULE_TURNS` (row 0).
+On this normal path, a side's turn is therefore counted at draw entry, not
+after its play is completed or once per frame. This is a per-side count,
+not a shared count of completed two-side rounds; the evidence does not
+establish every possible writer to the byte or add a runtime observation.
+
+**The normal single-card "face-down plays" increment.** In resident
+`DuelScene_UpdateHandActions` (still unmatched assembly), the commit block at
+`0x8001D080..0x8001D0C0` increments the current side's statistics byte
+`+0x04` through `D_8009B1C8` only when the hand-selection record's `+0x15`
+is zero and the selected hand object's `+0x21` is nonzero.
+
+The selection byte is the raised-card count: matching
+[`func_8001B7AC`](../../src/game/func_8001B7AC.c) increments it when numbering
+a hand card and stores the resulting order in that hand slot's `+0x09`.
+The orientation test is also code-backed: at `0x8001CCAC..0x8001CCE8`, the
+same placement handler clears the card record's face-down flag `0x1000`,
+then sets it if the hand object's `+0x21` is nonzero. This is the
+hand-placement object view, not a universal meaning of object offset `+0x21`.
+
+Thus this writer counts the selected single-card play's face-down
+orientation at commitment, rather than tallying all face-down field cards.
+Matching [`Duel_CalcRankScore`](../../src/game/duel_result_runtime.c) reads
+the byte as unsigned, copies it to displayed-stat slot 9, and passes it to
+`DUEL_RANK_RULE_FACE_DOWN_PLAYS` (row 3). Numbered multi-card selections
+bypass this particular increment.
+
+A controlled two-turn trace now closes the ordinary fusion ambiguity. The
+first turn placed one card face-down and changed `face_down_plays` from 0 to 1
+without changing `fusions_initiated`. The next player turn fused two cards
+successfully; `fusions_initiated` changed from 0 to 1 while
+`face_down_plays` stayed at 1. The user-facing placement flow does not offer a
+face-down orientation for a fusion result, so the earlier proposed
+"multi-card fusion placed face-down" case is not a legal action. The trace
+also separated draw-entry accounting: `turns_taken` and `deck_draw_cursor`
+advanced before the fusion, then only `fusions_initiated` changed when the
+fusion completed.
+
+For normal player actions, `face_down_plays` therefore counts single-card
+face-down commitments rather than all cards that finish face-down or all
+multi-card selections. This does not rule out an unusual scripted effect
+writing the byte directly, nor does a later card flip decrement it.
+
+**When "pure magic" advances.** The matching
+[`DuelScene_UpdateCardUse`](../../src/game/func_80019608.c) increments the current
+side's byte `+0x05` in its initialization
+branch, before the later effect requests. `DUEL_SCENE_FLAG_INITIALIZED` in
+`gDuel_wSceneStateFlags` guards that branch: after it is set, subsequent polling calls
+skip this increment. At `0x80019674..0x80019698`, the writer requires the
+card object's type byte `+0x68` to equal `0x14` (`CARD_TYPE_MAGIC`), rather
+than accepting every non-monster type.
+
+Matching [`func_80017F04`](../../src/game/duel_init_scene.c) fills
+that object byte from the card's packed type field, using
+`CARD_STAT_TYPE_SHIFT` and `CARD_STAT_TYPE_MASK`. The matching
+[`Duel_CalcRankScore`](../../src/game/duel_result_runtime.c) reads statistic
+`+0x05` as unsigned, copies it to displayed-stat slot 13, and passes it to
+`DUEL_RANK_RULE_PURE_MAGIC` (row 4).
+
+This write precedes this handler's calls to
+[`DuelEffect_StartCardEffect`](../../src/game/duel_magic_effect_dispatch.c) at
+`0x80019870` and
+`0x800199D8`, which request the effect phases. It therefore records a
+type-qualified entry into this use sequence, not evidence that the effect
+finished or changed a target. This corroborates the normal handler's
+accounting, not every route into it, other writers, or a new runtime trace.
+
+**When an attack trap is credited.** Matching
+[`Duel_SelectAttackTrap`](../../src/game/duel_trap_resolution.c) selects the
+trap ID
+in `D_8009B22A` and its record index in `D_8009B1B8`, but does not increment
+the statistic. Matching `Duel_UpdateTrapPresentation` in the same source runs
+the
+presentation sequence. Mode 1 calls
+[`DuelCard_RemoveFromField`](../../src/game/duel_card_record_lifecycle.c) to clear the
+selected card's flags and remove its object. Only when the later mode-3 countdown
+finishes does it increment statistic `+0x06` in
+`0x800E9FF0 + (D_8009B1D5 ^ 1) * 0x20` and return zero. The grid mapping
+in §5.1 identifies this as the selected trap's side, opposite the acting side.
+
+The normal battle caller, `DuelScene_UpdateBattle` (still unmatched assembly), calls
+that sequencer while `D_8009B174 & 0x20` is set and clears the bit when the
+sequencer returns zero [`0x8001FA10..0x8001FA34`]. Completion is therefore
+consumed by the caller; the helper does not itself reset its mode.
+Matching [`Duel_CalcRankScore`](../../src/game/duel_result_runtime.c) reads
+the statistic as unsigned, copies it to displayed-stat slot 14, and passes
+it to `DUEL_RANK_RULE_TRAPS_TRIGGERED` (row 5).
+
+This normal path credits a completed trap sequence, including the Fake Trap
+fallback, after the trap card has already been removed. A lookup result or
+an early disappearance alone does not establish that the score byte changed.
+This is not an audit of every other trap/effect route or a new runtime trace.
+
+**What "cards used" counts.** Row 6 reads the side record's
+`deck_draw_cursor` at `+0x18`, not a counter that waits for a card to be
+played.
+Matching [`DuelScene_UpdateDrawPhase`](../../src/game/duel_phase_entry.c) selects the active
+side record, compacts its retained hand indices, rebuilds those card records,
+and requests `HAND_SIZE - n` new cards, where `n` is the number retained.
+Its kept-card loop does not increment the draw cursor.
+
+Matching [`DuelScene_UpdateDrawResolution`](../../src/game/duel_draw_resolution.c) then tests
+that cursor against `DECK_SIZE` before each new draw. Below the limit it
+passes the cursor to
+[`Duel_SetupCardRecord`](../../src/game/duel_card_record_lifecycle.c), places the
+drawn card's index in the hand, and increments the byte. At the limit it
+takes the deck-exhaustion path instead. A successful new draw therefore
+advances this statistic before the card is played; a refill can advance it
+more than once. The matching
+[`Duel_CalcRankScore`](../../src/game/duel_result_runtime.c) feeds that same
+byte to `DUEL_RANK_RULE_CARDS_USED`. This pins the normal draw/refill
+accounting, not an unperformed runtime trace or a complete audit of every
+effect that could touch the record.
+
+`Duel_DrawLifePointsAndDeckCounts` also reads `deck_draw_cursor`, through a
+signed-byte view, to display `DECK_SIZE - deck_draw_cursor` for each side.
+The remaining-card readouts retain their two-digit format and existing
+side/color order.
+The calculation is not clamped or redefined as cards played; its neighboring
+LP readouts still use the interpolated display value at `+0x12`.
+
+The matching score calculation uses `DUEL_RANK_RULE_*` names from
+`src/game/duel_rank.h` for these ten threshold-table rows. They are not the
+indices of the sixteen displayed statistics: the raw-stat copy order and
+the score-rule call order remain separate. The same header names the starting
+value as `DUEL_RANK_SCORE_INITIAL` (`50`) and retains
+`DUEL_RANK_SCORE_THRESHOLD_COUNT` (`5`) for each row's pair count.
+`Duel_CalcRankScoreChange` still selects the first strictly greater threshold;
+the named indices do not introduce new range checks or a bounded scan.
+
+The +0 byte records the **way the duel ended**, and the three documented
+adjustments are code-backed rather than only community values. The
+resolution paths write the following byte into the selected winner's
+`0x20`-byte record:
+
+| Resolution path | Stored byte | Signed score contribution | Code evidence |
+|---|---:|---:|---|
+| LP reaches zero | `0x02` | `+2` | `DuelScene_UpdateFieldActions` tests both sides' LP at `0x8001D6C8..0x8001D6E4`, selects the winner, and stores `2` at record +0 at `0x8001D71C`. |
+| Draw exhaustion | `0xD8` | `-40` | Matching [`DuelScene_UpdateDrawResolution`](../../src/game/duel_draw_resolution.c) tests the active side's signed draw counter at +0x18 against `40`, selects the other side, and writes `-0x28` to its record +0. |
+| Exodia resolution | `0x28` | `+40` | The state-`0xE` handler `DuelScene_UpdateExodiaResult` selects the current side as winner and stores `0x28` at record +0 at `0x800193F0`. |
+
+`duel_rank.h` names the two special adjustments as
+`DUEL_RANK_ADJUST_EXODIA_WIN` (`40`) and `DUEL_RANK_ADJUST_DECK_OUT_WIN`
+(`-40`). They remain separate from `DECK_SIZE`, which names the draw-counter
+limit in `DuelScene_UpdateDrawResolution` despite its equal magnitude. The deck-out writer
+still stores the negative adjustment through a signed byte, and the rank
+reader uses the same named values to select its message variants.
+
+The reader closes the arithmetic: `Duel_CalcRankScore` initializes both
+score words to `50` at `0x80021638..0x80021640`, then uses signed `lb` at
+`0x80021644` and adds the result at `0x80021650`. Its two-iteration loop
+advances by one `0x20`-byte side record each time. Thus the stored `0xD8`
+contributes **minus 40**, not unsigned 216, and these values are direct
+score adjustments rather than indices into another bonus table.
+
+The winner's end-reason byte also selects a result-message variant: the code at
+`0x800215F0..0x80021628` chooses selector `0x42` for `+40`, `0x41` for
+`-40`, and keeps default `0x40` otherwise. This is static evidence from the
+matching draw routine and the resident instructions, not a new emulator
+measurement or proof of every score-category label.
+
+The thresholds, values and the counter each row reads are measured. The
+category names are the game's own: the post-duel result screens [text ids
+`0x40`–`0x45`, laid out by the duel-end code] print them as TURNS, EFFECTIVE
+ATTACKS, DEFENSIVE WINS and DEFENSIVE LOSSES, AVERAGE ATK/DFD FACTOR and
+CARD DESTRUCTION under "Offense/Defense statistics", then COMBO PLAYS,
+FACE-DOWN PLAYS, INITIATE FUSION, EQUIP MAGIC, CHANGE FIELD, PURE MAGIC and
+TRIGGER TRAP under "Special arts", then CARDS USED and REMAINING LP. Which
+label goes with which row was matched through the community's published
+table, which uses the same names — and this corrects the earlier version of
+this document, which had rows 4, 5, 8 and 9 labelled as fusions, equips,
+magic and traps in the wrong order.
+
+A controlled one-player trace settles the two otherwise identical final rows.
+It started before both actions, then performed exactly one successful hand
+fusion (Mechanical Spider plus Air Marmot of Nefariousness into Giga-tech
+Wolf) and later exactly one valid equip (Silver Bow and Arrow on Skelengel),
+with no other player fusion or equip. Player byte `+0x08` changed from `0` to
+`1` on the fusion while `+0x09` remained zero; `+0x09` changed from `0` to
+`1` only on the later equip. Row 8 is therefore INITIATE FUSION and row 9 is
+EQUIP MAGIC. Their score values are identical, so this distinction does not
+change the final score. The screens also show figures the score does not use,
+such as the average ATK factor.
+
+### 6.2 The rank
+
+The score picks one of **ten ranks** [`DuelScene_UpdateResultRewards`, right after the
+score: a score below 50 sets the TEC flag and is mirrored as 99 − score;
+anything at 100 or above is clamped to 99; then (score − 50) / 10 selects the
+letter]:
+
+| score | 90+ | 80–89 | 70–79 | 60–69 | 50–59 | 40–49 | 30–39 | 20–29 | 10–19 | ≤9 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| rank | S-POW | A-POW | B-POW | C-POW | D-POW | D-TEC | C-TEC | B-TEC | A-TEC | S-TEC |
+| starchips | 5 | 4 | 3 | 2 | 1 | 1 | 2 | 3 | 4 | 5 |
+| drop pool | POW | POW | BCD | BCD | BCD | BCD | BCD | BCD | TEC | TEC |
+
+**POW** is a fast, clean win: few turns, few tricks, full LP. **TEC** is the
+opposite — win slowly, use magic and traps, or deck the opponent out (a
+deck-out alone is −40, and "have fewer than 28 cards left plus one wasteful
+act" is the community's recipe for a B/C/D). The theoretical range is −140 to
++139. The earlier version of this document listed seven ranks; there are ten.
+The result record stores the absolute tier `0..4` separately from the POW/TEC
+axis and uses the same fields for page display, starchip prize, and drop-pool
+selection; see the
+[typed result and reward state](../duel-result-reward-state.md).
+
+### 6.3 Starchips
+
+Added to the save's counter [`0x801D07E0`, u32] by the table above: 1 to 5
+per win, symmetric, so an S of either kind pays 5. They are spent only in the
+Password shop (§4.5). The post-duel award path clamps the saved total to
+`SAVE_DATA_STARCHIP_MAX` (`999999`) immediately after adding the result
+record's `starchip_prize`. The balance is `SaveDataState.starchips` at
+`+0x5E0`, also exposed as `gLibrary_dwStarchips`. Losing costs nothing.
+
+### 6.4 The dropped card
+
+One card is drawn from the beaten duelist's **pool for that rank group**.
+Matching [`Duel_SelectCardDrop`](../../src/game/duel_result_runtime.c)
+(`0x80021810`) takes a **rank-pool index, not a duelist ID**. The opponent's
+tables are already loaded; the argument selects one of their three drop rows:
+
+| `pool_index` | Rank group | Runtime row |
+|---:|---|---|
+| `0` | S/A POW | `0x8017878C` |
+| `1` | B/C/D, either axis | `0x80178D40` |
+| `2` | S/A TEC | `0x801792F4` |
+
+Each row is `0x5B4` bytes: 722 `u16` weights and 16 padding bytes. The
+normal reward caller at `0x80021C44..0x80021C60` constructs `0`, `1`, or `2`
+from `rank_tier` and `is_tec_rank` before calling the selector. It stores the
+result in `DuelResultDisplayState.dropped_card_id` before the later credit
+path awards it. The old C parameter name
+`opponent` incorrectly suggested that this call selected a duelist.
+
+The helper consumes exactly **one `rand()` value**, forming threshold
+`(rand() & 0x7FF) + 1` in `1..2048`. It walks the weights in card-ID order
+and returns the first index plus one whose cumulative sum reaches the
+threshold. Scanning makes no extra RNG calls, and an unreached threshold
+returns `0`, without normalization or a retry.
+
+Every retail pool's weights **sum to exactly 2048**. Under a uniform-threshold
+model, a card's weight is its selection share out of 2048 -- the "a 20" and
+"a 32" the speedrunners talk about. This is not a claim of independent calls
+or measured frequencies for a particular seed or timed route; see the
+[RNG contract](../rng.md#reward-card-stream-consumption).
+
+The three pools per duelist are the per-duelist disc block's tables at
++0x5B4 (POW), +0xB68 (BCD) and +0x111C (TEC), and the fourth table in
+that block at +0 is the opponent's **deck weights** — the deck the AI plays is
+itself drawn from a weighted pool, not fixed (§5.11). That row still contains
+722 weights, but `Duel_ShuffleDeck` walks only zero-based indices 0–719 and
+writes `index + 1`, leaving the weights for card ids 721 and 722 unreachable.
+The three drop pools do walk all 722 entries. The dropped card is added to the
+trunk and marked seen.
+
+Matching `Duel_AwardCard` keeps quantities reached through normal duel awards
+capped at 250 copies (`0xFA`) in the one-byte trunk field. It also shifts all
+15 existing recent-card slots one place toward the tail and writes the awarded
+ID at the front, evicting the previous oldest entry. The insertion is not
+deduplicated, so repeated drops of the same card can occupy multiple history
+slots until the later cleanup described in §4.1.
+
+The complete nonzero deck/drop weights and per-duelist pool summaries are in
+[`fusion-and-drop-tables/`](fusion-and-drop-tables/README.md).
+
+**Which block is which duelist** was settled by matching every block's pools
+against an independent list of what each duelist has been recorded dropping
+(the Neoseeker guide's "cards won" lists, 3,000 card entries): every duelist
+matches one block at 92–100 %, and the order is the opponent id
+[`0x8009B361`], **1-based**:
+
+| id | duelist | id | duelist | id | duelist |
+|---|---|---|---|---|---|
+| 0 | (unused; a copy of 1) | 13 | Shadi | 26 | High Mage Atenza |
+| **39** | **Duel Master K** | | | | |
+| 1 | Simon Muran | 14 | Yami Bakura | 27 | Desert Mage |
+| 2 | Teana | 15 | Pegasus | 28 | High Mage Martis |
+| 3 | Jono | 16 | Isis | 29 | Meadow Mage |
+| 4 | Villager 1 | 17 | Kaiba | 30 | High Mage Kepura |
+| 5 | Villager 2 | 18 | Mage Soldier | 31 | Labyrinth Mage |
+| 6 | Villager 3 | 19 | Jono 2nd | 32 | Seto 2nd |
+| 7 | Seto | 20 | Teana 2nd | 33 | Guardian Sebek |
+| 8 | Heishin | 21 | Ocean Mage | 34 | Guardian Neku |
+| 9 | Rex Raptor | 22 | High Mage Secmeton | 35 | Heishin 2nd |
+| 10 | Weevil Underwood | 23 | Forest Mage | 36 | Seto 3rd |
+| 11 | Mai Valentine | 24 | High Mage Anubisius | 37 | **DarkNite** |
+| 12 | Bandit Keith | 25 | Mountain Mage | 38 | **Nitemare** |
+
+The ID/name list now also has direct executable-text corroboration. For an
+available, settled Free Duel cell `i`, the armed update in matching
+[`FreeDuel_PlaceCursor`](../../src/overlays/free_duel/screen_runtime.c)
+writes string ID `0x8328 + i` to `D_8009B32E`.
+[`func_800383DC`](../../src/game/duel_effect_command.c) reads that ID as an
+unsigned halfword and resolves the global offset table at `0x801D5800`,
+using entry `string_id - 0x8000` and bank base `0x801D0000`.
+
+Decoding IDs `0x8329..0x834F` through the executable's glyph-to-Shift-JIS
+table at `0x801D9000` (also used by
+[`Text_SjisToGlyphCodes`](../../src/game/text_sjis_to_glyph_codes.c))
+agrees with all 39 names above after character-width normalization. Each
+glyph-table entry is four bytes; its low halfword supplies the Shift-JIS
+value. The remaining prose-spacing difference is that the raw strings say
+`Villager1`, `Villager2` and `Villager3` without the spaces used in this description.
+Build Deck, Simon Muran and Teana provide known-label controls for the
+lookup and decoding. The two disputed boss entries are:
+
+| Opponent/grid ID | Global string ID | String address | Decoded label |
+|---:|---:|---:|---|
+| 37 | `0x834D` | `0x801D8D7A` | `DarkNite` |
+| 38 | `0x834E` | `0x801D8D83` | `Nitemare` |
+
+The normal duel launch stores the same grid index as `gDuel_bOpponentID`
+(§6.5), so this corroboration does not depend on interpreting a cheat
+label or a deck-similarity percentage. It is static text/lookup evidence,
+not a new emulator observation or a remeasurement of the drop weights.
+
+The block comparisons also establish two useful relationships. Blocks 8 and 35 —
+Heishin's first and second duels — share the same three drop pools and rank
+table but carry different deck weights. And **Duel Master K is block 39**:
+its three drop pools are byte-identical to Villager 3's (which is why the
+community's list of what he drops matches Villager 3's block at 100 %), and
+its stored deck is a placeholder identical to Simon Muran's, because his
+duel setup copies the player's deck instead (§8). It also corrects the
+earlier version of this document, which named the blocks by the GameShark
+record order and was off by one from Teana onward — and it means the two
+**published GameShark win/loss labels for Nitemare and DarkNite are reversed
+relative to the in-game names**. DarkNite's ID 37 gives wins at `0x801D07B0`,
+and Nitemare's ID 38 gives wins at `0x801D07B4`; the archived labels assign
+those addresses the other way around. This is a label error, not an
+alternative record stride or an ID-to-record remapping: the normal Free
+Duel launch and record paths use the same grid index (§6.5).
+
+### 6.5 Records and unlocks
+
+**Per-duelist grid records.** Free Duel displays `WIN n LOSS n` from a
+40-record table at `gFreeDuel_aDuelistRecords` (`0x801D071C`). For grid index
+`i = row * 5 + column`, wins are at `0x801D071C + 4*i`, losses two bytes
+later. Slot 0 is the Build Deck tile; duelist cells 1–39 start at
+`0x801D0720`. Matching
+[`FreeDuel_UpdateScreen`](../../src/overlays/free_duel/screen_runtime.c)
+passes the selected index unchanged to
+[`func_80024DC8`](../../src/game/func_80024DC8.c), which stores it in
+`gDuel_bOpponentID`. This normal launch path does not remap the grid index.
+
+On return, matching
+[`FreeDuel_Init`](../../src/overlays/free_duel/screen_runtime.c) updates the retained
+row/column's record when `gFreeDuel_bReturnFlags & 0x80` is set. It selects
+the second halfword only when **`D_8009B362 == 1`**, otherwise the first,
+and caps normal counter values at 999. It does not index this table by
+`gDuel_bWinnerSide` or XOR a row index to find a loser.
+
+The result setup at `0x80020F90..0x80020FA8` explains the connection:
+`D_8009B362` becomes zero when `gDuel_bWinnerSide` (`0x8009B165`) is zero,
+and one otherwise. The paired single-player observations below establish
+`0 = player wins`, `1 = opponent wins`; together with the matching updater
+they support wins-first/losses-second. The trace itself did not sample the
+record halfwords.
+
+In the campaign, the caller also sets the duelist's **Free Duel unlock bit**
+[`0x801D06F4`]. A duel lost in Free Duel records a loss and returns to that
+menu; a campaign loss is game over (§7.12), except the scripted loss. The
+initializer above pins the Free Duel return path, not every campaign
+record-writing path.
+
+**Separate per-save counters.** The resident block at
+`0x80021F24..0x80021FAC` instead indexes the save-pointer table at
+`0x8009B1D8` with `gDuel_bWinnerSide`, increments the winner's halfword at
+save offset `+0x518`, then uses `winner_side ^ 1` for the loser's `+0x51A`.
+Its normal ceiling is 9999, not the grid's 999. After a non-null
+winner-pointer check, this branch is selected when signed `D_8009B360 >= 0`
+or signed `gDuel_bOpponentID < 0`; otherwise the credit path awards starchips
+and a card. The normal Free Duel launch supplies `(-1, i)` with `i > 0`,
+which does not select that counter branch. These offsets and selectors must
+not be presented as the Free Duel grid update. The RAM writes alone do not
+establish the later memory-card persistence policy of every two-save flow.
+
+**What the winner-side trace establishes.** The CPU-win observation held
+value `1`; the player-win control began with that stale `1` after a previous
+loss, changed to `0` when the opponent's LP reached zero, and retained `0`
+as the result proceeded. This establishes single-player side polarity.
+The `0x2000` bit observed at `gDuel_wSceneStateFlags` marks the result's departure fade:
+`0x80021E54..0x80021E5C` sets it before `Fade_StartOut`. The later
+credit/return block sets a **different** `0x2000` bit in `D_8009B16C` at
+`0x80021E8C..0x80021E98`. The traced fade marker is not by itself proof of
+a record write.
+
+The player-win control (`duel_winner_side_player_win`, result supplied in
+commit `45d8f22d`) recorded these four samples. The player first lost a Free
+Duel to Duel Master K (ID 39) on purpose, started a second duel against the
+same opponent, installed the trace before the final blow, then saw the
+opponent's life points reach zero and the YOU WIN animation, and returned to
+the Free Duel screen.
+
+| Control sample | Mode | Duel state | Winner side | Player LP | Opponent LP |
+|---|---|---|---:|---:|---:|
+| 1. entered duel mode | `0xC3` | `0x8005` | 1 | 8000 | 950 |
+| 2. winner-side byte changed | `0xC3` | `0x000C` | 0 | 8000 | 0 |
+| 3. result-fade marker appears | `0xC3` | `0xE00D` | 0 | 8000 | 0 |
+| 4. three seconds after the marker | `0xC6` | `0xE00D` | 0 | 8000 | 0 |
+
+Samples 1–3 are in duel mode (`0xC3 & 0x1F == 3`); sample 4 is already in
+Free Duel (`0xC6 & 0x1F == 6`). The high mode bits alone do not establish
+freshness of duel globals. The opponent byte remained ID 39 (Duel Master K),
+but the menu sample shows persistence of the old duel values, not a new
+duel-state observation. The decisive `1 -> 0` change occurs at sample 2,
+**before** the new `0x2000` fade marker at sample 3, so the winning `0`
+cannot be left over from the earlier loss that seeded the `1`. The control
+establishes single-player polarity only; it says nothing about which physical
+controller drives which side in a two-player duel.
+
+> **This stage — entered from:** the duel's result flow and the returning
+> mode caller. **Reads:** the statistics record, rank table and drop pools
+> (disc block), RNG, result selectors and selected grid cell.
+> **Writes:** RAM state such as starchips, trunk (+ seen), records and
+> unlock flags. These stores do not themselves write a memory-card file;
+> persistence follows the relevant save flow (§10). **Uses:** the
+> RNG [`0x8008E590`], the card database.
+
+---
+
+## 7. The campaign
+
+The story mode is two modes working together — **dialogue scenes**
+[`Main_RunCampaign` `0x8002CE64`] and the **location map** [`Main_RunCampaignMap`
+`0x8002D2D8`] — that call into the duel for every fight and into the shared
+menus for every shop. It is strictly linear with one branch (§7.6) and one
+point of no return (§7.8). Losing any campaign duel is **game over** except
+the one scripted loss (§7.12).
+
+**How a campaign screen works.** A location shows a picture, the characters
+present, and a dialogue with the current speaker; when the player has a
+choice, a small menu of options appears (quoted below as `<Option>`). Duels
+are always offered as `<Duel>` / `<Pass>` (or `<Decline>`); most story duels
+cannot be refused — refusing simply repeats the prompt. Between scenes the
+**map** shows the reachable locations; ○ backs out of a location to the map.
+Every location that has a **card shop** offers the same four-entry menu:
+`Save` (memory card), `Build Deck` (§4.1), `Return to Title` (the loaded main
+menu — the way to reach Free Duel, Library and Password from inside the
+story), and `Leave Shop` (back to the story). This is the *only* place the
+campaign lets you save, which is why the guides say "save at every shop".
+
+Both verified map overlays also contain `CampaignMap_MoveCameraDpad`
+[`0x80168388`], a free-look-shaped routine over the same five camera channels
+loaded from each location record. Its static input contract is exact:
+
+| Held input | Without L2/R2 | With L2 or R2 |
+|---|---|---|
+| Left / Right | camera `+0x02`, `-2 / +2` | camera `+0x1C`, `-2 / +2` |
+| Up / Down | camera `+0x04`, `+2 / -2` | camera `+0x24`, `+2 / -2` |
+| L1 / R1 | camera `+0x00`, `+4 / -4` | no channel write |
+
+Holding Cross accelerates the two-unit changes to 32 and the four-unit change
+to 20. Whenever any D-pad or L1/R1 bit passes the outer gate, the routine
+rebuilds the derived camera matrix, even if the selected combination writes no
+channel. This is a **static routine contract, not a confirmed map feature**:
+the matching active tick (`CampaignMap_UpdateLocation`) does not call it, and
+neither the resident executable nor any of the five verified overlay images
+contains a direct call or stored pointer to `0x80168388`. Computed or external
+entry remains unproved.
+
+### 7.1 The duelists, in order
+
+Thirty-nine opponents exist [the opponent id byte `0x8009B361`, 1–38 in the
+campaign order below, plus Duel Master K who is Free-Duel-only]. "Forced"
+means the story does not proceed until the duel is won; "optional" duels can
+be declined and repeated. Every duelist **defeated** in the campaign becomes
+available in Free Duel (§8), with two exceptions noted.
+
+| id | duelist | where | forced? | notes |
+|---|---|---|---|---|
+| 1 | Simon Muran | Pharaoh's Palace (Egypt I) | optional | your tutor; challenges you when you return to the palace before the dueling grounds |
+| 2 | Teana | Duel Ground (Egypt I) | optional | also at the hidden grounds later as Teana 2nd |
+| 3 | Jono | Duel Ground, after the festival | optional | |
+| 4 | Villager 1 | Duel Ground | optional | present before and after the tournament |
+| 5 | Villager 2 | Duel Ground | optional | present before and after |
+| 6 | Villager 3 | Duel Ground | optional | **only before the festival** — one of the two duelists you can miss for Free Duel (the other is Seto 2nd); Duel Master K's drop pools are a copy of his (§6.4) |
+| 7 | Seto | Duel Ground, after the festival | forced | the first real challenge |
+| 8 | Heishin | Palace, after Seto | forced **loss** | the only duel you must lose; winning it repeats it, and beating him even once unlocks him for Free Duel |
+| 9 | Rex Raptor | KaibaCorp tournament, preliminaries | forced | |
+| 10 | Weevil Underwood | preliminaries | forced | |
+| 11 | Mai Valentine | preliminaries | forced | |
+| 12 | Bandit Keith | preliminaries | forced | |
+| 13 | Shadi | finals | forced | gives the Millennium Key and Scales |
+| 14 | Yami Bakura | finals | forced | Millennium Ring |
+| 15 | Pegasus | finals (quarter-final) | forced | Millennium Eye; reads your face-downs |
+| 16 | Isis | semi-final | forced | Millennium Necklace |
+| 17 | Kaiba | final | forced | Millennium Rod; the tournament ends |
+| 18 | Mage Soldier | Pharaoh's Palace (Egypt II) | forced | guards the map to the Forbidden Ruins |
+| 19 | Jono 2nd | hidden Dueling Grounds | optional | until the High Mages are all beaten |
+| 20 | Teana 2nd | hidden Dueling Grounds | optional | |
+| 21 | Ocean Mage | Sea Shrine gate | forced (to enter) | home field Umi (reading) |
+| 22 | High Mage Secmeton | Sea Shrine | forced | returns the Millennium Necklace |
+| 23 | Forest Mage | Forest Shrine gate | forced | home field Forest (controlled trace) |
+| 24 | High Mage Anubisius | Forest Shrine | forced | Millennium Key |
+| 25 | Mountain Mage | Mountain Shrine gate | forced | home field Mountain (reading) |
+| 26 | High Mage Atenza | Mountain Shrine | forced | Millennium Ring |
+| 27 | Desert Mage | Desert Shrine gate | forced | home field Wasteland (reading) |
+| 28 | High Mage Martis | Desert Shrine | forced | Millennium Scales |
+| 29 | Meadow Mage | Meadow Shrine gate | forced | home field Sogen (reading) |
+| 30 | High Mage Kepura | Meadow Shrine | forced | Millennium Eye |
+| 31 | Labyrinth Mage | Labyrinth (Vast Shrine) | forced; repeats on a wrong turn | |
+| 32 | Seto 2nd | end of the labyrinth | forced | **only** if you enter with 2–4 shrines cleared (§7.6) |
+| 33 | Guardian Sebek | Vast Shrine, past the labyrinth | forced | Yami terrain; start of the no-save run |
+| 34 | Guardian Neku | Vast Shrine | forced | Yami terrain |
+| 35 | Heishin 2nd | Vast Shrine, Heishin's chamber | forced | same tables as id 8 |
+| 36 | Seto 3rd | Forbidden Ruins | forced | three Blue-eyes Ultimate Dragon |
+| 37 | DarkNite | Forbidden Ruins | forced | magic- and trap-heavy |
+| 38 | Nitemare | Forbidden Ruins | forced | the final duel |
+| — | Duel Master K | Free Duel only | — | always available; plays a copy of your deck |
+
+The five shrines may be taken **in any order**; everything else is in this
+order.
+
+### 7.2 Egypt, the first time
+
+*Opening.* You are the prince. Simon Muran, your tutor, lectures you in your
+room; the first choice is `<Run away>` / `<Keep listening>` — insisting on
+listening three times sends you to bed and skips the evening. Running away
+puts you on the city map: **Pharaoh's Palace**, **Card Shop**, **Duel
+Ground**, **Town Plaza**, **Shrine**.
+
+*Pharaoh's Palace.* Simon offers `<Duel>` / `<Pass>` (id 1) immediately after
+the opening `<Run away>` route returns you to the city map. A controlled new
+game went from the opening dialogue to the map, re-entered the palace, chose
+`<Duel>`, and entered duel mode with opponent id 1 while both Simon's evening
+flag `0x6E` and the festival challenge flag `0x6F` were still zero. This
+settles the guide disagreement: the optional duel is available before the
+festival, without first meeting Jono. The trace establishes the `<Run away>`
+branch only; repeatedly choosing `<Keep listening>` follows the separate
+skip-to-bed route described above. Passing gets `<Don't go>` / `<Go>` (to
+bed). Losing to him is **game over** like any other campaign loss [event 97
+of the event script: dialogue 504 "Simon Muran (lose)", then the game-over
+opcode]; the guides that say otherwise are wrong.
+
+*Card Shop.* The shop menu (save, build deck, title, leave).
+
+*Duel Ground.* Teana and the three villagers. Talking to anyone gives
+`<Duel>` / `<Talk to someone else>` / `<Go outside>`; each can be dueled any
+number of times. Villager 3 is here **only now**. `<Go outside>` after the
+duels sends you and Teana to the **festival** in Town Plaza (the "mages'
+procession" scene).
+
+*Town Plaza — the festival.* You find Jono losing to **Seto**, Heishin's
+prodigy. Whatever you answer, Seto agrees to duel you later at the Duel
+Ground and is called away. Save at the shop (the Shrine now has High Mages
+gossiping about Seto — optional dialogue).
+
+*Duel Ground again.* Jono offers `<Duel>` / `<Pass>` (id 3) while you wait.
+Then Seto arrives with his aides: forced duel (id 7). Winning it, Seto
+recognises the prince and leaves. You may now train at the Duel Ground or
+return to the palace.
+
+*The palace, Heishin's coup.* Simon sends you to bed; a guard reports that
+High Mage Heishin has invaded with a strange power. Seto corners you and
+threatens the King and Queen for the Millennium Puzzle; whatever you choose,
+Simon arrives beaten, hands you the Puzzle and tells you to `<Run>`. Heishin
+blocks the way and forces a duel (id 8) — **you must lose it**; every win
+just replays the duel. On the loss Heishin demands the Puzzle; the one
+option is `<Shatter the Puzzle>`. Simon seals you both inside it. A thousand
+years pass.
+
+### 7.3 The KaibaCorp tournament
+
+You are now **Yugi**, in the present. Every round starts in the **Card Shop**
+(save; `<Leave Shop>` goes to the next opponent) and each win returns you to
+it. The preliminaries are Rex Raptor, Weevil Underwood, Mai Valentine and
+Bandit Keith (ids 9–12), forced, one after another. Between the preliminaries
+and the finals Shadi appears, opens Yugi's mind with the Millennium Key,
+Yugi meets the prince inside the Puzzle and receives **six blank cards**. The
+finals are Shadi, Yami Bakura, Pegasus, Isis and Kaiba (ids 13–17); each win
+forces that finalist's **Millennium Item** into a blank card — Key and Scales
+from Shadi, Ring from Bakura, Eye from Pegasus, Necklace from Isis, Rod from
+Kaiba. With all seven the prince can return to his own time. (During this
+section the loaded menu's Free Duel already works — the guides recommend
+farming Rex and Mai before Keith.)
+
+### 7.4 Egypt, the second time
+
+*Shrine of Glory.* Simon wakes the prince inside the Puzzle, explains that
+Heishin holds six Items and rules from the Vast Shrine, that the five High
+Mages guard one Item each in five shrines, and that the way to beat them is
+in the **Forbidden Ruins** — then dies. You appear at the ruined Shrine of
+Glory. The map now: **King's Valley** (left), **Metropolis** (right, twice).
+
+*King's Valley.* Sadin the tomb-keeper: `<Go to parents' tomb>` / `<Go to
+Forbidden Ruins>` / `<Leave this place>`. He will not show you the ruins
+without proof; leave.
+
+*Metropolis.* Sub-locations: **Old Duel Ground** (destroyed; Jono finds you
+and takes you underground), the **hidden Dueling Grounds** (Teana, Jono 2nd,
+Teana 2nd, villagers — `<Duel with Jono>` / `<Duel with Teana>` / `<Decline>`
+on arrival, then the usual `<Duel>` / `<Talk to someone else>` / `<Go
+outside>`), the **Hiding Card Shop** (`<Card Shop>` — the shop menu, i.e. the
+save point — / `<Dueling Grounds>`), and **Pharaoh's Palace**: `<Enter>` /
+`<Don't enter>`; inside, the Mage Soldier: `<Duel>` / `<Pass>`, forced (id
+18); then `<Search>` / `<Don't search>` in your old room finds the **map to
+the Forbidden Ruins**.
+
+*King's Valley again.* `<Give Map>` / `<Leave this place>`. Sadin leads you
+to the **Forbidden Ruins**: `<Look at map>` / `<Look at drawing>`. Looking at
+the map brings Seto, who reads it: the five shrines and their Items. Sadin
+throws him out and warns you he is not to be trusted. `<Return>` leaves, and
+**five shrines open on the map**: Sea, Forest, Mountain, Desert, Meadow.
+
+### 7.5 The five shrines
+
+Each shrine is the same shape. At the gate a **Low Mage** (Ocean / Forest /
+Mountain / Desert / Meadow Mage) blocks the way: forced duel on the shrine's
+home terrain. Winning gives `<Proceed>` / `<Return>` — returning to save
+means fighting the gate mage again next time. Inside, the **High Mage**
+(Secmeton / Anubisius / Atenza / Martis / Kepura), forced, on the same home
+terrain; the High Mage's script resets the terrain to the home field whenever
+you change it. Winning recovers that shrine's Millennium Item (Necklace, Key,
+Ring, Scales, Eye respectively) and the shrine is done. Any order; the map
+shows which remain.
+
+### 7.6 The labyrinth — the one branch
+
+After **two to four** shrines, going to the hidden Dueling Grounds triggers
+Jono: Teana has been kidnapped as bait for the Puzzle. You and Jono enter the
+**Vast Shrine**'s labyrinth; the **Labyrinth Mage** (id 31) forces a duel. Then
+four forks — `<Go right>`, `<Go right>`, `<Go left>`, `<Go right>` is the
+way through [read off the menus' jump tables, §7.11]; any wrong turn means
+another Labyrinth Mage duel and a restart from the first fork. At the end,
+Heishin and **Seto 2nd** (id 32): forced duel; Seto was "testing" you and
+frees Teana. Back to the shrines for the rest.
+
+If you clear **all five** shrines first, this scene does not happen: Seto
+2nd is never fought (and never unlocked for Free Duel), and the labyrinth is
+entered only as part of the finale below. If it did happen, then after the
+fifth shrine Seto appears at the Dueling Grounds to say Heishin is in the
+Vast Shrine.
+
+### 7.7 The finale, part one — the Vast Shrine
+
+With all five Items back (six with the Puzzle), save at the Hiding Card Shop
+— **this is the last save before the end**. Enter the Vast Shrine (the
+labyrinth path again if you have not been through it, then Seto at a secret
+door): `<Go ahead>` / `<Ignore the chance>`. Beyond it, in order, with no
+chance to save between them:
+
+1. **Guardian Sebek** (id 33), on Yami terrain;
+2. **Guardian Neku** (id 34), Yami;
+3. **Heishin 2nd** (id 35), in his chamber.
+
+### 7.8 The finale, part two — the Forbidden Ruins
+
+Seto arrives with the Rod: all seven Items are together; to the Forbidden
+Ruins, where he reveals he wanted the Items for himself and opens the
+chamber of DarkNite's statue. Forced duel: **Seto 3rd** (id 36). Beaten, he
+leaves you the choice `<Destroy Items>` / `<Don't destroy>` — moot, because
+Heishin appears, seizes Seto and demands the Items for his life: `<Hand over
+the Items>` / `<Refuse>` (refusing repeats the prompt). Heishin places the
+Items in the statue and summons **DarkNite**, who refuses to obey him and
+turns him into a card. Seto reminds you of the Millennium Card; DarkNite
+agrees to leave if beaten: forced duel (id 37). Beaten, he
+reneges and becomes **Nitemare**: the last duel (id 38).
+
+### 7.9 The ending
+
+Nitemare vanishes, Seto flees, the ruins are sealed and the prince takes the
+throne. The game offers a **save** (the completed-game flag is what enables
+the Japanese PocketStation password menu) and rolls the **credits**
+[`Main_RunCredits` `0x8002DA1C` → the 3-D sequence `func_8006CD78`, the largest
+function in the game]. Afterwards the title returns; a completed save
+continues in Free Duel with every campaign duelist available.
+
+### 7.10 What the campaign reads and writes
+
+> **Entered from:** name entry (new), loaded menu (Campaign). **Exits to:**
+> duel (every fight), Build Deck / Save / loaded menu (every card shop), game
+> over (every loss but Heishin's), credits (the end). **Reads:** the campaign
+> progress state — where the story is, which shrines are cleared, which
+> Items are held, whether the labyrinth scene has fired — plus the deck
+> (refused if not 40) and the unlock/record tables it updates. **Writes:**
+> progress state; after each duel the starchips, trunk, records and unlock
+> bits (§6.5) through the shared post-duel path; the terrain byte
+> [`0x8009B364`] and opponent id [`0x8009B361`] before each duel. **Uses:**
+> the duel engine, the disc loader (scene pictures and the per-terrain duel
+> blob), the card shop's menus, the memory card. **Where progress lives:** in
+> the save's **flag array** [`0x801D0618`, §1], and the whole story is
+> data-driven at two levels:
+>
+> * an **event script** — 4 KB loaded to `0x801A8000` as the third chunk of
+>   the 49-sector blob at `WA_MRG.MRG` sector `0x1E57` [matching
+>   [`Campaign_LoadScenePackage`](../../src/game/campaign_load_scene_package.c)
+>   requests the fixed package; callback `Campaign_LoadScenePackageStage`
+>   routes the script phase]. Its argument initializes
+>   `D_8009B2A4`, not a per-scene archive-page address. Matching
+>   [`Main_RunCampaign`](../../src/game/main_run_campaign.c) supplies
+>   `gCampaignSceneIndex`; on normal entry, the event driver uses a nonzero
+>   unstarted value to select the corresponding script entry.
+>   The script begins with a `u16 offset[199]`
+>   table, one entry per event, and each event is a byte stream run by
+>   `Script_RunTick` through a 23-opcode table [`0x80090C50`, opcode = byte &
+>   0x1F]. The opcodes that matter for the flow: 1 = show location picture,
+>   2 = run dialogue N, 3 = flag (set/clear, or "if flag, jump")
+>   `Script_OpStoryFlag`, 8 = go to map location N, 12 = jump, 18 = game over,
+>   19 = credits, 21 = "if the deck is not 40 cards, jump" (the deck check),
+>   22 = title. Almost every event is "picture, dialogue, then map / game
+>   over": the event script is the campaign's dispatcher, and it tests flags
+>   to pick the variant of a location (events 33–46, 51 and 79 test `0x20`,
+>   `0x26`, the five High Mages' flags, `0x47`, `0x48`, `0x4D`, `0x5A`,
+>   `0x6F`);
+> * the **dialogue texts**, which are in the executable [160 KB at
+>   `0x801B11D6`–`0x801D859F`; text id `0x5xx` → `u16` table at `0x801C0000`
+>   index `id − 0x100`, pointer = `0x801B0000` + offset, per
+>   `func_800383DC`]. Bytes below `0xF0` are characters (the community's
+>   `table.tbl` decodes `0x00`–`0x5B`); `0xF0`–`0xFF` are control codes
+>   dispatched through a 16-entry table [`0x80090F18`, `TextBox_BuildStep`]:
+>   `F8 op` selects the 47-entry secondary table [`0x80090EAC`] whose op `0x19` is
+>   `Text_UnlockDuelist`, which sets `0x1F + id` and `0x6E0 + id`;
+>   `F9 u16` is the **flag** code
+>   [`Text_HandleCampaignFlagCommand`](../../src/game/text_control_commands.c):
+>   bit 14 selects a write; otherwise the command consumes a second u16 and a
+>   successful set/clear test jumps to that target.
+>   Bit 15 selects a clear write or an inverted test (§1).
+>   `FA` starts page wait, `FB` builds or branches from a choice, `FC` pushes
+>   a nested stream offset, `FD` jumps the current stream, `FE` is newline,
+>   and `FF` returns from a nested stream or ends the outer stream. See the
+>   [complete operand and state contract](../text-control-bytecode.md). So
+>   every SET of a story flag is inside a line of
+>   dialogue, and every duelist's unlock is inside their "you won" line.
+>
+>   `F8 0D` is the campaign-duel descriptor handled by
+>   `Text_StartCampaignDuel`. Its six payload bytes are the opponent id, two
+>   post-duel continuation bytes, the terrain, and a little-endian sound
+>   command. `Main_RunDuel` later selects one continuation with
+>   `D_8009B362 * 2`. `FreeDuel_Init` independently uses the same outcome byte
+>   to select the per-duelist result counter: value 0 leaves the wins halfword
+>   selected, while value 1 advances to losses. This confirms index 0 as win
+>   and index 1 as loss.
+>
+> The loaders read the flags too — the Egypt map loader [`File_RequestEgyptOverworldPackage`]
+> picks the blob at sector `0x1FD9` or, if flag `0x47` is set, the one at
+> `0x2077`. §7.11 lists every story flag with the dialogue that sets it;
+> `tools_src/campaign_script.py` (in `MaChInEgUn3/ygofm-decomp`) reproduces
+> both parses and the table.
+
+### 7.11 The story flags
+
+Read off the event script and the dialogue texts (§7.10): "set by" and
+"tested by" are dialogue ids (Data Crystal's names where it has them), plus
+the event-script events that test the flag. The "what it records" column is
+what the setting line of dialogue says, so it is a reading of the game's own
+text rather than of code.
+
+| flag | set by (dialogue) | tested by | what it records |
+|---|---|---|---|
+| `0x20` | (unlock opcode, with `0x6E1`) |  + events 46 | Simon Muran beaten |
+| `0x21` | (unlock opcode, with `0x6E2`) | 508 | Teana beaten |
+| `0x23` | (unlock opcode, with `0x6E4`) | 50B | Villager 1 beaten |
+| `0x24` | (unlock opcode, with `0x6E5`) | 50F | Villager 2 beaten |
+| `0x25` | (unlock opcode, with `0x6E6`) | 513 | Villager 3 beaten |
+| `0x26` | (unlock opcode, with `0x6E7`) |  + events 42,44,46 | Seto beaten |
+| `0x31` | (unlock opcode, with `0x6F2`) | 57D | Mage Soldier beaten |
+| `0x34` | (unlock opcode, with `0x6F5`) | 58C | Ocean Mage beaten |
+| `0x35` | (unlock opcode, with `0x6F6`) | 595,596,59F,5A0,5A9,5AA,5B3,5B4,5BD,5DA,5DB,5DC,5DD,5DE,5E3,5E4,5E5,5E6,5E7,5E8,5E9,5EA + events 36 | High Mage Secmeton beaten |
+| `0x36` | (unlock opcode, with `0x6F7`) | 596 | Forest Mage beaten |
+| `0x37` | (unlock opcode, with `0x6F8`) | 58C,595,59F,5A0,5A9,5AA,5B3,5B4,5BD,5DA,5DB,5DC,5DD,5DE,5E3,5E4,5E5,5E6,5E7,5E8,5E9,5EA + events 33 | High Mage Anubisius beaten |
+| `0x38` | (unlock opcode, with `0x6F9`) | 5A0 | Mountain Mage beaten |
+| `0x39` | (unlock opcode, with `0x6FA`) | 58C,595,596,59F,5A9,5AA,5B3,5B4,5BD,5DA,5DB,5DC,5DD,5DE,5E3,5E4,5E5,5E6,5E7,5E8,5E9,5EA + events 38 | High Mage Atenza beaten |
+| `0x3A` | (unlock opcode, with `0x6FB`) | 5AA | Desert Mage beaten |
+| `0x3B` | (unlock opcode, with `0x6FC`) | 58C,595,596,59F,5A0,5A9,5AA,5B3,5B4,5BD,5DA,5DB,5DC,5DD,5DE,5E3,5E4,5E5,5E6,5E7,5E8,5E9,5EA + events 34 | High Mage Martis beaten |
+| `0x3C` | (unlock opcode, with `0x6FD`) | 5B4 | Meadow Mage beaten |
+| `0x3D` | (unlock opcode, with `0x6FE`) | 58C,595,596,59F,5A0,5A9,5AA,5B3,5BD,5DA,5DB,5DC,5DD,5DE,5E3,5E4,5E5,5E6,5E7,5E8,5E9,5EA + events 40 | High Mage Kepura beaten |
+| `0x47` | 56A | — + events 44,45,46 | the tournament is over and the prince is back in Egypt (set by Simon in 56A) |
+| `0x48` | 505 | — + events 46 | heard Simon's tale of the cards (505) |
+| `0x49` | 50C | 50B | Villager 1 has told you about the festival (50C) |
+| `0x4A` | 510 | 50F | talked to Villager 2 (510) |
+| `0x4B` | 514 | 513 | talked to Villager 3 (514) |
+| `0x4D` | 53D | — + events 51 | saw the mages waiting for Seto at the shrine (53D) |
+| `0x4E` | 537 | 52E | Villager 1 has lost to you and changed his line (537) |
+| `0x4F` | 53A | 530 | Villager 2 has lost to you and gone home (53A) |
+| `0x50` | 586 | — | met Sadin at King's Valley (585/586) |
+| `0x51` | 581 | 585 | found the map to the Forbidden Ruins in the palace (581) |
+| `0x52` | 575,585 | 585 | handed the map to Sadin (585) |
+| `0x53` | 58A | 585 | entered the Forbidden Ruins (58A) |
+| `0x54` | 58A | 58A | looked at the map in the ruins (58A) |
+| `0x5A` | 583 | — + events 79 | found the hidden Dueling Grounds (583) |
+| `0x5B` | 5DA | 5DA | set and re-tested inside Jono 2nd's hub dialogue (5DA); purpose read as a once-only line |
+| `0x5C` | 5DA | 595,59F,5A9,5B3,5BD,5DA,5DB | the kidnapping scene has played (5DA; High Mage defeats test it) |
+| `0x5D` | 5BF | 5D9,5DA,5DB,5DC,5DD,5DE | all five High Mages beaten: Seto's "you defeated the High Mages" (5BF) |
+| `0x5E` | 5D8 | 5D8 | visited the hiding card shop (5D8) |
+| `0x5F` | 5DA | 5DA | set and re-tested inside dialogue 5DA; purpose read as a once-only line |
+| `0x60` | 58A | 58A | looked at the drawing in the ruins (58A) |
+| `0x61` | 5DB | 5DB | set and re-tested inside Teana 2nd's dialogue (5DB); purpose read as a once-only line |
+| `0x62` | 5DB | 5DB | set and re-tested inside dialogue 5DB; purpose read as a once-only line |
+| `0x63` | 5DC | 5DC | set and re-tested inside dialogue 5DC; purpose read as a once-only line |
+| `0x64` | 5DC | 5DC | set and re-tested inside dialogue 5DC; purpose read as a once-only line |
+| `0x65` | 5DD | 5DD | set and re-tested inside dialogue 5DD; purpose read as a once-only line |
+| `0x66` | 5DD | 5DD | set and re-tested inside dialogue 5DD; purpose read as a once-only line |
+| `0x67` | 5DE | 5DE | set and re-tested inside dialogue 5DE; purpose read as a once-only line |
+| `0x68` | 5DE | 5DE | set and re-tested inside dialogue 5DE; purpose read as a once-only line |
+| `0x69` | 5F2 | 5F1,5F2 | Labyrinth Mage beaten once (5F2 sets the next unset bit of 0x69-0x6C on each win; they only vary Jono's line at the next fork) |
+| `0x6A` | 5F2 | 5F1,5F2 | Labyrinth Mage beaten twice |
+| `0x6B` | 5F2 | 5F1,5F2 | Labyrinth Mage beaten three times |
+| `0x6C` | 5F2 | 5F1,5F2 | Labyrinth Mage beaten four times |
+| `0x6D` | 595,59F,5A9,5B3,5BD | 5EE | set with 0x5D after the fifth High Mage; tested by Seto at the labyrinth door (5EE) |
+| `0x6E` | 501 | 542,5EE | Simon's evening lecture has happened (501/502) |
+| `0x6F` | 521,522 | 507,51F + events 43 | Seto has challenged you at the festival (521/522) |
+
+Events in the event script that test flags: 0x20→46, 0x26→42,44,46, 0x35→36, 0x37→33, 0x39→38, 0x3B→34, 0x3D→40, 0x47→44,45,46, 0x48→46, 0x4D→51, 0x5A→79, 0x6F→43
+
+Three things the table shows on its own. Every duelist's unlock sits in
+their "you won" dialogue — ids 1–38, one each, which is the independent
+confirmation of the id order in §6.4. The five shrines are gated on the
+**High Mage's** `0x1F + id` flag and skip the gate mage on the **Low
+Mage's** (`0x34`, `0x36`, `0x38`, `0x3A`, `0x3C` tested by the shrine
+dialogues), so "shrine cleared" is not a flag of its own. And the labyrinth
+does **not** save your position: its four bits `0x69`–`0x6C` count Labyrinth
+Mage wins — the mage's "you won" text (5F2) sets the next unset one and then
+always presents the first fork again, with a different line from Jono each
+time ("Let's move on", "Teana's waiting for us", "déjà vu", "these guys are
+everywhere"). The route itself is in the menus' jump tables [after a menu's
+options comes `FB 80` and one `u16` target per option, indexed by the
+choice — `Text_HandleChoiceCommand` (`0x80038BF0`)]: at forks 1, 2 and 4 "Go
+right" leads on and "Go left" to the mage, at fork 3 it is the reverse —
+right, right, left, right, as every guide says, now read off the bytes.
+
+Not read: Nitemare's win text tests flag `0x5F7` in a jump-only branch. The
+ending text (5D7) sets and tests nothing. Text ids `0x40`–`0x45` are not
+dialogue at all: they are the post-duel result screens (the category labels
+of §6.1), laid out for the duel-end code rather than run as a dialogue
+stream — read as one, they contain an `F8 FF` pair that would dispatch to a
+null pointer — so the dialogue parser skips them.
+
+### 7.12 Losing
+
+A lost campaign duel goes to **game over** [`Main_RunGameOver` `0x8002D730`],
+which offers a retry of the same duel or a return to the title (the save is
+untouched, so the real cost is everything since the last card shop). The one
+exception is Heishin's first duel, which must be lost. The Data Crystal scene
+list (UNVERIFIED as ids) carries a named entry for every campaign event —
+`500 Introduction` through `5D7 Ending`, with separate win/lose/rematch
+scenes per duelist — and is the natural index for anyone tracing the story
+code; it is reproduced in §12.4.
+
+---
+
+## 8. Free Duel
+
+`SELECT OPPONENT!` — a list of every duelist you have **beaten in the
+campaign** (plus Heishin, unlocked by the scripted loss, and Duel Master K,
+always there), each with its record `WIN n LOSS n`. Pick one, and the duel
+starts with your current deck [`Main_RunFreeDuelMenu` `0x8002D3F8`, 32 functions,
+the smallest subsystem in the game]. The rules, scoring, starchips and drop
+are exactly the single-player path (§6); a loss records a loss and returns
+you here — nothing else is lost. This is where the game is actually played
+after the story: every guide's "farm X for Y" is a Free Duel loop.
+
+**Normal browsing controls.** Matching
+[`FreeDuel_UpdateScreen`](../../src/overlays/free_duel/screen_runtime.c)
+uses pad 1's published held mask at `0x8009B3A4` and pressed mask at
+`0x8009B398`. The button names follow
+[`input.h`](../../src/game/input.h):
+
+| Input | Mask tested | Browse action |
+|---|---|---|
+| Held D-pad | `held & 0xF000` | Requests a neighboring target cell; columns clamp to `0..4` and rows to `0..7`, without wrapping. |
+| Pressed Circle | `pressed & 0x20` | Returns to the main-menu handler, mode `8`. |
+| Pressed Cross or Square | `pressed & 0xC0` | Confirms an available entry: Build Deck at cell 0, or an opponent after the 40-slot deck has no empty entry. |
+
+The branches have precedence, not independent actions. Any direction in
+the held mask takes the navigation branch instead of checking cancel or
+confirm, even when the requested move is clamped at an edge. With no held
+direction, Circle is checked before Cross/Square, so cancel wins if both
+pressed masks are present in that invocation.
+
+This applies only to normal browsing. Flag `0x20` delegates to the shared
+dialog handler and returns before browse input, including when that call
+closes the dialog. Otherwise the routine services the cursor tween and
+scrollbar, then skips browse input if movement flag `0x40` remains set.
+[FreeDuel_UpdateCursorTween](../../src/overlays/free_duel/screen_runtime.c)
+commits the target row/column before clearing that flag; confirmation uses
+the committed cell.
+These are code-derived controls, not a new runtime test of the delegated
+dialogs or their button handling.
+
+**Cursor trail and screen audio.** During each non-final tween update,
+`FreeDuel_UpdateCursorTween` can allocate one object into the highest free
+slot of the 16-entry `gFreeDuel_apSparklePool`. The matching updater initializes
+that `DisplayObject` to additive grey `0x404040` with a 16-update timer,
+subtracts four from each color channel per update, and releases the object
+and clears its slot when the timer reaches zero. This is a visual
+display-object effect, separate from the screen's audio startup.
+
+At the end of `FreeDuel_Init`, `SD_BGMPlay(0x72C0)` dispatches into the sound
+driver and queues command `0x48`. That pins the post-initialization ramp seen
+in the historical trace to BGM-driver state. It is not the full-screen visual
+fade in `gFade_State`, and the static code does not yet justify narrower names
+for the changing driver fields.
+
+**Duel Master K** is the exception in every way: not in the campaign, always
+unlocked, and receives a **copy of your own deck**. The setup comparison at
+`0x80017D84` sends opponent IDs below 39 through
+`Duel_ShuffleBothDecks(player_deck, NULL)`, but ID 39 falls through to
+`Duel_ShuffleBothDecks(player_deck, player_deck)`. The tutorial edit at file
+offset `0x8585` changes the comparison limit from 39 to 295, making ID 39
+take the ordinary-opponent branch; the edited byte is part of that signed
+immediate, not a standalone deck-mode flag. Exact matching C for
+`Duel_ShuffleDeck` confirms that a null source generates 40 cards from
+`gDuel_awOpponentDeckPool`, while a non-null source copies its 40 card IDs
+before shuffling; the tutorial's editable-deck result is therefore confirmed
+[[verified tutorial mapping](../modding-tutorial-gameplay-patches.md#editable-duel-master-k-deck)].
+His drop pools are a copy of Villager 3's (§6.4).
+The shared source gives the same card multiset, not a promise of identical
+draw order: the two shuffle calls consume separate consecutive RNG segments.
+
+The unlock is one flag per duelist, `0x6E0 + id`, in the save's flag array
+[bytes `0x801D06F4`–`0x801D06F8`]. Exact matching `FreeDuel_Init`, in the
+**overlay** loaded to `0x80168000` with the Free Duel blob (§12.2), first
+marks all 40 `gFreeDuel_abGridAvailable` entries available. Its explicit
+`for (id = 1; id < 39; id++)` loop then clears an entry when
+`Campaign_TestStoryFlag(0x6E0 + id)` is zero. The bounds exclude entry 0, the
+Build Deck tile, and entry 39, Duel Master K; both retain their initialized
+availability without a story unlock test.
+
+A controlled trace confirms both consequences of that loop. On a new save
+whose five unlock bytes were all zero, Duel Master K alone remained available.
+Writing only the published data cheat changed bytes `0x801D06F4`–`0x801D06F7`
+to `FF FF FF FF` while leaving `0x801D06F8` zero. The settled overlay grid
+then made ids 1–31 available, left ids 32–38 unavailable, and kept id 39
+available; every tested flag for ids 1–38 matched its grid cell. Thus entry 39
+is Duel Master K's independent always-available slot, and the four-byte data
+cheat does **not** unlock every opponent. The separate "all opponents"
+*instruction patch* turns the clearing branch at `0x801683D4` into a jump
+past it and really does leave every grid entry available.
+
+The list is presented in campaign order: Simon Muran first,
+Duel Master K last. Only two campaign duelists can be permanently missing
+from it: Villager 3 (never dueled before the festival) and Seto 2nd (all
+five shrines cleared before the labyrinth).
+
+The resident byte `gFreeDuel_bReturnFlags` (`0x8009B365`) records why the
+screen is being revisited. The Free Duel overlay sets `0x40` before opening
+Build Deck and `0x80` before starting a duel. Both values remain set when the
+screen returns, preserving the selected cell and skipping first-entry setup;
+the duel bit additionally tells `FreeDuel_Init` to index
+`gFreeDuel_aDuelistRecords` with `row * 5 + column`. Outcome byte
+`D_8009B362 == 1` advances from the wins halfword to losses; the selected
+`u16` is incremented and clamped to 999.
+
+> **Entered from:** loaded menu. **Exits to:** duel; Build Deck; main menu. **Reads:**
+> unlock mask, records, deck (must be 40). **Writes:** through the post-duel
+> path — starchips, trunk, records. **Uses:** duel engine, disc loader (the
+> opponent's block and portrait).
+
+---
+
+## 9. Two players and trading
+
+### 9.1 2P Duel
+
+Two saves, one on each memory card, one controller each. The screen loads
+both saves (`Red` / `Blue`), checks that both decks are ready (`1P'S DECK IS
+NOT READY`) and that the two saves are **different people** — every save
+carries a **duelist code** (shown as `SECRET NO. 00000000` on these
+screens), and `YOU CANNOT COMPETE WITH THE SAME DUELIST CODES!` refuses a
+save dueling a copy of itself. The duel is the normal
+engine with the AI replaced by the second controller; it does not use the
+single-player score/drop awards or per-opponent Free Duel grid records.
+The resident result path can update separate per-save win/loss counters
+(§6.5); those RAM stores alone do not establish subsequent memory-card
+writes. On the active player's turn, Select opens
+`QUIT DUEL? NO YES`; choosing Yes fades directly back to the initial menu.
+The setup chooses starting LP separately for both sides. Each defaults to
+8000, and pad 1 or pad 2 adjusts its own value to `1` or a multiple of 500
+from 500 through 8000. Matching
+[`Main_RunTwoPlayerDuelSetup`](../../src/game/main_run_two_player_duel_setup.c)
+initializes the values,
+and [`MainMenu_UpdateValueSetup`](../../src/overlays/main_menu/value_setup.c)
+(`0x801812B4`) edits them. Because 2P uses the negative opponent-ID path,
+`Duel_InitSideStates` copies those selections into both the authoritative and
+maximum LP fields; recovery is therefore capped at the chosen starting value.
+
+On this setup screen, **Circle on either pad cancels** and **Start on
+either pad accepts**; Circle is tested first and wins if both are present.
+Both exit checks precede the current poll's per-side edits; Cross/Square
+are not confirmations here. Exit input is considered only
+when both widgets are idle and their displayed numbers have caught up with
+their target values. A number that reaches its target during the current
+poll still marks that side busy for that poll. Per-side edits have their
+own idle gates, separate from this two-sided exit gate.
+
+**Cancel is not a rollback of working RAM.** On either cancel (`-1`) or
+accept (`1`), the resident caller fades and invokes
+[`MainMenu_FinishValueSetup`](../../src/overlays/main_menu/value_setup.c)
+before distinguishing the result. That helper writes both target LP values
+through its retained pointers to `D_8009B234`/`D_8009B236`, and a normalized
+shared option to the low byte of `D_8009B230`. Accept then requests the
+duel path; cancel restores the previous main mode. These working-RAM writes
+do not by themselves establish a saved preference or memory-card write.
+The host's initialization branch also resets both LP values to 8000.
+The shared option's caption and complete visibility behavior remain unproved, but
+its resident handoff is established. When both `D_8009B360[0]` and
+`gDuel_bOpponentID` are negative, duel initialization copies that low byte
+to `DuelSideState.card_view_mode` at `+0x1F` of both `0x20`-byte side
+records. Known card-object and card-text consumers read the active side's
+copy. This mode byte is not itself an image-resource index; see the
+[conditional view-mode handoff](../duel-card-record.md#per-side-view-mode-handoff).
+See the [full editor contract](../../src/overlays/main_menu/README.md#value-setup-input-and-write-back).
+
+[`Main_RunTwoPlayerDuelSetup` hosts the starting-LP screen;
+`Main_RunTrade` `0x8002D7CC`
+hosts the two-save flow shared with Trade; scene texts `2PDUEL`,
+`PvP Duel Screen`.]
+
+### 9.2 Trade
+
+Both memory cards are read (× to load), each save's trunk is shown on its
+side, each player marks the cards to give with □, and `Execute Trade` moves
+them. The counts need not be equal, and a save may be left with fewer than
+40 cards. The same duelist-code rule applies (`YOU CANNOT TRADE WITH THE SAME
+DUELIST CODES!`), which is meant to stop copying a save and trading with
+itself — and is defeated by a third memory card as an intermediary, which is
+how the community duplicates cards and buys passwords "for free" (copy the
+save, spend on the copy, trade the purchase through a fresh save to the
+original). The starter deck of any new save can likewise be traded away,
+forty cards at a time.
+
+> **Entered from:** initial menu. **Exits to:** initial menu; duel (2P).
+> **Reads:** two save blocks, including deck readiness and duelist codes.
+> **Writes:** Trade changes trunks/decks; the 2P result path also has the
+> separate RAM counters described in §6.5.
+> **Uses:** memory-card I/O on both slots, the duel engine (2P).
+
+---
+
+## 10. Saving and the memory card
+
+One save per memory card (one block); `Save` exists on the loaded menu, in
+every campaign card shop, and after the ending. Saving writes the whole save
+block (§1): name and duelist code, deck, trunk with seen flags, starchips,
+records, unlock mask, campaign progress, password-use record. Loading
+restores it and shows the loaded menu; the campaign resumes at the last
+scene. The dialogue messages are listed in §2.3. Nothing is auto-saved: a
+Free Duel win that is not saved is lost on power-off, and so is a campaign
+loss you did not save after.
+
+The resident save builder stages a `0x200`-byte header followed by two
+identical `0x680`-byte state copies, for `0xF00` bytes through the end of the
+duplicate. `SaveData_RequestWrite` copies the live state to `0x801D3200`;
+`SaveData_BuildPayload` builds the header at `0x801D3000`, normalizes the
+primary copy, and duplicates it at `0x801D3880`. The final request passes
+`0x801D3200` and length `0xD00`, exactly the contiguous primary-plus-duplicate
+state pair. Its final mode value remains unnamed.
+
+---
+
+## 11. Numbers you will meet in the code
+
+The constants an agent will see as bare immediates, and what each one is:
+
+| number | means |
+|---|---|
+| **722** | the card count; any loop to 722 or table of 722 entries is per-card (trunk bytes, weight tables, password table) |
+| **723** | 722 + the unused id 0 — the fusion table's offset array is `u16[723]` |
+| **40** / **0x50** | the deck size in cards / in bytes (40 × u16) |
+| **8000** / **0x1F40** | starting life points |
+| **5** | the hand size; also the zones per row, the pairs per rank row, the starchips for an S |
+| **10** | the zones per side; rows in the rank table; the guardian stars; the traps; the ranks |
+| **20** | the monster types (0–19); also **0x20**, the per-side duel record stride |
+| **24** | rituals; **34** equips; **33** pure magic; **10** traps; **621** monsters |
+| **28** / **0x1C** | the duel-card record stride; each side has five hand and ten field records (§5.1) |
+| **500** | the guardian-star bonus, the terrain bonus, one equip level |
+| **2048** / **0x7FF** | the drop roll: `(rand & 0x7FF) + 1`; every weight table sums to 2048 |
+| **1460** / **0x5B4** | one weight table: 722 × u16 + 16 bytes of padding; the three drop pools are 0x5B4 apart |
+| **50** | the rank score's starting value; **99** the clamp; `/ 10` the letter |
+| **3** / **1** | max copies of a card in the deck / of each Exodia piece |
+| **39** | duelists (0–38 in the block/id order; the record array has 39 slots) |
+| **17** | modes in the mode table; **67** AI opcode handlers; **14** magic effect groups |
+| **7** | terrain types including normal (0–6), and therefore seven copies of the duel data on disc |
+| **235** / **0xEB** | sectors per duel-data blob; **0x16C6** its first sector; **0x1D33** the first per-duelist block, 3 sectors each |
+| **0x800** | one CD sector, the ritual table's size, the unit of every disc offset |
+| **999,999** | the password cost of a card the game does not mean you to buy |
+| **0x8000F800** | file offset → RAM address delta for `SLUS_014.11` |
+
+---
+
+## 12. Where the data lives
+
+### 12.1 In the executable
+
+The card database (stats, levels, names), the terrain table, the effect-group
+table and handler tables, the mode table, the AI opcode table, and the
+in-game text — every dialogue line of the campaign is here, 160 KB from
+`0x801B11D6`, with its pointer table at `0x801C0000` (§7.10). The rule tables of the duel are **not** here: their addresses
+are zero in the file because the duel loader fills them from disc.
+
+### 12.2 On the disc
+
+The game opens seven files by name at boot [table at `0x8009078C`,
+`File_SetPositionTable` (`0x800136E4`)]: `WA_MRG.MRG` (36 MiB, many screen and
+duel packages), `SU.MRG` (including the main-menu image), `MODEL.MRG` (3-D
+models), `MOVIE.STR`, `SD_SE.DAT`, `SD_BGM.DAT`, `MASTER.XA`. WA is not the
+owner of every runtime asset or overlay. Requests identify a file as well
+as a range, and a per-screen callback routes the phases
+[`File_RequestAsyncTransfer`]. The WA package loaders use fixed
+first-sector constants (`0x1690`, `0x1E88`, `0x1EDF`, `0x1F2F`,
+`0x1F85`,
+`0x1FA7`, `0x2115`, `0x2147`, `0x2157`, `0x2189`, one indexed at `0x1FD9`).
+
+**The duel blob.** Starting a duel submits one asynchronous range request for
+**235 sectors at sector `0x16C6 + 235 × terrain`** [`Duel_LoadTerrainPackage`]. This is
+one high-level transfer request, not evidence that the drive consumes the whole
+range in one low-level CD operation. Its `Duel_LoadPackageStage` callback
+handles stage indices 0 through 12; those thirteen chunk sizes sum to exactly
+235 × 2048, and an out-of-range stage has no case and leaves the descriptor
+unchanged:
+
+| offset | size | goes to | what |
+|---|---|---|---|
+| `+0x00000` | 0x20000 | VRAM (768, 256) | pictures |
+| `+0x20000` | 0x2000 | staging → `LoadImage2` rect (256, 240) 256×16 | pictures |
+| `+0x22000` | 0x2800 | `0x8017A1D8` | **equip table** |
+| `+0x24800` | 0x10000 | `0x8017C2D8` | **fusion table** |
+| `+0x34800` | 0x800 | `0x801799D8` | **ritual table** |
+| `+0x35000` | 0x1000 | staging → `LoadImage2` rect (0, 240) 256×8 | pictures |
+| `+0x36000` | 0x10000 | VRAM (x = 512) | pictures |
+| `+0x46000` | 0x16000 | `0x80146000` | the 90 KB **code overlay** |
+| `+0x5C000` | 0x1800 | `0x801A8000` | the AI script area (reading) |
+| `+0x5D800` | 0x1800 | `0x801A9800` | second AI script buffer |
+| `+0x5F000` | 0x4000 | VRAM (832, 0) | pictures |
+| `+0x63000` | 0x2800 | `0x80100000` | loaded, terrain-invariant structured bytes; no byte consumer established |
+| `+0x65800` | 0x10000 | VRAM (640, 256) | the field picture — the only chunk that differs between the seven terrains |
+
+The second script block is live, not padding or an unread copy:
+`DuelScene_UpdateFieldActions` passes `0x801A9800` directly to `AiScript_Init` at
+`0x8001D7D8`. That establishes the buffer's consumer, but not the meaning of
+each byte within it.
+
+Phase 11 is also transferred, but its apparent model-side consumer is only a
+non-null gate: matching `func_80056250` never dereferences the arena argument
+and ignores the supplied `0x63000` and `4` arguments. All seven phase copies
+are identical, and the duel overlay forms no address into
+`0x80100000-0x801027FF`. The bytes remain deliberately unnamed rather than
+being mislabeled as model data. See the
+[negative-space audit](../duel-package-unused-data.md).
+
+Twelve of the thirteen chunks are byte-identical across the seven terrain
+copies; the tables decode with every id in range (fusion 25,131 rows, equip
+4,041, ritual 24) and the overlay lands on the sector an independent
+extractor gives. The VRAM x-coordinates 640–832 are past the 640-pixel
+framebuffers, i.e. the texture area.
+
+**The per-duelist block.** Before a duel the opponent's block is read:
+**3 sectors at `0x1D33 + 3 × id`** into `0x801781D8` [`Duel_InitScene`] —
+deck weights at +0, the POW / BCD / TEC drop pools at +0x5B4 / +0xB68 /
++0x111C (1,460 bytes each), the rank table at +0x16D0 (200 bytes), then
+104 bytes of `0xFF` sector padding at +0x1798. All 156 weight tables sum to
+2048. Every one of the 40 tails is byte-identical, rank callers stay within
+the ten five-pair rows, and neither resident code nor the duel overlay forms
+an address into the padding range.
+
+**Overlays.** `0x80146000` receives the duel image above. The named screen
+images are not limited to the two originally located in WA:
+[`config/slus_01411/overlays.json`](../../config/slus_01411/overlays.json)
+currently pins five separately verified images, including the main menu in
+**SU** at a different load address. All ranges below are end-exclusive;
+sectors are relative to the named archive, not absolute disc LBAs.
+
+| Configured image | Archive sectors | Image bytes | RAM image range |
+|---|---|---:|---|
+| Free Duel | WA `[7898, 7903)` | `0x2800` | `[0x80168000, 0x8016A800)` |
+| Password | WA `[8054, 8069)` | `0x7800` | `[0x80168000, 0x8016F800)` |
+| Overworld before the coup | WA `[8153, 8159)` | `0x3000` | `[0x80168000, 0x8016B000)` |
+| Overworld after the coup | WA `[8311, 8317)` | `0x3000` | `[0x80168000, 0x8016B000)` |
+| Main menu | SU `[98, 114)` | `0x8000` | `[0x80180000, 0x80188000)` |
+
+These are **image** extents, including headers and data, not counts of MIPS
+instructions. Free Duel, for example, has a four-byte header, text at image
+offsets `[0x4, 0x1030)` (`0x102C` bytes), and data through `0x2800` according
+to its [tracked layout](../../config/slus_01411/overlays/free_duel.yaml).
+This replaces the earlier unsupported "8 KB of code" figure.
+Its resident-callable entry remains `0x80168FB4`.
+
+The two overworld images are separate variants: matching `File_RequestEgyptOverworldPackage`
+selects WA package sector `8153` or `8311` by testing story flag `0x47`.
+The main-menu loader `File_RequestMainMenuPackage` instead requests SU sectors `[0, 115)`;
+its executable phase is the `[98, 114)` slice above. Sharing a callback
+system does not make those bytes WA-owned.
+
+**Name entry shares code, not an identical package.** Its WA package starts
+at `0x1EDF` (`7903`), with a `0x7800`-byte executable phase at sectors
+`[7968, 7983)` (package offset `0x20800`). That phase and the password
+phase share the executable prefix; their first byte difference is at image
+offset `0x7326`, inside the final sector. The complete phase images therefore
+have different hashes. Name entry and Password enter the shared code at
+different functions, and matching source stays in the password module scope
+rather than being duplicated as a sixth configured module. See the
+[name-entry comparison](../../src/overlays/name_entry/README.md).
+
+An address in `0x80168xxx` consequently needs the loaded-image identity
+before it can name a function. The five configured images are not an
+exhaustive list of runtime code. In particular, `Main_RunBootSequence`'s WA
+startup request loads a `0x1800`-byte phase from sectors `[5827, 5830)` at
+`0x80168000`. This module contains the retail console-modification warning.
+**Both previously unplaced "enable" GameShark guards match this image**, at
+`0x80168188` and `0x80168100`; neither requires one of the five configured
+screen images or a different game revision to locate its guard. The
+[complete boot package contract](../boot-frontend-sequence.md) and their
+branch rewrites are recorded in
+[the code-site evidence](gameshark-codes.md#located-enable-code-guards).
+
+The duel bank above and a second, still-unidentified SU image at sectors
+`[1223, 1239)` are also outside the configured catalog. The
+[module crosswalk](../overlays/module-crosswalk.md) and
+[loader research](../overlays/runtime-loader.md) distinguish complete
+packages, their executable phases, and other load banks.
+
+**The scan the tables were found by** is reproducible: `tools_src/
+extract_mrg_tables.py` in `MaChInEgUn3/ygofm-decomp` reads all of the
+above out of a raw copy of `WA_MRG.MRG`; `tools_src/decode_tables.py` holds
+the decoders, each written from the function that indexes the table.
+
+### 12.3 Cheat codes as documentation
+
+The published GameShark codes for this build are a second map of the same
+state — LP, trunk, starchips, records, cards in play — and three of them
+patch instructions in the executable and three more in the shop overlay,
+which is how several functions above got their names. They are compiled and
+verified in `gameshark-codes.md`.
+
+### 12.4 The scene index (UNVERIFIED — Data Crystal)
+
+The community's list of dialogue-scene ids, kept because it is the only
+event-level index of the campaign that exists; nothing here is measured.
+Ranges: `002` name entry; `008`–`029` menu and deck-check messages; `03D`–
+`045` post-duel messages (`YOU`/`COM`, `TOTAL ANNIHILATION`, `VICTORY BY
+ATTRITION`, `SUMMON Exodia`); `0BA`–`0DF` memory card; `0E1`–`0E3` password
+screen; then the story: `500` introduction, `501`–`506` Simon Muran (rant,
+pre-duel, win, lose, the cards speech), `507`–`50B` Teana (duel, re-duel,
+before the festival, dismissed), `50C`–`510` villagers, `543` Heishin
+rematch, `551`–`553` Mai, `554` Bandit Keith, `560` Pegasus, `566`–`568`
+Kaiba, `569` all Items gathered, `56A` return to Egypt, `577` map to Sadin,
+`581` map to the ruins found, `583` hidden dueling grounds, `58E`–`590`
+Water Mage, `593` Secmeton, `5AE` Desert Mage, `5B1` Martis, `5C8`–`5D1`
+Heishin's chamber and threats, `5D3` DarkNite lose, `5D4`–`5D6` Nitemare,
+`5D7` ending, `5D8` Egypt card shop after the tournament, `5D9` Vast Temple
+guard, `5DA`–`5E5` Jono 2nd and Teana 2nd, `5EC` enter the labyrinth, `5F0`
+Teana rescued, `5F1`–`5F3` Labyrinth guard, `5F4`–`5F5` Seto 2nd, `5F6`
+prompt before the Yami temple, `5F8` festival ended, `5FD` post-duel, `D00`
+`T-Duel? NO YES`, `E00` Jono's first duel prompt. The same source lists 57
+music tracks (ids 0x00–0x38) and the terrain and type ids used above.
+
+---
+
+## 13. What is not verified, and where the earlier version was wrong
+
+Not verified in code:
+
+* what flag `0x5F7`, tested by Nitemare's win text, means;
+* the control-code widths of the text engine were read from the handlers
+  and hold for every dialogue text; the six post-duel result screens are
+  a different layout and are skipped (§7.11);
+* the remaining per-screen and delegated-dialog button maps beyond the
+  duel, Build Deck and normal Free Duel browsing documented in §8;
+* whether a monster played this turn may attack this turn (stated from play);
+* the remaining score-row-to-gameplay-event label assignments not
+  independently corroborated here. The normal draw-entry link for "turns",
+  single-card commitment condition for "face-down plays", type-filtered
+  entry for "pure magic", attack-trap completion credit, draw/refill link for
+  "cards used" and the three victory adjustments are code-backed; the
+  fusion/equip rows have their own controlled trace evidence (§6.1);
+* the full gameplay effects and necessity of the two "enable" GameShark
+  codes. Their image and branch sites are now located in the WA startup
+  phase (§12.2), and both force an existing branch unconditionally; no
+  patched-game observation establishes their complete user-visible effects;
+* the remaining shrine and finale home terrains (Forest Mage's Forest and
+  Sebek/Neku's Yami are sourced);
+* the byte-level formats of the two live AI script buffers and the structured
+  but byte-unconsumed phase 11 payload in the duel blob.
+
+Corrected from the earlier version of this document: the rank-table
+category labels (rows 4, 5, 8, 9); the seven-rank list (ten); the duelist
+names attached to drop blocks (off by one from Teana on, and the
+"Nitemare/DarkNite swap" verdict reversed — the blocks agree with the
+resident name table, while the published cheat labels are reversed);
+the "work buffer / LoadImage" reading of the
+duel loader; the 7,056-byte duelist block (3 sectors); "no equip candidate on
+disc" (the scan's filter was narrower than the table); the initial menu's
+contents; and "unlocked by meeting" (it is by defeating).
+
+---
+
+## 14. Sources
+
+Measured here: everything in brackets, against `SLUS_014.11` NTSC-U and the
+retail disc's `WA_MRG.MRG` and `SU.MRG`. Names of functions and modes: the GMS IDA
+database of this binary. Rules and screen behaviour: the game, checked
+against the Yugipedia article on the game (rules, spoils, deck construction,
+initial deck, trading), the Neoseeker campaign guide (unlock conditions,
+per-duelist cards won), a Portuguese walkthrough (dialogue options and
+location structure), a 2022 campaign guide, the speedrunning community's
+guide (rank farming and the 2048 pools), the card texts as printed in the
+game, and the Data Crystal wiki (scene, music, terrain and type ids; RAM and
+ROM maps — all UNVERIFIED here). The hacking tutorials circulated by the
+Brazilian modding community supplied many code, data and asset patch offsets,
+including the deck-limit, Duel Master K and Exodia anchors used above. Their
+code/data mappings and confidence grades are preserved in
+[`modding-tutorial-evidence.md`](../modding-tutorial-evidence.md) and
+[`modding-tutorial-gameplay-patches.md`](../modding-tutorial-gameplay-patches.md).

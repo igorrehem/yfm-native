@@ -1,0 +1,18 @@
+#ifndef MEMORIES_DECOMP_DUEL_INTERFACE_SETUP_H
+#define MEMORIES_DECOMP_DUEL_INTERFACE_SETUP_H
+
+#include "../types.h"
+#include "frontend_debug_state.h"
+
+void DebugMenu_Init(void);
+void func_80030250(
+    u8 *data,
+    s32 field_B4,
+    s32 field_B5,
+    s32 field_B6,
+    s32 field_B8,
+    s32 field_C0,
+    s32 field_E0
+);
+
+#endif

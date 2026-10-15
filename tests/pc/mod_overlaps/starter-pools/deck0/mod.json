@@ -1,0 +1,11 @@
+{
+    "id": "deck0",
+    "name": "Deck0",
+    "about": "Starter decks none of which is ever dealt: a weight of 0, 39 cards, forty with a card the game does not know, a weight that is not a number.",
+    "starter": [
+        {"weight": 0, "Kuriboh": 40},
+        {"Kuriboh": 39},
+        {"Kuriboh": 20, "No Such Card": 20},
+        {"weight": "3", "Kuriboh": 40}
+    ]
+}

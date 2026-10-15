@@ -1,0 +1,33 @@
+#include "../types.h"
+#include "../psyq/libgte.h"
+#include "../psyq/libgpu.h"
+#include "../psyq/libgs.h"
+#include "func_80017130.h"
+#include "model.h"
+#include "view_state.h"
+
+void func_80017130(void)
+{
+    ViewState *s = &D_800F2848;
+    /* This second base pointer is load-bearing, not leftover noise. Written
+       as s->view.vrx, s->view.vry and s->view.vrz the three stores share the
+       first base with plain displacements and the function comes out one
+       instruction short of retail; the original clearly had a cursor here. */
+    s32 *words = (s32 *)&s->view.vpx;
+
+    s->field_00 = 0x258;
+    s->angle = 0x400;
+    s->field_04 = 0x100;
+    s->field_0C = 0;
+    s->view.rz = 0;
+    s->view.super = 0;
+    s->projection = MODEL_DEFAULT_PROJECTION;
+    GsSetProjection(MODEL_DEFAULT_PROJECTION);
+    words[3] = 0;
+    s->field_06 = 0;
+    words[4] = 0;
+    s->field_08 = 0;
+    words[5] = 0;
+    s->field_0A = 0;
+    ViewState_ApplyOrbit();
+}

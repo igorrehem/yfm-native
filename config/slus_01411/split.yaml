@@ -1,0 +1,301 @@
+name: SLUS_014.11
+sha1: 84747e64f6da8e764206ec203e489acf8c9dcf7d
+
+options:
+  basename: slus_01411
+  base_path: ../..
+  target_path: game/SLUS_014.11
+  elf_path: tmp/splat/build/slus_01411.elf
+  platform: psx
+  compiler: PSYQ
+  endianness: little
+
+  asm_path: tmp/splat/asm
+  src_path: src
+  build_path: tmp/splat/build
+  asset_path: tmp/splat/assets
+  cache_path: tmp/splat/cache
+  data_path: data
+  nonmatchings_path: nonmatchings
+  matchings_path: matchings
+
+  ld_script_path: tmp/splat/slus_01411.ld
+  generated_asm_macros_directory: tmp/splat/include
+  lib_path: tmp/splat/lib
+  o_path: tmp/splat/build
+  undefined_funcs_auto_path: tmp/splat/undefined_funcs_auto.txt
+  undefined_syms_auto_path: tmp/splat/undefined_syms_auto.txt
+
+  symbol_addrs_path:
+    - config/slus_01411/symbols.txt
+  reloc_addrs_path:
+    - config/slus_01411/relocations.txt
+
+  gp_value: 0x8009af08
+  find_file_boundaries: false
+  check_consecutive_segment_types: false
+  o_as_suffix: true
+  use_legacy_include_asm: false
+  create_asm_dependencies: true
+  ld_dependencies: true
+  subalign: 2
+
+  section_order:
+    - ".rodata"
+    - ".text"
+    - ".data"
+    - ".sdata"
+    - ".sbss"
+    - ".bss"
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+segments:
+  - name: header
+    type: header
+    start: 0x0
+
+  - name: main
+    type: code
+    start: 0x800
+    vram: 0x80010000
+    align: 4
+    subsegments:
+      # The region before the text is the compiler's read-only data. A
+      # matching C function that owns some declares it here, the way the ff8
+      # and silent-hill configurations do, and gaps are pad.
+      - [0x800, rodata, initial_data]
+      - [0x844, .rodata, game/func_80014294]
+      - [0x860, rodata, initial_data_0a]
+      - [0x8C0, .rodata, game/duel_load_package_stage]
+      - [0x8F4, rodata, initial_data_0b]
+      - [0x8F8, .rodata, game/duel_scene_card_placement]
+      - [0x92C, rodata, initial_data_092c]
+      - [0x930, .rodata, game/func_8001B170]
+      - [0x948, .rodata, game/duel_scene_hand_actions]
+      - [0x960, .rodata, game/duel_scene_field_actions]
+      - [0x98C, rodata, initial_data_0b1]
+      - [0x990, .rodata, game/duel_scene_battle]
+      - [0x9BC, rodata, initial_data_09bc]
+      - [0x9C0, .rodata, game/duel_ritual_effect]
+      - [0x9D8, rodata, initial_data_0b2]
+      - [0x9E0, .rodata, game/library_runtime]
+      - [0xA24, .rodata, game/main_apply_menu_selection]
+      - [0xA50, .rodata, game/func_80030294]
+      - [0xA88, rodata, initial_data_1]
+      - [0xA94, .rodata, game/card_list_sort]
+      - [0xAB8, .rodata, game/func_80035E20]
+      - [0xB30, rodata, initial_data_1a]
+      - [0xB48, .rodata, game/free_duel_load_package_stage]
+      - [0xB5C, rodata, initial_data_1b]
+      - [0xB60, .rodata, game/campaign_map_load_package_stage]
+      - [0xB78, rodata, initial_data_1c]
+      - [0xBB0, .rodata, game/func_8003DC1C]
+      - [0xC0C, rodata, initial_data_1c0c]
+      - [0xC10, .rodata, game/mem_card_dialog_load_save]
+      - [0xCD4, rodata, initial_data_1e5]
+      - [0xCD8, .rodata, game/mem_card_dialog_runtime]
+      - [0xCEC, rodata, initial_data_1e2]
+      - [0xCF0, .rodata, game/save_data_transfer_runtime]
+      - [0xD20, .rodata, game/display_object_helpers]
+      - [0xD38, rodata, initial_data_1e3]
+      - [0xD48, .rodata, game/mem_card_driver]
+      - [0xD78, .rodata, game/func_80045514]
+      - [0xEC0, .rodata, game/func_80046294]
+      - [0xF84, rodata, initial_data_1e6]
+      - [0x100C, .rodata, game/func_80046A08]
+      - [0x1034, rodata, initial_data_1e4]
+      - [0x1CC4, .rodata, game/func_8004DE24]
+      - [0x1CE8, rodata, initial_data_1ce8]
+      - [0x1DAC, .rodata, game/model_intro_controller]
+      - [0x1EF0, rodata, initial_data_1ef0]
+      - [0x1EF4, .rodata, game/model_control]
+      - [0x1F0C, .rodata, game/model_load_step]
+      - [0x1F38, rodata, initial_data_1f38]
+      - [0x1F3C, .rodata, game/model_texture_transfer]
+      - [0x1FC8, rodata, initial_data_1f]
+      - [0x1FD8, .rodata, game/main_menu_load_package_stage]
+      - [0x1FEC, rodata, initial_data_1d]
+      - [0x214C, .rodata, game/ai_script_control_flow]
+      - [0x2194, .rodata, game/ai_script_calc_card_power]
+      - [0x21A8, rodata, initial_data_2]
+
+
+
+
+  # The text and everything after it is its own segment, because Splat lays
+  # out one output section per segment and groups by section_order inside it.
+  # Kept as one segment the initialized data would be hoisted in front of the
+  # text, since both are .data, and every symbol after it would move.
+  - name: text
+    type: code
+    start: 0x31d8
+    vram: 0x800129D8
+    align: 4
+    subsegments:
+      - [0x31d8, asm, entry]
+      - [0x80ed4, pad]
+
+  # Every region below is a segment for the same reason: one output section
+  # each, at its own address, so nothing is reordered across them.
+
+  # Initialized-data ranges are code groups so their .data and .sdata
+  # contributions can be mapped to C independently, declared the way the
+  # leading read-only region is, one entry per owning object. Once .sdata
+  # begins, every following extracted range must also be classified as sdata
+  # so section_order preserves the GP-relative sequence. Everything still
+  # without an owner stays a generated blob, named for the address it starts
+  # at so taking ownership of one range never renames another.
+  - name: initialized_data
+    type: code
+    start: 0x80ee0
+    vram: 0x800906E0
+    align: 4
+    subsegments:
+      - [0x80ee0, .data, psyq/startup_data]
+      - [0x80f04, .data, game/file_names]
+      - [0x80fac, .data, game/duel_field_layout]
+      - [0x810a0, .data, game/duel_screen_tables]
+      - [0x81198, .data, game/duel_scene_callbacks]
+      - [0x811d4, .data, game/duel_terrain_boost]
+      - [0x8124c, .data, game/duel_monster_removal_rules]
+      - [0x8125c, .data, game/duel_effect_tables]
+      - [0x81350, .data, game/credits_secret_numbers]
+      - [0x81364, .data, game/main_modes]
+      - [0x813a8, .data, game/scene_image_overlay_tables]
+      - [0x81450, .data, game/script_command_table]
+      - [0x814ac, .data, game/scene_script_record_callbacks]
+      - [0x814b4, .data, game/frontend_debug_tables]
+      - [0x8157c, .data, game/frontend_step_tables]
+      - [0x815d8, .data, game/card_type_icon_table]
+      - [0x815f8, .data, game/duel_transition_step_table]
+      - [0x81658, .data, game/duel_effect_entry_ranges]
+      - [0x81664, .data, game/text_box_state_callbacks]
+      - [0x816ac, .data, game/duel_effect_command_table]
+      - [0x81768, .data, game/display_effect_step_table]
+      - [0x8179c, .data, game/mem_card_dialog_steps]
+      - [0x817b0, .data, game/display_object_list_renderer_table]
+      - [0x817cc, .data, game/display_flat_lights]
+      - [0x817ec, .data, game/model_record_tables]
+      - [0x81d08, .data, game/model_image_copy_frames]
+      - [0x81d10, .data, game/data_80091510]
+      - [0x81d1c, .data, game/movie_stream_ranges]
+      - [0x81d50, .data, game/model_effect_endpoints]
+      - [0x81d70, .data, game/model_effect_coefficient_table]
+      - [0x81de8, .data, game/model_geometry_tables]
+      - [0x81ee0, .data, game/ai_script_commands]
+      - [0x81ff0, .data, game/ai_opponent_data]
+      - [0x82158, data, initialized_data_80091958]
+      - [0x8b708, .sdata, game/main_services]
+      - [0x8b70c, .sdata, game/main_frame]
+      - [0x8b70d, pad]
+      - [0x8b710, .sdata, game/data_8009af10]
+      - [0x8b720, .sdata, game/duel_side_view_angles]
+      - [0x8b724, .sdata, game/duel_trap_resolution]
+      - [0x8b72a, .sdata, game/debug_effect_screen]
+      - [0x8b730, .sdata, game/duel_card_effects]
+      - [0x8b73d, pad]
+      - [0x8b740, .sdata, game/duel_magic_effect_format]
+      - [0x8B744, .sdata, game/frontend_debug_constants]
+      - [0x8B754, .sdata, game/debug_font_format_data]
+      - [0x8B75C, .sdata, game/options_layout_position_data]
+      - [0x8B764, .sdata, game/save_data_mask_state]
+      - [0x8B76C, .sdata, game/data_8009af6c]
+      - [0x8B788, .sdata, game/model_graphics_state]
+      - [0x8B7AC, .sdata, game/model_primitive_templates]
+      - [0x8B7E4, .sdata, game/model_handler_state]
+      - [0x8B804, .sdata, game/model_debug_controller]
+      - [0x8B808, .sdata, game/model_handler_diagnostics]
+      - [0x8B858, .sdata, game/main_menu_load_rect]
+      - [0x8B860, .sdata, game/movie_frame_pipeline_state]
+      - [0x8B874, .sdata, game/model_transfer_flags_state]
+      - [0x8b880, pad]
+      - [0x8B884, .sdata, game/ai_script_source_line_format]
+      - [0x8B88C, pad]
+
+  - name: bss_image_before_viewport
+    type: bin
+    start: 0x8b890
+    vram: 0x8009B090
+    align: 2
+    subsegments:
+      - [0x8b890, bin, bss_image_before_viewport]
+
+  - name: bss_image_viewport
+    type: code
+    start: 0x8b946
+    vram: 0x8009B146
+    align: 2
+    subsegments:
+      - [0x8b946, .sbss, game/graphics_frame]
+
+  - name: bss_image_after_viewport
+    type: bin
+    start: 0x8b94a
+    vram: 0x8009B14A
+    align: 2
+    subsegments:
+      - [0x8b94a, bin, bss_image_after_viewport]
+
+  - name: reserved_zero
+    type: bin
+    start: 0xeef28
+    vram: 0x800FE728
+    align: 4
+    subsegments:
+      - [0xeef28, bin, reserved_zero]
+
+  # One segment per slot, so Splat keeps writing one asset per overlay for
+  # the overlay tooling to read.
+  - name: overlays/slot_8013a000
+    type: bin
+    start: 0x12a800
+    vram: 0x8013A000
+    align: 4
+    subsegments:
+      - [0x12a800, bin, overlays/slot_8013a000]
+
+  - name: overlays/slot_80146000
+    type: bin
+    start: 0x136800
+    vram: 0x80146000
+    align: 4
+    subsegments:
+      - [0x136800, bin, overlays/slot_80146000]
+
+  - name: overlays/slot_80168000
+    type: bin
+    start: 0x158800
+    vram: 0x80168000
+    align: 4
+    subsegments:
+      - [0x158800, bin, overlays/slot_80168000]
+
+  - name: overlays/slot_8017a000
+    type: bin
+    start: 0x16a800
+    vram: 0x8017A000
+    align: 4
+    subsegments:
+      - [0x16a800, bin, overlays/slot_8017a000]
+
+  - name: overlays/slot_80180000
+    type: bin
+    start: 0x170800
+    vram: 0x80180000
+    align: 4
+    subsegments:
+      - [0x170800, bin, overlays/slot_80180000]
+
+  - name: tail_data
+    type: bin
+    start: 0x19c800
+    vram: 0x801AC000
+    align: 4
+    subsegments:
+      - [0x19c800, bin, tail_data]
+
+  - [0x1d0800]

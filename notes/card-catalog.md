@@ -1,0 +1,188 @@
+# Card Catalog
+
+`notes/card-catalog.csv` records the requested factual metadata for all 722
+cards in the North American release:
+
+- card ID and in-game name;
+- card type and, for monsters, attribute and level;
+- both Guardian Stars;
+- ATK and DEF;
+- password and starchip cost.
+
+Descriptions and artwork are intentionally excluded. A password or cost of
+`N/A` means the card has no usable retail password and cannot be purchased
+through the password screen; it does not mean that the card costs zero.
+
+## Executable-backed fields
+
+Names and gameplay fields were decoded from the verified
+`game/SLUS_014.11` executable:
+
+- `gText_aGlobalOffsets` at `0x801D5800` is indexed by card ID and points into
+  the `0x801Dxxxx` global text bank. Card names are `0xFF`-terminated glyph
+  strings.
+- `gDuel_adwCardStats` at `0x801D4244` contains 722 packed words. ATK is bits
+  `0`-`8` times 10, DEF is bits `9`-`17` times 10, Guardian Star 2 is bits
+  `18`-`21`, Guardian Star 1 is bits `22`-`25`, and type is bits `26`-`30`.
+- `gDuel_abCardLevelAttr` at `0x801D5332`, indexed directly by card ID,
+  stores attribute in the high nibble and level in the low nibble.
+
+The deck-box stat drawer `CardList_RenderDeckBoxStats` uses the shared
+`CARD_STAT_*`
+constants to decode the type, ATK, and DEF fields, and `CARD_TYPE_MAGIC` to
+exclude non-monsters. It then checks intermediate digit bytes against
+`TEXT_DECIMAL_RADIX` before drawing them. The stat scale and decimal radix
+both happen to be ten but name different operations. The packed deck-entry
+mask and dimming flag, sprite geometry, and color values remain separate.
+
+The two Guardian Star fields draw from the same ten-ID domain.
+`Duel_CalcGuardianStarMatchup` names the independent ID cycles locally:
+the first starts at `1` and has six members; the second starts at `7` and
+has four. These cycles are not the card's first and second selection fields.
+For valid IDs, adjacent members produce `+500` or `-500` according to their
+order; all other pairs, including cross-cycle pairs, produce zero.
+Naming the bounds retains the original
+arithmetic, control flow, and handling outside the valid ID domain.
+
+`gText_aGlobalOffsets` is broader than the card catalog. The verified table
+layout is:
+
+| Table entries | String IDs | Contents |
+|---:|---:|---|
+| `0x000` | `0x8000` | Empty string. |
+| `0x001-0x2D2` | `0x8001-0x82D2` | Card names for IDs 1-722. |
+| `0x2D3-0x2FF` | `0x82D3-0x82FF` | Empty-string aliases. |
+| `0x300-0x317` | `0x8300-0x8317` | The 24 card-type labels from Dragon through Equip. |
+| `0x318-0x321` | `0x8318-0x8321` | The ten Guardian Star names. |
+| `0x322-0x327` | `0x8322-0x8327` | Six entries that alias the Dragon string. |
+| `0x328` | `0x8328` | `Build Deck`. |
+| `0x329-0x34F` | `0x8329-0x834F` | The 39 duelist names. |
+
+The table starts at SLUS offset `0x1C6000`; `0x1C6600` is entry `0x300`
+within that same table, not a second pointer block. Its first type payload,
+`Dragon`, begins at SLUS offset `0x1C92CE` (resident `0x801D8ACE`). See
+[`modding-tutorial-evidence.md`](modding-tutorial-evidence.md) for the
+hex-editor claims and offset-level reconciliation.
+
+All 722 decoded types, attributes, levels, Guardian Stars, ATK values, and DEF
+values agree with the public Forbidden Memories database. For searchable CSV
+text, the game's right-apostrophe glyph is normalized to ASCII `'`. Names then
+agree except card 480: the executable glyph at index `0x55` maps through
+`gText_adwGlyphCodeTable` to Shift-JIS `alpha`, so the catalog preserves the
+in-game name `Kuwagata α` rather than the database's ASCII `Kuwagata a`.
+
+## Library visibility and display groups
+
+The catalogue metadata above is independent of whether the in-game Library
+currently reveals a card. Matching `func_8002BFCC`, the Library initializer,
+first calls `Library_MarkOwnedCards`. That helper sets the persistent
+`CAMPAIGN_FLAG_LIBRARY_CARD_BASE + card_id` seen flag (`0x120 + card_id`) for
+every nonzero trunk quantity and every nonzero card ID in the 40-card deck.
+Its zero-based trunk index adds `CARD_ID_FIRST` before the flag base; deck
+entries already contain one-based card IDs. The ordinary card IDs therefore
+occupy flags `0x121` through `0x3F2`.
+
+The initializer then walks card IDs `1` through `722` and tests each same
+Library flag through `Campaign_TestStoryFlag`. A set flag increments
+the visible-card count and sets byte `0x80` in that card's display record.
+When `Library_CheckCardOwned(card_id)` returns a negative value, meaning the
+card is in neither the trunk nor the deck, the initializer also sets that
+record's low bit. `func_8002A2F4` later forces `D_8009B320` to `4` for such a
+card when it opens its text box.
+
+Each display record also receives a selector derived from the packed card
+type:
+
+| Card type | Named display selector | Value |
+|---|---|---:|
+| Monster types `0`-`19` | `LIBRARY_CARD_SELECTOR_DEFAULT` | `0x160` |
+| Magic or Equip | `LIBRARY_CARD_SELECTOR_MAGIC_EQUIP` | `0x170` |
+| Trap | `LIBRARY_CARD_SELECTOR_TRAP` | `0x180` |
+| Ritual | `LIBRARY_CARD_SELECTOR_RITUAL` | `0x190` |
+
+These are Library presentation groups, not replacements for the card-type
+values in `gDuel_adwCardStats`. The switch also retains the default selector
+for unrecognized type codes; it does not add type validation. Seen state
+likewise does not share the
+one-byte trunk quantity: entering the Library can set a card's separate seen
+flag from current ownership, and the visibility pass reads that flag array.
+
+## Retail password and cost verification
+
+The retail password/cost table begins at `WA_MRG.MRG` offset `0xFB9800` and
+contains 723 eight-byte records:
+
+```text
+u32 starchip cost
+u32 packed-BCD password
+```
+
+Entry zero is an all-zero sentinel; card ID `n` uses entry `n`. Comparing
+entries 1-722 from the verified North American retail file against
+`notes/card-catalog.csv` found no mismatches. Every available password and
+cost therefore has direct retail-disc support rather than only an external
+database cross-check.
+
+Twenty-four records use password value `0xFFFFFFFE`, meaning that no usable
+password exists. Their raw cost word is `999999`, but the catalog shows `N/A`
+for both password and cost because the card cannot be purchased through the
+password screen; this is a presentation convention, not a claim that the raw
+cost word is absent.
+
+The password and starchip fields were compared across:
+
+- <https://yugioh-fm-db.pages.dev/cards>
+- [`ThatPlayer2/Yu-Gi-Oh-Forbidden-Memories` at
+  `4b6aa11`](https://github.com/ThatPlayer2/Yu-Gi-Oh-Forbidden-Memories/blob/4b6aa11ba205de177f39dfcadf28361af3712b3f/Dictionary/Cards.cs)
+- [`TheGreatHeroStudios/ForbiddenMemoriesDuelCompanion` at
+  `8f6888a`](https://github.com/TheGreatHeroStudios/ForbiddenMemoriesDuelCompanion/blob/8f6888a42b280bdb57ef9cb0560d133e4a9694ae/FMFC.DataLoader/Files/CardData.json)
+
+The first two sources agree with the retail table on every password and cost.
+The independent JSON agrees on every available password and all but three
+available costs. The retail table resolves those three differences in the
+catalog's favor, with Yugipedia as an additional cross-check:
+
+| Card | Retail/catalog cost | Conflicting JSON | Additional corroboration |
+|---|---:|---:|---|
+| 213 Aqua Madoor | 260 | 250 | [Yugipedia](https://yugipedia.com/wiki/Aqua_Madoor_%28FMR%29) |
+| 436 White Dolphin | 20 | 50 | [Yugipedia](https://yugipedia.com/wiki/White_Dolphin_%28FMR%29) |
+| 678 Revival of Sennen Genjin | 100 | 50 | [Yugipedia](https://yugipedia.com/wiki/Revival_of_Sennen_Genjin_%28FMR%29) |
+
+All three external sources identify the same 24 cards that the retail table
+marks with the no-password sentinel.
+
+## Field mappings
+
+The packed numeric domains decode as follows:
+
+| Value | Type |
+|---:|---|
+| 0 | Dragon |
+| 1 | Spellcaster |
+| 2 | Zombie |
+| 3 | Warrior |
+| 4 | Beast-Warrior |
+| 5 | Beast |
+| 6 | Winged Beast |
+| 7 | Fiend |
+| 8 | Fairy |
+| 9 | Insect |
+| 10 | Dinosaur |
+| 11 | Reptile |
+| 12 | Fish |
+| 13 | Sea Serpent |
+| 14 | Machine |
+| 15 | Thunder |
+| 16 | Aqua |
+| 17 | Pyro |
+| 18 | Rock |
+| 19 | Plant |
+| 20 | Magic |
+| 21 | Trap |
+| 22 | Ritual |
+| 23 | Equip |
+
+Guardian Star values are `1` Mars, `2` Jupiter, `3` Saturn, `4` Uranus, `5`
+Pluto, `6` Neptune, `7` Mercury, `8` Sun, `9` Moon, and `10` Venus. Attribute
+values are `0` Light, `1` Dark, `2` Earth, `3` Water, `4` Fire, and `5` Wind;
+non-monster records use the remaining attribute codes and are shown blank.

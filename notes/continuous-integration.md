@@ -1,0 +1,99 @@
+# Matching Build Continuous Integration
+
+## Native PC smoke gate
+
+`make check-pc` is the local native-port gate. It builds the 32-bit game and
+the CMake test tree, runs every `pc_*` CTest, and compares three deterministic
+headless frame dumps with `tests/pc/smoke/*.json`. A mismatch exits nonzero
+and leaves the actual PPM beneath `tmp/pc/smoke/run-XXXXXXXX/` (a folder per
+run, removed when every case passes) for inspection. Running the
+gate twice checks repeatability; `python3 tools/pc/smoke.py --record` is only
+for accepting an intentional rendering change after reviewing those images.
+
+The game smoke cases need the private raw disc image, so the public
+`.github/workflows/pc-build.yml` job continues to run only the portable CMake
+tests. A private runner with the verified disc can use `make check-pc`
+directly.
+
+`.github/workflows/matching-build.yml` performs a clean hosted Ubuntu build
+for pushes to `master`, pull requests, and manual dispatches. It installs or
+restores the pinned local tools, runs `make clean`, rebuilds the complete
+PS-X EXE, reports generated global-usage drift without blocking the build,
+and explicitly verifies:
+
+```text
+84a54ed74f3d0edd6d81380839f7e4ef5bfb21ecea18be9a062bd6bfa5a45c88
+```
+
+## Private retail executable
+
+Retail files remain ignored and must never be committed. Upload only your
+verified `game/SLUS_014.11` to a private location that provides a direct HTTPS
+download, then configure this GitHub Actions repository secret:
+
+| Secret | Value |
+|---|---|
+| `YGOFM_SLUS_01411_URL` | Private or expiring direct-download URL for `SLUS_014.11` |
+
+The workflow writes that response to `game/SLUS_014.11` and checks it against
+the known retail SHA-256 before installing tools or building. No DATA files,
+MRG files, STR/XA files, or BIN/CUE are uploaded to CI.
+
+Normal matching-build targets use `make verify-target`, which validates only
+the executable. Disc-analysis and full repository-audit targets continue to
+use `make verify-inputs`, so local LBA and extracted-data verification remains
+unchanged.
+
+A missing secret, download failure, input hash mismatch, tool failure, build
+failure, or rebuilt executable hash mismatch makes the workflow fail.
+
+`make check-global-usage` verifies `notes/global-usage.csv` strictly. The CSV
+makes per-function claims, naming each function and whether its references to
+a global are C or assembly, so a stale row is not merely behind, it is wrong
+about the change that just landed. It is also address-ordered, so concurrent
+matches append in different places and merge cleanly.
+
+The matching workflow runs this check as an optional diagnostic. A stale CSV
+adds a warning annotation and makes the step visibly fail, but
+`continue-on-error` prevents that bookkeeping drift from failing the
+`clean-build` job or holding a matching PR behind unrelated merges.
+
+Regenerate the CSV with `make global-usage` in dedicated report updates or when
+a change specifically targets global-usage metadata. Matching PRs do not need
+to carry this report.
+
+## Compiler installation
+
+CI does not build GCC. It downloads the official
+`gcc-2.8.1.tar.gz` asset from the `decompals/old-gcc` 0.17 release,
+verifies the archive and individual `gcc`, `cc1`, and `cpp` SHA-256 hashes,
+and installs a local wrapper that points the fixed-prefix release driver at
+the repository-local compiler components.
+
+The similarly named `gcc-2.8.1-psx.tar.gz` asset is not used: a complete local
+comparison found 95 differing C objects and 45 text-size changes. The selected
+`mips-linux-gnu` release asset reproduces the project's required GCC 2.8.1
+code generation under the explicit PSX flags.
+
+Binutils 2.42 is not built in CI.
+
+Ubuntu 22.04 installs the pinned
+`binutils-mips-linux-gnu=2.38-1ubuntu1cross2` package. The project creates
+small wrappers beneath `tools/toolchains/binutils-2.42/bin/` so existing build
+paths remain local and stable. The wrapper manifest records and validates the
+package version plus the SHA-256 of every packaged binary. The explicit `-EL`,
+MIPS I, ABI, and small-data flags remain controlled by the project.
+
+Ubuntu's MIPS assembler marks text sections with 16-byte alignment, while the
+original pinned assembler uses 4-byte alignment. After assembling a C or
+generated text object, the package-backed path uses the packaged `objcopy` to
+set `.text` alignment to 4. This changes section metadata only and prevents
+the linker from inserting gaps between function objects.
+
+Local development may continue using the source-built pinned binutils 2.42.
+CI sets `USE_SYSTEM_MIPS_BINUTILS=1`, causing `make check-build-tools` to
+validate the package-backed wrappers instead.
+
+GitHub does not expose repository secrets to pull requests from forks. Those
+runs therefore fail at the explicit private-input check rather than receiving
+the retail executable.

@@ -1,0 +1,31 @@
+#define FUNC_80017F04_AMBIENT_POSITION_ARGS
+#include "../types.h"
+#include "duel_side_state.h"
+#include "duel_card.h"
+#include "duel_card_layout.h"
+#include "duel_card_display_state.h"
+#include "func_80018004.h"
+
+#ifdef MEMORIES_PC
+DuelCardDisplayObject *func_80018004(DuelCardRecord *card, s32 x, s32 y)
+#else
+DuelCardDisplayObject *func_80018004(DuelCardRecord *card)
+#endif
+{
+    DuelCardDisplayObject *result =
+#ifdef MEMORIES_PC
+        (DuelCardDisplayObject *)func_80017F04((u8 *)card, x, y);
+#else
+        (DuelCardDisplayObject *)func_80017F04((u8 *)card);
+#endif
+
+    if (DUEL_CARD_VIEW_MODE(D_8009B1C8) != 0) {
+        card->flags |= DUEL_CARD_FLAG_DISPLAY_MARKER;
+        result->field_67 =
+            ((DuelCardDisplayData *)card->data)->field_04 + 1;
+        if (DUEL_CARD_VIEW_MODE(D_8009B1C8) < 0) {
+            result->field_67 = 0xFF;
+        }
+    }
+    return result;
+}

@@ -1,0 +1,44 @@
+Commands for the first phone session (Git Bash, from D:/DecompRecomp-arm64)
+==========================================================================
+
+0. SDK tools on PATH:
+   . /d/Android/env.sh
+
+1. Is the phone there, and what can it run?
+   python tools/pc/android/device_check.py
+   Decision-relevant lines: abilist64 (arm64-v8a: the APK runs), page size (16384 = 16 KiB pages: every 0x1000 mapping,
+   the fix-up stub page and the .so alignment need checking).
+
+2. Keep it reachable without the cable (same Wi-Fi):
+   adb tcpip 5555
+   adb shell ip -f inet addr show wlan0      # note the phone's IP
+   adb connect <phone-ip>:5555
+   adb devices                               # serial is now <phone-ip>:5555
+
+3. The fixed-address probe (tmp/android/probe, built in the spike), inside a
+   64-bit app process and as a plain process:
+   SERIAL=$(adb devices | awk 'NR==2{print $1}')
+   sh /d/DecompRecomp/tmp/android/probe/run_apk.sh $SERIAL phone arm64-v8a
+   sh /d/DecompRecomp/tmp/android/probe/run_exe.sh $SERIAL phone arm64-v8a
+   Results: /d/DecompRecomp/tmp/android/probe/results/phone-arm64-v8a-*.txt
+   Read the "occupied before mapping" block, not only PASS/FAIL: the
+   scratchpad 0x1F800000 and the stack 0x70000000 are expected to be taken
+   (the port moves them to 0x9F800000 and 0xB0000000); the 64-bit loader
+   wants its image range (0xC0000000, 64 MiB on arm64) to be free. The probe
+   maps only a small library there; only the APK shows the app's real layout.
+
+4. The game as a plain arm64 process (headless; no taps on the phone):
+   export ANDROID_SDK_ROOT=D:/Android/sdk ANDROID_SERIAL=c7ffc349
+   export MEMORIES_DISC=D:/DecompRecomp/game/rpg-yfm.bin
+   python tools/pc/android/device_run.py setup tmp/pc/arm64wt-android
+   python tools/pc/replay.py play tests/pc/replays/first-duel --check --executable tmp/pc/arm64wt-android/device.cmd
+   (a plain boot: MEMORIES_HEADLESS=1 MEMORIES_SPEED=-1 python
+    tools/pc/android/device_run.py run tmp/pc/arm64wt-android)
+
+5. The APK (the phone asks to confirm the install: tell the user first):
+   adb install -r tmp/pc/arm64wt-android/memories-arm64-v8a.apk
+   adb logcat -c; adb shell am start -n org.yfmredecomp.game/org.libsdl.app.SDLActivity
+   adb logcat -d -s memories:* SDL:* DEBUG:*
+   Look for the loader: "libgame.so loaded ... from its link address" or
+   "the game's address range at 0xC0000000 is taken" (followed by "occupied by"
+   lines naming what holds it) means the base must move.
