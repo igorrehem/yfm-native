@@ -1,0 +1,9 @@
+{
+    "id": "cria-da-favela",
+    "name": "Cria da Favela",
+    "version": "1.0",
+    "author": "Igor",
+    "description": "O jogo inteiro no papo de cria. Historia, menu, carta e nome.",
+    "enabled": true,
+    "text": "text.txt"
+}

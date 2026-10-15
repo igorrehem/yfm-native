@@ -1,0 +1,10203 @@
+# Yu-Gi-Oh! Forbidden Memories text listing (notes/translation.md).
+# [ID] starts a string; its text runs to {end}. A line break in the text
+# is a line break in the game's text box. {...} are the game's control
+# codes: keep them, move them with the words they belong to.
+
+@bank dialog
+
+{:L0001}
+{f8 0B 22}{cont}
+{:L0004}
+Botão{end}
+
+{:L000B}
+{f8 0B 25}{jump L0004}
+
+[0001]
+{end}
+
+[0002]
+NOME:{call L125A}{f8 16}{end}
+
+[0003]
+{f8 00 00} {f8 00 80}{f8 01 18}ESTRELA GUIA
+{f8 01 04} {f8 00 01} {f8 00 81}{f8 01 10} {f8 00 02} {f8 00 82}{f8 01 18}{f8 00 40}{end}
+
+[0004]
+{f8 00 00} {f8 00 80}{f8 01 50}{f8 00 40}{end}
+
+[0005]
+{f8 04 01}{f8 03 08 56 1D 80 C3}{f8 01 0E}{f8 04 02}{f8 00 10}{f8 00 20}{end}
+
+[0006]
+{f8 06 AF 00}{f8 00 00}{f8 02 04}{f8 00 01}{f8 02 01}{f8 00 02}{cont}
+{:L008A}
+{f8 06 00 00}{f8 07 10 00}{f8 00 20}{end}
+
+[0007]
+{f8 06 AF 00}{f8 00 00}{f8 02 04}{f8 00 01}{jump L008A}
+
+[0008]  {:L00A6}
+{f8 0A 01} BARALHO NÃO TÁ PRONTO!{end}
+
+[0009]
+{choice 53}{call L00A6}
+{f8 0A 00} MONTAR
+ SAIR
+{choose 80 0 0}
+
+[000A]
+{f8 17 L00EC L00E8}
+
+{:L00E8}
+{f8 06 A0 00}{cont}
+{:L00EC}
+FECHOU!{end}
+
+[000B]
+{f8 02 08}CARTA PRA TROCAR
+
+
+ {call L0001}  SIM
+
+ {call L000B}  CANCELA
+
+ {f8 0B 24}Botão   ESCOLHA FEITA
+
+{f8 02 80}{f8 0B 22}{f8 0B 25}{f8 0B 24}{f8 0A 02}QUAL CARTA{end}
+
+[000C]
+{f8 09}{f8 06 A0 00}GAN{f8 03 08 56 1D 80 83} PER{f8 03 0C 56 1D 80 83}{end}
+
+[000D]
+    ESCOLHE O RIVAL!{end}
+
+[000E]
+{f8 06 06 01}{f8 03 0C 56 1D 80 82}{f8 06 36 01}{f8 03 08 56 1D 80 86}{f8 01 05}{f8 06 00 00}{f8 03 08 56 1D 80 06}{f8 06 2E 02}{f8 03 0C 56 1D 80 02}{end}
+
+[000F]
+3D      NOME
+Campanha{f8 0A 02}Senha
+{f8 0A 00}DUELO  FILME
+Detalhe ABRE
+Som    SALVA
+Rosto  TROCA
+3D MAP  Opção
+Baralho{f8 0A 06}PERDE
+{f8 0A 00}De Graça{f8 0A 01}HIRATA's
+{f8 0A 00}TÍTULO  SAIR{end}
+
+[0010]
+2PJOGO{end}
+
+[0011]
+{choice 4C 8F}{f8 02 2C}SALVA
+{f8 02 14}MONTAR
+VOLTA AO TÍTULO
+{f8 02 14}VAZA LOJA
+{choose 80 0 0 0 0}
+
+[0012]
+{choice 42}{f8 02 04}NAO
+SIM
+{choose 80 0 0}
+
+[0018 0019]
+{f8 04 01}{f8 01 04}{f8 03 08 56 1D 80 C3}{f8 01 FC}{f8 04 02}{f8 06 1C 00}{f8 07 10 00}{f8 00 20}{end}
+
+[001A]
+{f8 04 01}{f8 01 04}{f8 03 08 56 1D 80 C3}{f8 01 FC}{f8 06 1C 00}♂
+{f8 06 1C 00}♀{f8 01 F8}{f8 06 49 00}{f8 00 00}{f8 02 04}{f8 00 01}{f8 02 04}{f8 00 02}{cont}
+{:L0311}
+{f8 01 04}{f8 06 83 00}{f8 03 0C 56 1D 80 83}{end}
+
+[001B]
+{f8 04 01}{f8 01 04}{f8 03 08 56 1D 80 C3}{f8 01 FC}{f8 06 49 00}{f8 00 00}{f8 02 04}{f8 00 01}{f8 02 04}{f8 00 02}{jump L0311}
+
+[001C]
+{f8 0A 01}{f8 02 24}MONTA UM BARALHO
+{f8 02 18}PRA JOGAR A CAMPANHA!{end}
+
+[0020]
+
+{f8 0A 80}{f8 02 14}FAZ A TROCA
+
+{f8 0A 81}{f8 02 24}OUTRA VEZ
+
+{f8 0A 82}{f8 02 0C}VOLTA AO TÍTULO{end}
+
+[0021]
+{choice 5B 8F}ESCOLHE ESTRELA GUIA
+      {f8 00 01} {f8 00 81}
+      {f8 00 02} {f8 00 82}
+{choose 80 0 0}
+
+[0022]
+{choice 53}CAI FORA?
+ NAO
+ SIM
+{choose 80 0 0}
+
+[0023]
+SEGREDO N. {f8 03 08 56 1D 80 C4}{f8 03 0C 56 1D 80 C4}{end}
+
+[0024]
+{f8 0A 01}    {f8 03 48 56 1D 80 01}P CARTAS
+
+{f8 02 38}NÃO PRONTO{end}
+
+[0025]
+{f8 0B 27}{f8 0B 28}Botão  DUELO
+{f8 01 04} {f8 0B 25} Botão  VOLTA AO TÍTULO{end}
+
+[0026]
+{f8 0A 06}{call L122B}{f8 01 1A}{f8 0A 02}{jump L1238}
+
+[0028]
+{f8 02 24}NÃO DÁ PRA DUELO COM
+{f8 02 34}O MESMO CÓDIGO!{end}
+
+[0029]
+{f8 02 2C}NÃO DÁ PRA TROCA COM
+{f8 02 34}O MESMO CÓDIGO!{end}
+
+[002A 002E 002F 0030 0031]
+{end}
+
+[003D]  {:L0504}
+{f8 18 L0514 L0522 L0518 L0526}
+
+[003E]  {:L050E}
+{f8 17 L0514 L0518}
+
+{:L0514}
+TU{end}
+
+{:L0518}
+ 1P{end}
+
+[003F]  {:L051C}
+{f8 17 L0522 L0526}
+
+{:L0522}
+CPU{end}
+
+{:L0526}
+ 2P{end}
+
+[0040]
+{f8 01 08}{f8 0A 01} ANIQUILAÇÃO TOTAL{cont}
+{:L0543}
+{f8 0A 00}{f8 06 00 00}{f8 04 01}{f8 01 F8}CONDIÇÃO DE VITÓRIA{f8 06 B8 00}{f8 0A 02}{f8 04 02}TURNO {f8 0A 00}{f8 03 80 56 1D 80 82}{f8 01 10}{f8 01 10}{f8 0A 02}FATOR MÉDIO DE ATK{f8 01 18}QUEBRA DE CARTAS{f8 01 18}ATAQUES EFETIVOS
+{f8 01 14}FATOR MÉDIO DE DEF{f8 01 18}PERDAS NA DEFESA{f8 01 18}VITÓRIA NA DEF{f8 01 80}{f8 0A 80}{f8 02 A0}{f8 03 18 56 1D 80 84}{f8 01 18}{f8 02 A8}{f8 03 20 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 28 56 1D 80 83}{f8 01 10}{f8 01 10}{f8 02 A0}{f8 03 30 56 1D 80 84}{f8 01 18}{f8 02 A8}{f8 03 38 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 40 56 1D 80 83}{f8 01 80}{f8 0A 81}{f8 02 E8}{f8 03 1C 56 1D 80 84}{f8 01 18}{f8 02 F0}{f8 03 24 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 2C 56 1D 80 83}{f8 01 10}{f8 01 10}{f8 02 E8}{f8 03 34 56 1D 80 84}{f8 01 18}{f8 02 F0}{f8 03 3C 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 44 56 1D 80 83}{f8 0A 00}{f8 01 80}{f8 01 F8}{f8 04 01}{f8 06 F8 FF}STATS DE ATAQUE    {call L050E}{f8 02 30}{call L051C}{f8 01 50}{f8 06 F8 FF}STATS DE DEFESA    {call L050E}{f8 02 30}{jump L051C}
+
+[0041]
+{f8 01 08}{f8 0A 01} VITÓRIA NO CANSAÇO{jump L0543}
+
+[0042]
+{f8 01 08}{f8 0A 01} INVOCA Exodia{jump L0543}
+
+[0043 0045]
+{f8 01 10}{f8 0A 02}JOGADAS TOP{f8 01 18}CARTAS VIRADAS{f8 01 18}INICIA A FUSÃO{f8 01 18}MAGIA EQUIP{f8 01 18}TROCA CAMPO{f8 01 18}MAGIA PURA{f8 01 18}ATIVA ARMAD.{f8 01 88}{f8 01 E8}{f8 0A 80}{f8 02 A8}{f8 03 48 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 50 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 58 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 60 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 68 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 70 56 1D 80 83}{f8 01 18}{f8 02 A8}{f8 03 78 56 1D 80 83}{f8 01 88}{f8 01 E8}{f8 0A 81}{f8 02 F0}{f8 03 4C 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 54 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 5C 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 64 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 6C 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 74 56 1D 80 83}{f8 01 18}{f8 02 F0}{f8 03 7C 56 1D 80 83}{f8 01 E0}{f8 01 88}{f8 0A 00}{f8 04 01}{f8 06 F8 FF}ARTES BRABAS{f8 02 50}{call L050E}{f8 02 30}{call L051C}{end}
+
+[0044]
+{f8 04 01}
+{f8 06 F8 FF}               {f8 02 38}{call L050E}{f8 02 30}{call L051C}{f8 01 20}{f8 06 F8 FF}          {f8 02 60}{call L050E}{f8 02 30}{call L051C}{f8 01 20}{f8 06 F8 FF}              {f8 02 30}GANHOU ··· {call L0504}{f8 01 42}{f8 02 38}     {sp}
+{f8 02 38}       {f8 01 80}{f8 01 FE}{f8 04 02}{f8 0A 02}CARTAS USO
+{f8 01 14}LP QUE SOBRA
+{f8 01 14}{f8 01 10}          {f8 01 2A}      {f8 01 86}{f8 0A 80}{f8 02 B0}{f8 03 08 56 1D 80 82}{f8 01 20}{f8 02 A0}{f8 03 10 56 1D 80 84}{f8 01 E0}{f8 0A 81}{f8 02 F8}{f8 03 0C 56 1D 80 82}{f8 01 20}{f8 02 E8}{f8 03 14 56 1D 80 84}{f8 01 78}{f8 04 02}{f8 0A 00}{f8 18 L098D L09A6 L09B5 L09C4}
+
+{:L098D}
+{f8 06 F8 FF}{f8 00 20}{f8 01 F8}{f8 04 01}{f8 06 F8 FF}{f8 03 A8 56 1D 80 C3}{end}
+
+{:L09A6}
+{f8 06 F8 FF}GANHOU  {f8 09}{end}
+
+{:L09B5}
+{f8 06 F8 FF}GANHOU  {jump L122B}
+
+{:L09C4}
+{f8 06 F8 FF}GANHOU  {jump L1238}
+
+{:L09D3}
+{f8 04 01}{f8 06 C3 00}♂{f8 03 08 56 1D 80 84}
+{f8 06 C3 00}♀{f8 03 0C 56 1D 80 84}{f8 01 F8}{f8 06 ED 00}{f8 00 00}{end}
+
+[0050]  {:L09FA}
+{f8 17 L0A21 L0A04 L0A29 L0A22}
+
+{:L0A04}
+{call L09D3}{f8 02 02}{f8 00 01}{f8 02 02}{f8 00 02}{cont}
+{:L0A13}
+{f8 07 18 00}{cont}
+{:L0A17}
+{f8 04 02}{f8 06 00 00}{f8 00 20}{cont}
+{:L0A21}
+{end}
+
+{:L0A22}
+{f8 06 07 01}{f8 08}{end}
+
+{:L0A29}
+{call L09D3}{f8 02 0A}{f8 08}{jump L0A13}
+
+[0051]  {:L0A34}
+{f8 17 L0A21 L0A3E L0A3E L0A21}
+
+{:L0A3E}
+{f8 06 ED 00}{f8 00 00}{f8 02 02}{f8 00 01}{f8 07 1C 00}{jump L0A17}
+
+{:L0A52}
+{f8 18 L0AC0 L0A5C L0A9F L0A7E}
+
+{:L0A5C}
+Espadas da Luz Reveladora {f8 03 10 56 1D 80 01}{end}
+
+{:L0A7E}
+Espadas da Luz Reveladora {f8 03 10 56 1D 80 01}{cont}
+{:L0A9F}
+{f8 01 FC}{f8 06 E0 00}{f8 00 10}GUARDIÃO
+{f8 06 F0 00}GUIA{f8 0A 00}{f8 01 F8}{cont}
+{:L0AC0}
+{end}
+
+[0052]
+{f8 01 E4}{call L0A52}{f8 01 1C}{jump L09FA}
+
+[0053]
+{f8 01 1C}{call L0A52}{f8 01 E4}{jump L0A34}
+
+[0054]
+{f8 01 1C}{call L0A52}{f8 01 E4}{jump L09FA}
+
+[0055]
+{f8 01 1C}{call L0A52}{f8 01 E4}{jump L0A34}
+
+[00B8]
+{end}
+
+[00B9]
+{end}
+
+[00BA]
+{jump L0E63}
+
+[00BB]
+{jump L0E39}
+
+[00BC]
+{choice 53}CARREGA BACKUP?
+ BORA
+ SAIR
+{choose 80 0 0}
+
+[00BD]
+
+{f8 0A 06}{f8 02 4C}DADO ILEGAL!{end}
+
+[00BE]
+{f8 02 3C}TÁ FORMATANDO...
+{jump L0E60}
+
+[00BF]
+
+{f8 02 40}APAGA{jump L0DEB}
+
+[00C0]
+{f8 02 20}ACESSANDO O CARTÃO...
+{f8 01 08}{f8 02 08}NÃO MEXE NO CARTÃO MEM.
+{f8 02 1C}NAS ENTRADAS 1 E 2{end}
+
+[00C1]
+{f8 02 24}SEM CARTÃO NA ENTRADA
+{f8 02 20}NA ENTRADA DO CARTÃO {f8 03 48 56 1D 80 01}!{end}
+
+[00C2]
+{f8 02 2C}1P CARTÃO ENTRADA 1
+{f8 02 2C}2P CARTÃO ENTRADA 2
+{f8 01 08}     {f8 0B 22}ABRE SALVO  {f8 0B 25}VOLTAR{end}
+
+[00C3]
+
+{f8 0A 01}{f8 02 38}ENTRADA CARTÃO {f8 03 48 56 1D 80 01}{sp}
+{f8 02 38}TROCARAM O CARTÃO!
+{f8 0A 00}{end}
+
+[00C4]
+{f8 02 34}TÁ TROCANDO CARTAS
+{f8 01 08}{f8 02 08}NÃO MEXE NO CARTÃO MEM.
+{f8 02 1C}NAS ENTRADAS 1 E 2{end}
+
+[00C5]
+
+{f8 02 4C}TROCA FALHOU!{end}
+
+[00C6]
+
+{f8 02 44}TROCA FECHOU!{end}
+
+[00C7]
+
+{f8 02 40}ABRE{jump L0D67}
+
+[00C8]
+{choice 53}{f8 0A 01}ABRE{cont}
+{:L0D16}
+{f8 0A 00}?
+{jump L0DD4}
+
+[00C9]
+{choice 53}{f8 0A 01}SALVA{jump L0D16}
+
+[00CA]
+{choice 53}{f8 0A 01}BAIXAR{jump L0D16}
+
+[00CB]
+
+BAIXA INCOMPLETA!{end}
+
+[00CC]
+
+{f8 02 18}BAIXAR{jump L0DEB}
+
+[00CD]
+
+{f8 02 40}SALVA{cont}
+{:L0D67}
+ INCOMPLETO!{end}
+
+[00CE]
+{f8 0A 01}{f8 02 14}NÃO ACHEI OS DADOS SALVOS!
+{f8 01 08}{f8 0A 00}{f8 02 20}PÕE O CARTÃO QUE TEM
+{f8 02 54}DADO SALVO!{end}
+
+[00CF]
+{choice 53}SUBSTITUI?{nl}{cont}
+{:L0DD4}
+ SIM
+ NAO
+{choose 80 0 0}
+
+[00D0]
+
+{f8 02 48}ABRE{cont}
+{:L0DEB}
+ COMPLETO!{end}
+
+[00D1]
+
+{f8 02 48}SALVA{jump L0DEB}
+
+[00D2]
+{f8 02 30}PRECISA DO CARTÃO
+{f8 02 28}ENTRADA DO CARTÃO {f8 03 48 56 1D 80 01}!{end}
+
+{:L0E39}
+{end}
+
+[00D3]
+
+{f8 02 60}NADINHA!{end}
+
+[00D4]
+{f8 02 2C}ACESSANDO O CARTÃO{nl}{cont}
+{:L0E60}
+{f8 01 08}{cont}
+{:L0E63}
+{f8 02 08}NÃO MEXE NO CARTÃO MEM.
+{f8 02 2C}ENTRADA DO CARTÃO {f8 03 48 56 1D 80 01}{sp}{end}
+
+[00D5]
+{f8 02 58}CARREGANDO
+{jump L0E60}
+
+[00D6]
+{f8 02 58}SALVANDO.
+{jump L0E60}
+
+[00D7]
+{f8 02 48}RECEBENDO...
+{jump L0E60}
+
+[00D8]
+
+{f8 02 40}ABRE{cont}
+{:L0EE3}
+ INCOMPLETO!{end}
+
+[00D9]
+
+{f8 02 40}SALVA{jump L0EE3}
+
+[00DA]
+{f8 02 40}NÃO DEU ACESSO
+{f8 02 50}CARTÃO MEM.!{end}
+
+[00DB]
+{f8 0A 01} FALTA BLOCO LIVRE!
+{f8 0A 00}{f8 01 08}{f8 02 48}{f8 03 08 56 1D 80 82} BLOCO USADO
+{f8 02 38}{f8 03 0C 56 1D 80 02} BLOCO EXIGIDO{end}
+
+[00DC]
+
+{f8 02 30}BAIXAR{jump L0EE3}
+
+[00DD]
+
+{f8 02 38}APAGA{jump L0EE3}
+
+[00DE]
+
+{f8 02 18}CARTÃO NÃO FORMATADO!{end}
+
+[00DF]
+{choice 53}APAGAR?
+ NAO
+ SIM
+{choose 80 0 0}
+
+[00E0]
+{end}
+
+[00E1]
+{f8 0A 01}ESTRELA
+{f8 0A 00} {f8 0B 26}x{f8 03 08 56 1D 80 06}{end}
+
+[00E2]
+Cola a senha
+'SENHA'
+
+    {f8 0B 22}SIM{f8 0B 25}FIM{end}
+
+{:L1014}
+N. DA CARTA {f8 03 0C 56 1D 80 C3}
+{f8 0B 26}x{f8 03 08 56 1D 80 06}{end}
+
+[00E3]
+{choice 64}{call L1014}{cont}
+{:L1039}
+
+ TROCAR
+{f8 0A 00} SAIR
+{choose 80 0 0}
+
+[00E4]
+{choice 6C 02}{call L1014}{f8 0A 04}{jump L1039}
+
+[00E5]
+{call L1014}
+{f8 0A 01} Essa 'SENHA'
+   já entrou
+  digitada!{end}
+
+[00ED]
+{f8 03 08 56 1D 80 83}
+{f8 00 20}{end}
+
+[00EE]
+{f8 0A 84}Modo Som
+{f8 01 04}{f8 02 60}{f8 0A 80}ESTÉREO     MONO{end}
+
+[00EF]
+{f8 0A 84}Modo Som
+{f8 01 04}{f8 02 60}{f8 0A 80}ESTÉREO     MONO{end}
+
+[00F0]
+{end}
+
+[00F1]
+{end}
+
+[00F2]
+ABCDEFGHIJK
+LMNOPQRSTUV
+WXYZ
+abcdefghijk
+lmnopqrstuv
+wxyz
+0123456789
++-*/&$%!?.:{end}
+
+[00F3]
+{f8 0A 05}{sp}
+
+←→
+
+⊂⊃{end}
+
+[00F4]
+
+{f8 02 28}Bota teu NOME!{end}
+
+[00F5]
+{choice 53}Teu NOME é {f8 0A 01}{call L125A}{f8 0A 00}-
+SIM
+NAO
+{choose 80 L1191 L118E}
+
+{:L118E}
+{f8 16}{end}
+
+{:L1191}
+{f8 1A}Teu código de duelo
+já anotei.{page}Cê não duela nem troca
+com o mesmo código.{end}
+
+[00F6]
+{choice 53}FIM DO DUELO
+VIT
+DER
+{choose 80 0 0}
+
+[00F7]
+FILME ROLANDO{end}
+
+[00F8]
+<{f8 03 08 56 1D 80 83}/722>{end}
+
+[00FD]
+{buffer}
+
+[00FE]
+{buffer}
+
+[00FF]  {:L1267}
+{fx 2B 80}{fx 2C 80}{fx 2D 80}{fx 3C 80}{fx 3D 80}{fx 3E 80}{end}
+
+[0546]
+{state 05 00 41}{f8 10 03 80 87 00}{f8 15 A0}{page}{jump L128B}
+
+[0500]  {:L128B}
+{state 05 01 01}É isso...{page}Achei, no fim...{page}O tesouro proibido dos
+magos de antigamente...{page}{state 05 00 02}{state 0B C0 00 00 00 2C 01}Hahahaha!{page}Hahahaha...
+Hahahahaha!!!
+{state 0A}{f8 0E 20 70}{state 0F 3C 00}{f8 16}{end}
+
+[0501]
+Meu príncipe!
+Cê vai pra cidade
+jogar carta de novo!?{page}Cê é sangue real!
+Andando na rua
+vestido de plebeu...{page}...Não tem vergonha!?
+Na moral, tô com vergonha!{page}{choice 02}«Some»
+«Ouve mais»
+{choose 80 L15DE L140F}
+
+{:L140F}
+O Faraó ficou sabendo
+das suas paradas...
+E ele tá preocupado!{page}{choice 02}«Some»
+«Ouve mais»
+{choose 80 L15DE L147F}
+
+{:L147F}
+Eu sei que a culpa é minha
+de ter te ensinado carta...
+Mas cê exagera, príncipe!{page}{choice 02}«Some»
+«Ouve mais»
+{choose 80 L15DE L14FC}
+
+{:L14FC}
+Já tá na hora de largar
+esse passatempo besta e
+focar no estudo.{page}{choice 02}«Some»
+«Ouve mais»
+{choose 80 L15DE L1571}
+
+{:L1571}
+Não é certo preocupar o
+Faraó e a Rainha assim!{page}Por favor, príncipe...
+Volta pro seu quarto.{page}{fx 01 80}{set 406E}{jump L446E}
+
+{:L15DE}
+{fx 01 41}Espera! Para, príncipe!{page}{fx 01 40}Droga!
+Ele vazou...{end}
+
+[0502]
+{fx 01 00}Príncipe {call L125A}.
+Cê voltou...{page}Já tá de noite...
+Volta pro palácio.{page}Príncipe...
+Se cê ainda quer
+jogar carta...{page}...então tenta a sorte
+comigo.{page}Se perder, cê tem que
+voltar pro quarto.{page}Pode crer que eu sou
+um rival brabo.{page}{choice 02}«Duelo»
+«Sair»
+{choose 80 L172A L17AF}
+
+{:L172A}
+Ho ho ho. Meu príncipe...
+Fui eu que te ensinei.{page}Cê acha mesmo que
+vai ganhar, é?{page}Se prepara!{page}{f8 11 00}{f8 0D 01 60 61 00 00 72}{end}
+
+{:L17AF}
+{if 006F L1805}Então, moleque...
+Vai pro quarto!{page}Ahn, por favor.{page}{choice 02}«Não vou»
+«Ir»
+{choose 80 L186C L1819}
+
+{:L1805}
+{fx 01 41}Espera!
+Volta aqui!{end}
+
+{:L1819}
+Hmph...
+Cê foi sábio em me ouvir.{page}Tá tarde.
+Dorme bem, príncipe.{page}{fx 01 80}{set 406E}{jump L446E}
+
+{:L186C}
+{fx 01 41}Espera!
+Volta aqui agora!{end}
+
+[0503]
+Cê ganhou...{page}Parece que
+eu te ensinei bem...
+Cê ficou brabo.{page}Ganhou na leal.
+Como eu falei, pode ir.
+Não tenho mais o que falar...{page}{f8 19 01}{f8 16}{end}
+
+[0504]
+Hmmm...
+Parece que eu ganhei.{page}Já faz tempo que
+eu te ensinei o jogo...
+Mas cê ainda tem o que aprender.{page}Agora, por favor...
+Volta pro palácio!{end}
+
+[0505]
+{fx 01 00}Já jogou bastante,
+príncipe?{page}Não te contei isso,
+mas tem uma história
+junto dessas cartas...{page}Cê topa
+ouvir?{page}{choice 02}«Sim»
+«Não»
+{choose 80 L1A67 L1D45}
+
+{:L1A67}
+Então escuta...{page}Hoje o baralho
+de Yu-Gi-Oh! é só
+uma brincadeira.{page}Mas antigamente as cartas
+eram magia zica pra
+puxar poder de mago.{page}{f8 15 A1}{fx 01 82}{state 05 02 82 32 00 00}{f8 15 A0}{fx 41 00}{state 0B C0 00 32 00 58 02}Os magos usavam
+o poder e invocavam
+as forças da carta.{page}Uns fizeram reinos.
+Outros fizeram guerra. {page}Mas as brigas entre
+magos ficou mó intensa...{page}...até que no fim o uso{sp}
+de magia foi proibido.{page}Agora só as cartas ficaram
+no nosso reino.{page}Elas lembram aqueles
+dias de magia...
+{state 0A}{page}{fx 41 80}{state 05 01 00}{fx 01 00}E então,
+Príncipe {call L125A}...{page}Lembra dessa história quando
+for encarar um rival
+com seu baralho.{page}Nunca esquece que a gente
+já passou do limite
+e andou no caminho da ruína.{page}{set 4048}{f8 16}{end}
+
+{:L1D45}
+Entendi...{page}Então vai, mas tenta
+voltar numa hora decente...{page}{fx 01 80}{f8 16}{end}
+
+[0506]
+Não tem ninguém...{end}
+
+[0507]
+{if 006F L28C4}{fx 03 00}Tô te esperando... {call L125A}.{page}O Jono tava aqui
+faz uns minutos.
+Mas ele já vazou...{page}Bora um duelo?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L257F L1E49 L24EF}
+
+{:L1E49}
+Suave...
+Te vejo depois.{page}{fx 03 80}{jump L1F34}
+
+[0508]  {:L1E6B}
+{call L1267}{if 0021 L1EC2}{jump L1E76}
+
+[0509]  {:L1E76}
+{fx 03 00}Bora uma partida?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L257F L1F0D L24EF}
+
+[050A]  {:L1EC2}
+{fx 03 00}Cê ainda não vai vazar?{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L1F0D L24EF}
+
+[050B]  {:L1F0D}
+Te vejo depois.{page}{fx 03 80}{fx 31 80}{if 0023 L207D}{if 0049 L2017}{jump L1F34}
+
+[050C]  {:L1F34}
+{fx 2B 00}Véi, tem uma festa
+rolando na praça.{page}Mas a gente prefere jogar
+aqui, como sempre.{page}Encara eu?{page}Vamo, bora jogar.{page}{set 4049}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L26A0 L2100 L2456}
+
+[050D]  {:L2017}
+{fx 2B 00}Encara eu?{page}Vamo, bora jogar.{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L26A0 L2100 L2456}
+
+[050E]  {:L207D}
+{fx 2B 00}De novo?{page}Eu perdi pra cê agora pouco...
+Me dá um tempo pra pensar.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L2100 L2456}
+
+[050F]  {:L2100}
+{call L1267}{if 0024 L2286}{if 004A L2201}{jump L2110}
+
+[0510]  {:L2110}
+{fx 2C 00}Ei. Cê achou
+alguma carta rara?{page}Eu achei uma carta
+mó boa!{page}Se cê quiser, vai ter
+que me ganhar.{page}Se perder, vai ter
+que me dar uma sua.{page}{set 404A}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L2734 L22FE L2456}
+
+[0511]  {:L2201}
+{fx 2C 00}Se ganhar, eu te dou
+minha carta.{page}Se perder, cê me dá
+uma sua.{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L2734 L22FE L2456}
+
+[0512]  {:L2286}
+{fx 2C 00}Eita...
+Chega por hoje.{page}Se eu perder de novo,
+eu fico sem carta.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L22FE L2456}
+
+[0513]  {:L22FE}
+{call L1267}{if 0025 L23EF}{if 004B L239C}{jump L230E}
+
+[0514]  {:L230E}
+{fx 2D 00}Tá falando comigo, moleque?
+Tenho coisa melhor.{page}Quer me encarar...{page}{set 404B}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L27E6 L1E6B L2456}
+
+[0515]  {:L239C}
+{fx 2D 00}Quer jogar umas cartas?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L27E6 L1E6B L2456}
+
+[0516]  {:L23EF}
+{fx 2D 00}Acho que já deu
+pra mim, moleque...{page}Perder não tem
+graça!{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L1E6B L2456}
+
+{:L2456}
+{call L1267}{fx 31 80}{fx 03 00}Ei, cê sabia que
+tem uma festa
+rolando na praça?{page}Bora lá ver!{page}Aposto que o Jono tá
+lá!{page}{f8 15 A1}{f8 11 82}{state 0F 3C 00}{jump L3882}
+
+{:L24EF}
+Ei, cê sabia que
+tem uma festa
+rolando na praça?{page}Bora lá ver!{page}Aposto que o Jono tá
+lá!{page}{f8 15 A1}{f8 11 82}{state 0F 3C 00}{jump L3882}
+
+{:L257F}
+Fechou, vamo jogar!
+Espero que cê não chore se perder!{page}{f8 11 00}{f8 0D 02 62 63 00 00 72}{end}
+
+[0517]
+Ai!
+Parece que eu perdi.
+Fazer o quê...{page}Jogo de novo quando
+eu ficar melhor.{page}{f8 19 02}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L1F0D L2456}
+
+[0518]
+Ganhei! Ganhei!
+Acho que é a primeira vez
+que eu te ganho, {call L125A}!{page}Espero que cê não tenha
+me deixado ganhar...{end}
+
+{:L26A0}
+Fechou, vamo jogar!{page}{f8 11 00}{f8 0D 04 64 65 00 00 72}{end}
+
+[0519]
+Olha só...
+Vamo jogar de novo um dia...{page}{f8 19 04}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L2100 L2456}
+
+[051A]
+E aí, o que achou?
+Nada mal, né?{end}
+
+{:L2734}
+Beleza, vamo jogar!{page}{f8 11 00}{f8 0D 05 66 67 00 00 72}{end}
+
+[051B]
+Cê ganhou...
+Te devo uma carta.{page}{f8 19 05}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L22FE L2456}
+
+[051C]
+Isso!!! Ganhei!!! Então
+eu levo uma carta sua!
+Né?{end}
+
+{:L27E6}
+Fechou, moleque. Vamo jogar!{page}{f8 11 00}{f8 0D 06 68 69 00 00 72}{end}
+
+[051D]
+Hmph! Acho que perdi...{page}Hoje não é
+meu dia...{page}{f8 19 06}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L1E6B L2456}
+
+[051E]
+Então, moleque...
+Parece que eu ganhei.{page}Deixa uma carta
+sua aí...{end}
+
+[0523]  {:L28C4}
+{fx 02 00}Poxa... Quem esse mago
+acha que é!?{page}Mas eu admito...
+o cara era brabo...{page}Ei,{call L125A},
+Bora uma partida até
+ele voltar?{page}{choice 02}«Duelo»
+«Sair»
+{choose 80 L2976 L2A9B}
+
+[0524]  {:L2976}
+Beleza! Bora!{page}Eu perdi a última...
+Mas eu não perdi a mão!{page}{f8 11 00}{f8 0D 03 6A 6B 00 00 72}{end}
+
+[0525]
+Poxa, {call L125A}!
+Cê me detonou!
+Véi... cê é brabo!{page}Faz um favor e ganha
+daquele mago, vai?{page}{f8 19 03}{jump L2C2D}
+
+[0526]
+O que houve, {call L125A}?
+Cê joga melhor que isso!{page}Se esse é seu máximo, cê
+nunca ganha daquele mago!{end}
+
+[0527]  {:L2A9B}
+Com medo de começar
+com o pé esquerdo, né?
+Eu entendo.{page}Vamo esperar o mago.{page}Véi, o cara é brabo...{page}Olha. Eu jogo aqui
+todo dia. E cê
+sabe que eu sou bom...{page}Na real, quase não tem
+duelista que eu não ganhe.{page}Mas aquele mago...
+Véi...! Ele é brabo!{page}Eu não tive chance!{page}Olha, {call L125A}...
+Não subestima o cara.{page}Eu sei que cê é bom.
+Mas não vacila...{page}{jump L2C2D}
+
+[0528]  {:L2C2D}
+Lá vem ele...
+Voltou.{page}{fx 02 80}{fx 30 80}Olha aquilo...
+{state 05 03 82 3C 00 00}{state 0B 00 00 00 00 87 00}{fx 02 80}{fx 42 00}Ele tem a própria plateia...{page}Faz um favor e
+detona o cara.{page}{fx 42 80}{fx 43 00}Vai, {call L125A}!{page}{fx 43 80}{state 0A}{state 05 02 00}{fx 04 00}Eu não sei o quanto cê é bom...
+Mas espero que me divirta.{page}Saiba que eu
+curto um jogo bom...{page}Não me decepciona!{page}{f8 11 00}{f8 0D 07 6C 6D 00 40 72}{end}
+
+[0529]
+Eu...
+Não acredito que perdi...{page}{fx 32 80}{fx 04 00}Mas... espera.
+Cê... cê é...{page}Hmmm... entendi...{page}Chega.
+Por hoje é isso.{page}Sinto que nossos caminhos
+se cruzam de novo...{page}Até lá... eu me despeço.{page}{fx 32 80}{fx 04 80}{f8 19 07}{jump L2E8C}
+
+[052A]
+Cê perdeu, moleque!{page}Vai precisar de cartas melhores
+que essas se quiser
+me ganhar!{end}
+
+[052B]  {:L2E8C}
+{fx 02 12}Cê conseguiu!
+{call L125A}.{page}Viu a cara dele!?
+Cê foi brabo!!!{page}{fx 02 21}{fx 03 13}{call L125A}...
+Cê é bom demais!{page}{fx 02 20}{fx 03 21}"Eu me despeço"...
+Hah! Que fracassado!{page}{jump L2F2A}
+
+{:L2F2A}
+{call L125A},
+E agora?{page}Ainda tem um tempo?{page}{choice 02}«Joga»
+«Vaza»
+{choose 80 L2F74 L2FC3}
+
+{:L2F74}
+{fx 03 80}Fechou!
+Bora uma partida rápida?{page}{choice 02}«Duelo»
+«Fala outro»
+{choose 80 L354A L30E3}
+
+{:L2FC3}
+É? Então volta
+quando quiser...{page}A gente fica aqui.{end}
+
+[052C]
+{fx 02 00}Ei, {call L125A}! Cê voltou!
+Bora jogar?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L354A L319E L30CB}
+
+{:L3057}
+{call L1267}{fx 02 00}Tá ficando tarde,
+{call L125A}.{page}Bora mais uma?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L354A L319E L30CB}
+
+{:L30CB}
+Suave. Até mais...{end}
+
+[052D]  {:L30E3}
+Fechou. Te vejo depois...{page}{jump L30FE}
+
+{:L30FE}
+{call L1267}{fx 02 80}{fx 30 80}{fx 03 00}Cê foi bem lá atrás.
+{call L125A}.{page}Sabe, um dia quem sabe
+eu fico brabo que nem cê,
+{call L125A}.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L3248 L3190}
+
+{:L3190}
+Até já!{end}
+
+{:L319E}
+Suave. Até mais...{page}{call L1267}{fx 02 80}{fx 30 80}{fx 03 00}Acho que vou pra casa...{page}Com a festa e tudo,
+eu perdi a hora.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L3248 L3190}
+
+[052E]  {:L3248}
+{fx 03 80}{if 004E L3301}{fx 2B 00}Que duelo foi aquele...{page}Eu nunca vi
+nada igual!{page}Me dá uma chance?
+Vamo, bora jogar...{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L3602 L336F L335F}
+
+[052F]  {:L3301}
+{fx 2B 00}Olha... preciso de um tempo.
+Vamo jogar amanhã.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L336F L335F}
+
+{:L335F}
+Até mais...{end}
+
+[0530]  {:L336F}
+{call L1267}{if 004F L34A9}{fx 2C 00}Cê conseguiu pegar
+alguma carta rara?{page}Eu jogo com cê por elas
+se cê quiser.{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 L36BE L340F L33FC}
+
+{:L33FC}
+Até a próxima!{end}
+
+[0531]  {:L340F}
+{call L1267}{fx 2D 00}Quer jogar comigo?{page}Olha, moleque. Eu vi o quanto
+cê é bom da última vez.{page}Eu odeio perder!{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L3057 L3542}
+
+[0532]  {:L34A9}
+{call L1267}{fx 2D 00}Se tá procurando aquele mlk
+que cê ganhou, ele foi pra casa.{page}Eu não jogo mais.
+Por que cê não vai pra casa...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L3057 L3542}
+
+{:L3542}
+Falou.{end}
+
+{:L3547}
+{f8 16}{end}
+
+[0533]  {:L354A}
+Fechou, vamo nessa!{page}{f8 11 00}{f8 0D 03 6E 6F 00 00 72}{end}
+
+[0534]
+Poxa...
+Cê é bom demais!{page}...ou eu que sou ruim.{page}{f8 19 03}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L30FE L3547}
+
+[0535]
+Uau!{page}Parece que hoje
+é meu dia de sorte!
+{call L125A}.{end}
+
+[0536]  {:L3602}
+Fechou... Vamo jogar!{page}{f8 11 00}{f8 0D 04 70 71 00 00 72}{end}
+
+[0537]
+Hm...
+Não consigo ganhar.{page}Acho que tá na hora de
+pensar outra estratégia.{page}{f8 19 04}{set 404E}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L336F L3547}
+
+[0538]
+E aí, o que achou?
+Nada mal, né?{end}
+
+[0539]  {:L36BE}
+Beleza, vamo jogar!{page}{f8 11 00}{f8 0D 05 72 73 00 00 72}{end}
+
+[053A]
+Poxa...
+Cê é bom demais...{page}Tô indo pra casa...
+Te vejo por aí.{page}{fx 3D 80}{f8 19 05}{set 404F}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L340F L3547}
+
+[053B]
+Consegui! Ganhei!{page}Vou levar essa carta!{end}
+
+[051F]
+{if 006F L3839}Tem um monte de gente
+na praça da cidade...{page}...mas não tem nada de interessante.{end}
+
+[05F8]  {:L37DB}
+Parece que a festa acabou.
+Quase ninguém por aqui...{page}...e não tem nada de interessante.{end}
+
+{:L3839}
+{if 0026 L37DB}A festa tá no auge...{page}...mas não tem nada de interessante.{end}
+
+[0520]  {:L3882}
+{state 05 36 00}{f8 0E 40 73}{f8 15 A0}Uau... tem um monte de
+gente aqui.{page}Olha, os magos vão
+começar o desfile...{page}{f8 15 A1}{fx 03 82}{state 05 37 01}{f8 15 A0}{fx 43 00}Zica...{page}...mas dá um medinho.{page}Isso deve ser obra
+daquele
+grão-mago detestável, Heishin.{page}Quando eu era mlk, era
+mais de boa.{page}Até o jeito dos magos
+piorou...{page}Pra onde esse mundo
+tá indo...?{page}{fx 43 80}{state 05 36 00}{fx 03 00}Quer ir pra outro lugar?{page}{f8 15 A1}{fx 03 82}{state 05 00 00}{f8 15 C0}{fx 43 00}Olha! É o Jono!
+Não acredito, mas{sp}
+ele tá duelando ali!{page}{fx 43 80}{f8 15 A0}{state 05 38 01}{fx 42 00}Eu...
+Eu perdi...{page}{fx 42 80}{fx 44 00}Acho que eu
+gastei meu esforço
+num inseto qualquer.{page}{fx 44 80}{fx 42 00}Quê!?{page}{fx 42 80}{fx 44 00}Desculpa o jeito.
+Cê foi... até divertido.{page}{fx 44 80}{fx 43 00}Ei! Jono!{page}{fx 43 80}{fx 42 00}Teana e {call L125A}...{page}{fx 42 80}{state 05 37 00}{fx 02 00}{fx 43 00}{fx 02 21}O que tá rolando?{page}{fx 43 80}{fx 02 20}O que cê acha?
+Não tá na cara?{page}{fx 02 21}{fx 43 00}Cê perdeu...{page}{fx 43 80}{fx 02 20}Não fala assim! Eu não
+perdi... eu tive um tropeço...{page}{fx 02 80}{fx 04 00}Cansei desse inseto...{page}Não tem um entre vocês
+que mereça minha atenção?{page}{fx 04 21}{fx 42 00}Véi!
+A cara de pau desse cara!{page}{fx 42 80}{fx 43 00}Ei, {call L125A}...
+Por que cê não encara ele?{page}Afinal, cê é o melhor
+duelista que eu já vi!{page}Aposto que cê ganha dele!{page}{fx 43 80}{fx 42 00}É, {call L125A}!
+Vai! Mostra quem
+manda aqui!{page}{fx 42 80}{fx 04 20}Olá...
+Cê é o próximo?{page}{choice 02}«Duelo»
+«Sair»
+{choose 80 L3D49 L3F7B}
+
+[0521]  {:L3D49}
+Espero que cê seja melhor
+que o último.
+Vem! Vamo duelar.{page}{fx 04 21}{fx 45 00}Mestre Seto! O mestre Heishin
+te chama.{page}{fx 45 80}{fx 04 20}Entendi...{page}Então tá. O duelo fica pra depois.{page}Tô certo em achar que cê
+cola no campo de duelo da cidade?{page}{fx 04 21}{fx 42 00}Isso mesmo.{page}{fx 42 80}{fx 04 20}Então espera lá...
+Eu te honro com uma visita.{page}Seto é meu nome.
+Lembra dele...{page}{fx 04 80}{fx 02 00}Dá pra acreditar nesse cara!?
+Um mago cheio de pose!!!{page}{fx 02 21}{fx 43 00}É... Um charme só.{page}{fx 43 80}{fx 02 20}Tô sentindo que {call L125A}{sp}
+vai colocar ele no lugar.
+Né, parceiro?{page}Bora olhar por aí e
+depois ir pro campo de duelo.{page}{fx 02 80}{set 406F}{f8 11 00}{f8 14 0A}{end}
+
+[0522]  {:L3F7B}
+Ah! O covarde mostra
+quem ele é...
+Por que eu não tô surpreso?{page}Vocês insetos são todos iguais...{page}{fx 04 21}{fx 42 00}Calma! {call L125A}{sp}
+só não quer
+te encarar aqui!{page}{fx 42 80}{fx 04 20}É mesmo...{page}{fx 04 21}{fx 42 00}Tem um campo de duelo onde
+a gente joga. Esse é
+o lugar de uma briga de verdade!{page}{fx 42 80}{fx 04 20}O campo de duelo da cidade...{page}{fx 04 21}{fx 45 00}Mestre Seto!
+O mestre Heishin chama!{page}{fx 45 80}{fx 04 20}Entendi...
+Então tá. O dever chama...{page}O campo de duelo, é?
+Espera lá que eu te honro
+com a minha presença.{page}Seto é meu nome.
+Lembra dele...{page}{fx 04 80}{fx 02 00}Dá pra acreditar nesse cara!?
+Um mago cheio de pose!!!{page}{fx 02 21}{fx 43 00}É... Um charme só.{page}{fx 43 80}{fx 02 20}Foi mal, {call L125A}...
+Eu sei que cê não queria
+duelar com o cara.{page}Mas ele te chamou de covarde,
+{call L125A}! Eu não pude
+deixar isso passar!{page}Bora pro campo de duelo
+esperar o cara!{page}{fx 02 80}{set 406F}{f8 11 00}{f8 14 0A}{end}
+
+[053C]
+{fx 06 00}Esse salão sagrado é
+protegido pelo Grão-Mago Heishin!
+Plebeu não entra!{page}Vaza daqui!{end}
+
+[053D]
+{fx 4E 00}Cadê o Seto?{page}{fx 4E 80}{fx 4F 00}Vamo ficar esperando!?{page}{fx 4F 80}{fx 50 00}Onde ele se meteu numa
+hora dessas!?{page}Parece que o favorito
+do mestre Heishin tá debochando...{page}{fx 50 80}{fx 51 00}O mestre Heishin fala tanto
+da capacidade do Seto...{page}...e ele não passa de um mlk.{page}{fx 51 80}{fx 52 00}Acho que já esperamos demais.
+Vamo nessa. O mestre Heishin
+tá esperando a gente...{page}{fx 52 80}{set 404D}{f8 16}{end}
+
+[053E]
+E aí!{end}
+
+[053F]
+{fx 01 00}Até que enfim!{page}Anda! Pro seu
+quarto!{page}{fx 01 80}{jump L446E}
+
+[0540]  {:L446E}
+{state 05 05 00}{fx 01 00}Eu espero mesmo que cê
+já queira encerrar o dia...{page}{f8 15 A1}{fx 01 82}{f8 11 00}{jump L44B0}
+
+[0541]  {:L44B0}
+{state 05 02 01}{f8 15 A0}{fx 41 00}Às vezes eu acho que o
+príncipe faz isso pra me irritar...{page}{fx 41 80}{fx 53 00}Lorde Simon Muran!
+Deu ruim!{page}O-o Grão-Mago...
+O Grão-Mago Heishin
+e os homens dele...{page}Eles têm um poder estranho...
+Tão invadindo o palácio!!!{page}{fx 53 80}{fx 01 20}{fx 41 00}{f8 0E B0 71}Quê!?{page}{fx 41 80}{fx 01 21}{fx 53 00}Acho que é magia, meu lorde!
+Tenho medo que não tenha
+nada que a gente faça...{page}{fx 53 80}{fx 01 20}{fx 41 00}Cadê o Grão-Mago agora!?{page}{fx 41 80}{fx 53 00}No Salão do Palácio, meu lorde!{page}{fx 53 80}{state 05 00 00}{fx 41 00}Heishin... Heishin!
+O que esse cachorro tá tramando?{page}{fx 41 80}{fx 01 80}{state 05 04 82 60 00 00}{fx 41 00}{state 0B 5C 00 00 00 B4 00}Quê... que que é isso...{page}{state 0A}{fx 41 80}{fx 07 00}Bom te ver de novo,
+Simon Muran...{page}{fx 07 21}{fx 41 00}Cê ousa se revoltar...
+Tá maluco!?{page}{fx 41 80}{fx 07 20}Maluco...?
+Eu?{page}Acho que não...
+Eu só vim buscar
+meu trono.{page}{fx 07 21}{fx 41 00}Seu trono!?{page}{fx 41 80}{fx 07 20}Sim, meu trono. Agora eu
+tenho o 'Poder'...{page}{fx 07 21}{fx 41 00}O 'Poder'...
+Não... Não pode ser...{page}{fx 41 80}{fx 07 20}Eu vejo que cê reconheceu.
+Mas nós dois viemos
+dos magos de antes...{page}{fx 07 21}{fx 41 00}O poder das trevas...!?{page}{fx 41 80}{fx 07 20}Isso. Eu descobri
+o tesouro proibido...{page}{f8 15 A1}{fx 07 82}{state 05 03 01}{f8 15 A0}Aqui! Prova o poder
+proibido das trevas!!!{page}{jump L48DF}
+
+[0542]  {:L48DF}
+{state 05 05 00}{f8 10 27 00}{state 10 28 00}{state 0F 3C 00}{f8 16}!?{page}{fx 09 00}Príncipe {call L125A}!{page}O Grão-Mago Heishin
+invadiu o palácio!{page}Aqui tá perigoso demais!
+A gente tem que vazar já!{page}{fx 09 80}{f8 15 A1}{f8 11 83}{state 0F 0A 00}{f8 0E 80 71}{state 05 04 01}{f8 15 A0}{fx 47 00}Não...{page}{fx 47 80}{fx 44 00}Príncipe {call L125A}...
+Achou que ia fugir de mim?{page}{if 006E L49CE}A gente se vê de novo...{page}{jump L49CE}
+
+{:L49CE}
+Beleza, pessoal...
+Tira esse servo daqui!{page}Quero falar com o príncipe.{page}{fx 44 80}{fx 04 21}{fx 45 00}Como ordenar!{page}{fx 45 80}{fx 47 00}Príncipe {call L125A}!{page}{fx 47 80}{fx 45 00}Fica quieto e vem com a gente!{page}{fx 45 80}{fx 04 20}{state 05 06 00}{fx 04 00}Por que cê foge?
+{call L125A}.{page}O Heishin já pegou o
+Rei e a Rainha.{page}Fugir só
+ia provocar o Heishin a
+acabar com eles...{page}É isso que cê quer?{page}Então... eu te falo o que eu quero.
+Uma coisa que só quem é
+de sangue real saberia...{page}...o lugar do
+Item do Milênio.{page}Me fala onde tá que eu
+poupo o Rei e a Rainha!{page}Cê sabe onde tá!
+Então... fala!{page}{choice 02}«Recuso»
+«Fala»
+{choose 80 L4C19 L4C03}
+
+{:L4C03}
+Bom... Agora fala!{page}{jump L4C4E}
+
+{:L4C19}
+Não me toma por trouxa!
+Cê sabe onde tá!!!{page}{jump L4C4E}
+
+{:L4C4E}
+{fx 04 21}{fx 48 00}Meu príncipe...!{page}{fx 48 80}{fx 04 20}Simon Muran!{page}{fx 04 80}{state 05 05 01}{fx 48 00}Príncipe...
+Aqui tá o Item do Milênio...{page}Pega... pega e corre!!!{page}{fx 48 80}{call L125A} ganhou o Enigma do Milênio!{page}{state 05 06 00}{fx 0A 00}Cê tem que guardar esse tesouro
+pra não cair nas
+mãos dessa praga!!!{page}O tesouro é a chave final pra
+abrir o selo do grande poder.{page}Se cair nas mãos
+dos malvados, vai ser
+o fim do mundo...{page}{fx 0A 21}{fx 44 00}Olha só... Cê não podia
+ter trazido numa hora melhor.{page}Me entrega a chave agora
+que eu posso ajudar vocês dois
+a fugir do Heishin.{page}{fx 44 80}{fx 0A 21}Ignora esse cachorro! Ele abana
+o rabo pro Heishin!
+Não dá pra confiar!{page}Deixa ele comigo, príncipe!
+Cê tem que fugir!{page}{fx 0A 21}{fx 44 00}Sai da frente, véi!{page}{fx 44 80}{fx 0A 21}Vai, príncipe! Corre!{page}{choice 02}«Vai»
+«Fica»
+{choose 80 L4F32 L4F3F}
+
+{:L4F32}
+{f8 15 A1}{f8 11 00}{state 0F 3C 00}{jump L4F7D}
+
+{:L4F3F}
+Escuta o que eu falo...
+Vaza daqui!{page}{choice 02}«Vai»
+«Fica»
+{choose 80 L4F32 L4F3F}
+
+{:L4F7D}
+{f8 0E B0 71}{fx 0A 82}{state 05 06 00}{f8 15 A0}{fx 07 00}Não se mexe! Cê é meu!{page}Vi que cê achou eles, Seto.
+Mandou bem.{page}{fx 07 21}{fx 44 00}Sim, meu lorde...{page}{fx 44 80}{fx 07 20}Achou que ia
+fugir de mim, é?{page}Não adianta resistir.
+Assume a derrota...{page}...e entrega.
+Me dá o Item do Milênio!!!{page}{fx 07 21}{fx 48 00}Só resta um caminho, príncipe.{page}Cê tem que brigar com o Heishin.
+Desafia ele num duelo com suas
+cartas e o Item do Milênio!{page}{fx 48 80}{choice 02}«Duelo»
+«Sair»
+{choose 80 L5127 L516D}
+
+[0543]  {:L5127}
+{fx 07 20}Esforço à toa, moleque!
+Cê não tem poder pra
+me derrotar!{page}{f8 11 00}{f8 0D 08 74 75 06 30 72}{end}
+
+{:L516D}
+{fx 48 00}Meu príncipe!
+Cê tem que encarar ele!{page}O Item do Milênio vai
+soltar o poder das trevas
+das suas cartas.{page}Encarar ele!
+Derrota o Heishin!{page}{fx 48 80}{choice 02}«Duelo»
+«Sair»
+{choose 80 L5127 L516D}
+
+[0544]
+Moleque tolo!
+Cê me fez perder tempo!{page}Se cê insiste em ficar com o
+Enigma do Milênio, eu
+arranco ele dos seus dedos!{page}{f8 15 C1}{f8 19 08}{fx 07 82}{state 05 06 01}{f8 0E A0 71}{f8 15 C0}{fx 46 00}!!!{page}Sai da frente, véi!
+Senão...{page}{fx 46 80}{fx 48 00}Meu príncipe!
+Quebra o Enigma do Milênio...{page}Não entrega ele
+pra essa criatura vil!{page}{fx 48 80}{fx 46 00}Sai da frente, véi!
+Tira a mão de mim!{page}{fx 46 80}{fx 48 00}Príncipe...
+O enigma...{page}...não entrega pra eles
+o enigma...{page}{fx 48 80}{choice 02}«Não quebra o enigma»
+«Quebra o enigma»
+{choose 80 L5407 L53E6}
+
+{:L53E6}
+{f8 11 03}{state 05 07 01}{f8 10 2A 00}{fx 46 00}Não!!!{page}{fx 46 80}{f8 15 91}{state 0F 78 00}{f8 16}{end}
+
+{:L5407}
+{fx 48 00}Eu te imploro...
+o enigma...{page}...quebra ele...{page}{fx 48 80}{choice 02}«Não quebra»
+«Quebra»
+{choose 80 L5407 L53E6}
+
+[0545]
+Nada mal, moleque.{page}Mas cê tá errado se
+acha que me venceu!{page}{f8 0D 08 74 75 06 30 72}{end}
+
+[0547]
+{f8 15 90}{fx 01 08}{call L125A}...{page}{fx 01 21}!?{page}{fx 01 20}Ainda bem! Cê acordou!
+A gente tá dentro do Enigma do Milênio.{page}Na real, sua alma agora
+tá presa no enigma.{page}Desculpa, príncipe. Mas esse
+foi o único jeito de salvar
+cê e o enigma.{page}Eu não podia deixar cê
+entregar o enigma pra
+gente que nem o Heishin.{page}O poder das trevas que
+o Heishin queria soltar
+só ia levar à ruína.{page}Um dia, quando alguém montar
+o enigma de novo, cê vai
+viver no meio da gente.{page}Até esse dia chegar...
+Dorme, príncipe.{page}Eu sei que tem alguém
+por aí destinado a
+montar o Enigma.{page}No fim, essa pessoa e
+o Enigma do Milênio vão
+te guiar de volta pro nosso mundo.{page}Agora descansa, príncipe...
+Fecha os olhos...{page}{f8 11 00}{f8 15 91}{fx 01 82}{jump L5774}
+
+[0548]  {:L5774}
+{state 0F 0F 00}{state 05 00 00}{f8 15 90}{fx 4B 00}Ei! Yugi!{page}Acorda, Yugi!{page}{fx 4B 80}{fx 49 00}Hã...?{page}{fx 49 80}{state 05 08 00}{f8 0E 40 70}{fx 0D 00}Cê apagou, véi!{page}{fx 0D 21}{fx 49 00}Sério...? Foi mal...{page}{fx 49 80}{fx 0D 20}O que houve? Tão nervoso
+que não dormiu ontem?{page}{fx 0D 21}{fx 49 00}Eu... tive...
+um sonho...{page}{fx 49 80}{fx 0D 20}Cê tava sonhando!? Véi!
+Nada te abala, né?{page}Bora. Tá na hora da
+cerimônia de abertura. Vamo.{page}{fx 0D 80}{fx 49 00}(... ... ... ...){page}{fx 49 80}{jump L58D6}
+
+[0549]  {:L58D6}
+{f8 15 A1}{f8 11 83}{f8 0E 30 70}{state 05 05 82 00 A2 00}{f8 15 A0}{state 0B A2 00 60 00 78 00}{state 0A}{fx 54 00}Bem-vindo ao Mundial
+de Yu-Gi-Oh!, patrocínio da
+Corporação Kaiba!{page}Estamos na CIDADE DE DOMINO
+onde duelistas escolhidos
+se juntaram pra decidir quem é
+o número um! {page}{fx 54 80}{fx 4B 00}É agora, Yugi.{page}{fx 4B 80}{fx 49 00}É...{page}{fx 49 80}{f8 15 81}{state 05 05 82 00 00 00}{fx 2A 00}{f8 15 80}As batalhas vão
+começar...{page}Mas antes, tem
+umas regras pra explicar...{page}As regras do torneio se dividem
+entre a preliminar e
+a final. Por exemplo...{page}{fx 2A 80}{fx 4B 00}Quem liga pra regra.
+É só continuar ganhando!{page}Né, Yugi?{page}{fx 4B 80}{fx 49 00}Hã?
+É. Acho que sim...{page}{fx 49 80}{fx 2A 00}...e agora, umas palavras do
+nosso patrocinador, sr. Kaiba!{page}{fx 2A 80}{fx 0E 00}Valeu por colar com a gente
+pra decidir o rei dos reis...{page}Hoje a gente duela pra decidir{sp}
+quem é o Mestre do Jogo...
+o duelista final!{page}E eu também tô
+atrás dessa honra...{page}{fx 42 00}{fx 0E 21}Esse Kaiba me irrita!{page}Se alguém tirar ele do
+torneio, tomara que seja eu!{page}Yugi, quero te encarar
+na final... Fechou?{page}{fx 4B 80}{fx 49 00}Fechou!{page}{fx 49 80}{fx 0E 80}{fx 2A 00}Então, pessoal,
+galera!
+Que vença o melhor!
+Que os duelos comecem!!!{page}{f8 15 A1}{fx 2A 82}{f8 16}{end}
+
+[054A 056B]
+E aí, Yugi!{page}Tô trampando meio período nessa
+loja de carta durante o torneio.{page}O que cê quer fazer?{end}
+
+[054B]
+Boa sorte!{page}{f8 15 A1}{fx 16 82}{f8 11 83}{jump L5D72}
+
+{:L5D72}
+{f8 0E 60 70}{state 05 09 00}{fx 54 00}Preliminar #1
+Yugi vs Rex Raptor!{page}{fx 54 80}{fx 10 00}Faz tempo, Yugi...{page}Acho que cê vai ficar
+me vendo na final!{page}{f8 11 00}{f8 0D 09 76 77 00 D0 71}{end}
+
+[054C]
+{f8 19 09}Cê... Cê me ganhou!!!{page}Não acredito!!!{page}{fx 35 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[054D]
+Hahaha!
+Parece que o melhor
+venceu... EU!!!{page}Foi mal, mlk!!!{end}
+
+[056C]
+Tá brabo, Yugi.
+Tá brabo!{page}O que cê quer fazer?{end}
+
+[054E]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 60 70}{state 05 09 00}{fx 54 00}Preliminar #2
+Yugi vs Weevil Underwood!{page}{fx 54 80}{fx 11 00}Hehehe...
+É justo te falar...
+Cê não tem chance{page}Meu exército de insetos vai
+te fazer em pedacinho!{page}{f8 11 00}{f8 0D 0A 78 79 00 D0 71}{end}
+
+[054F]
+{f8 19 0A}Perdi... EU PERDI!!!{page}Meu exército de insetos...
+Derrotado por alguém
+que nem cê...{page}{fx 36 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[0550]
+Harharhar!!!
+Eu ganhei! Eu ganhei!{page}E cê... Cê é um perdedor!
+Vaza, perdedor!
+Some daqui!!!{end}
+
+[056D]
+Ouvi que cê tá indo bem!{page}O que cê quer fazer?{end}
+
+[0551]
+{f8 15 A1}{f8 11 83}{fx 16 82}{state 05 09 00}{f8 0E 60 70}{fx 54 00}Preliminar #3
+Yugi vs Mai Valentine!{page}{fx 54 80}{fx 12 00}Cê devia ter parado
+antes de me encarar.{page}Cê vai se arrepender!{page}{f8 11 00}{f8 0D 0B 7A 7B 00 D0 71}{end}
+
+[0552]
+{f8 19 0B}Acho que eu perdi...{page}Fazer o quê... Eu só
+te desejo sorte!{page}{fx 37 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[0553]
+Ora...
+Foi fácil...{page}E eu achando que cê era bom!{end}
+
+[056E]
+Cê joga brabo, Yugi!{page}O que cê quer fazer?{end}
+
+[0554]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 60 70}{state 05 09 00}{fx 54 00}Preliminar #4
+Yugi vs Bandit Keith!{page}{fx 54 80}{fx 13 00}Faz tempo...
+Vim te enterrar,
+Yugi...{page}Se prepara pra apanhar!{page}{f8 11 00}{f8 0D 0C 7C 7D 00 D0 71}{end}
+
+[0555]
+{f8 19 0C}Eu... eu... ai... ai{page}Eu... O Professor das Cartas...
+Perdi pra esse... esse mlk!{page}{fx 38 80}{f8 15 21}{state 0F 1E 00}{f8 16}{end}
+
+[0556]
+Olha, mlk.
+Cê não teve chance.{page}Eu sou bom demais!{end}
+
+[056F]
+Ouvi que cê chegou na
+final! Que zica!
+Continua assim!{page}E agora, o que cê quer fazer?{end}
+
+[0557]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 40 70}{state 05 11 00}{fx 0D 00}E aí, Yugi!
+Ouvi que cê tá ganhando...{page}{fx 0D 21}{fx 49 00}Tô.
+E cê?{page}{fx 49 80}{fx 0D 20}Eu? Ainda não fui
+eliminado!{page}Quem sabe dessa vez eu te
+encare na final!!!{page}{fx 0D 21}{fx 49 00}Tomara!
+Mas...{page}{f8 11 02}!!!{page}{fx 49 80}{fx 0D 20}Hã? O que houve, Yugi?{page}{fx 0D 21}{fx 49 00}Ali...
+É o Shadi...{page}{fx 49 80}{fx 0D 20}Quê!?{page}{fx 0D 80}{f8 0E 41 70}{fx 0F 00}A gente se vê de novo, Yugi.{page}{fx 0F 21}{fx 4B 00}O que cê tá fazendo aqui?
+Tá procurando alguma coisa?{page}{fx 4B 80}{fx 0F 20}Fui chamado pelo
+Item do Milênio do Yugi...{page}{fx 0F 21}{fx 49 00}O Enigma do Milênio?{page}{fx 49 80}{fx 0F 20}Isso mesmo.{page}Meu próprio Item do Milênio tá reagindo
+como se quisesse estar aqui...
+Aqui e agora.{page}Eu acredito que cada
+Item do Milênio se juntou
+aqui no torneio.{page}Minha missão é descobrir o
+segredo desses Itens.{page}Foi isso que me trouxe.{page}{fx 0F 21}{fx 49 00}Shadi...{page}Eu tive um sonho estranho com
+o Enigma do Milênio.{page}Tinha outro cara que nem
+eu no sonho, preso no
+enigma... em outro mundo.{page}Foi um sonho mó estranho!{page}{fx 49 80}{fx 0F 20}Entendi... Isso pode ter
+a ver com o Yami
+Yugi... seu outro eu.{page}{fx 0F 21}{fx 49 00}Meu outro eu...{page}{fx 49 80}{fx 0F 20}Yugi... Cê já pensou
+em encontrar seu gêmeo das trevas? {page}{fx 0F 21}{fx 49 00}Eu? Encontrar ele?{page}{fx 49 80}{fx 4B 00}E como ele vai fazer isso?{page}{fx 4B 80}{fx 0F 20}A gente pode usar minha Chave do Milênio
+pra abrir sua mente, Yugi.{page}Indo fundo na sua mente,
+cê provavelmente encontra o outro
+cê que tá aí dentro.{page}O Yami Yugi nasceu do
+poder do Enigma do Milênio.
+Ele sai de dentro de cê.{page}O sonho que cê teve... talvez ele
+esteja tentando te falar algo...{page}Acho que agora é a hora
+de encontrar ele e conversar...{page}{fx 0F 21}{fx 49 00}...
+Entendi o que cê tá falando.{page}Eu vou ver ele se cê
+topar me ajudar.{page}{fx 49 80}{fx 0F 20}{f8 11 01}Fechou...
+Aqui, toca minha Chave do Milênio.{page}{f8 15 A1}{fx 0F 82}{state 05 08 01}{f8 15 A0}{fx 4C 00}Agora fecha os olhos...{page}Relaxa... Abre a mente...{page}{fx 4C 80}{f8 15 91}{jump L69E4}
+
+[0558]  {:L69E4}
+{f8 0E 50 70}{state 05 07 00}{f8 15 90}{fx 49 00}Isso é... minha mente...{page}{fx 49 80}{fx 0C 08}{fx 0C 21}{fx 49 00}E cê... é eu...{page}É a primeira vez que eu
+te encontro... É tão...
+estranho...{page}Eu vejo dentro da sua mente.{page}Não precisa de palavra...
+Eu te entendo...{page}...só de te encarar...{page}...{page}...{page}Cê quer voltar...
+pro seu próprio mundo...{page}...Eu quero ajudar...
+O que eu tenho que fazer...?{page}{fx 49 80}{f8 15 A1}{fx 0C 82}{state 05 09 01}{f8 15 A0}{fx 49 00}Uma... carta...?{page}{f8 15 A1}{fx 0C 00}{state 05 07 00}{f8 15 A0}{fx 0C 21}O rosto...
+Tá em branco...{page}{fx 0C 81}Espera!
+Que carta é essa!?{page}{fx 49 80}{f8 11 00}{f8 15 91}{jump L6BA1}
+
+[0559]  {:L6BA1}
+{f8 0E 40 70}{state 05 11 00}{f8 15 90}{fx 49 00}!!{page}{fx 49 80}{fx 0D 00}Yugi?
+Cê tá bem?{page}{fx 0D 21}{fx 49 00}Ah... tô.{page}{fx 49 80}{fx 0D 80}{fx 0F 00}Deu certo? Cê encontrou ele?{page}{fx 0F 21}{fx 49 00}Eu encontrei...{page}Mas... a gente só falou
+rapidinho...{page}Ele disse que era um príncipe
+preso no enigma...
+faz muito tempo.{page}Ele disse que tinha que voltar
+pro mundo dele...{page}Ele me pediu pra ajudar
+ele a voltar.{page}Mas eu não sei como...{page}{fx 49 80}{fx 4B 00}Yugi? O que é isso
+na sua mão?{page}{fx 4B 80}{fx 49 00}Hã?{page}{f8 15 A1}{fx 0F 82}{state 05 10 01}{f8 15 A0}Essa carta...!
+Ele me deu essa carta
+no mundo da minha mente!{page}Ele mandou eu usar ela pra
+libertar ele... pra mandar ele
+de volta pro mundo dele!{page}{fx 49 80}{fx 4B 00}O que é isso, Shadi?{page}{fx 4B 80}{state 05 11 00}{fx 0F 00}Infelizmente eu não sei...{page}Mas provavelmente tem a ver
+com o Item do Milênio.{page}{fx 0F 21}{fx 49 00}Seis cartas em branco...
+Não entendi...{page}{fx 49 80}{fx 0F 80}{fx 0D 00}Tá na hora de voltar.{page}Vamo pensar nisso depois.
+Tem duelo pra brigar.{page}{fx 0D 80}{jump L6EBA}
+
+[055A]  {:L6EBA}
+{f8 15 A1}{f8 11 83}{f8 0E 70 70}{state 05 09 00}{f8 15 A0}{fx 54 00}Final #1!
+Yugi vs Shadi!{page}{fx 54 80}{fx 0F 00}Yugi... A gente foi puxado pra brigar
+pelos nossos Itens do Milênio.{page}A gente nasceu pra duelar!{page}{f8 11 00}{f8 0D 0D 7E 7F 00 E0 71}{end}
+
+[055B]
+{f8 19 0D}Parece que eu perdi...
+Hm?{page}{f8 15 A1}{fx 0F 82}{state 05 11 01}{f8 15 A0}{fx 4C 00}Quê...?! Minha
+Chave e Balança do Milênio!!!{page}{fx 4C 80}{f8 10 2D 00}{f8 15 91}{state 05 12 01}{f8 15 90}{fx 4C 00}Foram puxadas pras cartas...{page}Então é por isso que os
+Itens se puxaram
+hoje...{page}{fx 4C 80}{state 05 09 00}{fx 0F 00}Yugi, parece que seu amigo
+juntou os Itens pra
+absorver eles nessas cartas.{page}{fx 0F 80}{f8 15 21}{state 0F 28 00}{f8 16}{end}
+
+[055C]
+O que houve, Yugi?
+É o melhor que cê faz?{page}Cê não pode perder! Cê é o Escolhido
+do Enigma do Milênio!{end}
+
+[0570]
+Ouvi que cê tá arrasando!
+Continua assim!{page}O que cê quer fazer?{end}
+
+[055D]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 70 70}{state 05 09 00}{fx 54 00}Final #2!
+Yugi vs Bakura!{page}{fx 54 80}{fx 14 00}Estranho... Eu não tinha
+intenção de entrar
+nesse torneio...{page}Mas meu Anel do Milênio...
+Ele me chamou pra brigar...{page}...{page}{state 0F 14 00}{fx 14 41}Bom te ver, Yugi!{page}Já tá na hora da gente
+provar quem é o verdadeiro
+Mestre do Jogo!!!{page}{f8 11 00}{f8 0D 0E 80 81 00 E0 71}{end}
+
+[055E]
+{f8 19 0E}Acho que não vou levar
+o título de Mestre do Jogo...{page}{f8 15 A1}{fx 14 82}{state 05 13 01}{f8 15 A0}{fx 55 00}Que que é isso!?{page}{f8 10 2D 00}{f8 15 91}{state 05 14 01}{f8 15 90}Meu Anel do Milênio! Ele
+tá sendo sugado pra uma carta!{page}{fx 55 80}{state 05 09 00}{fx 14 00}O anel... ele..
+me usou...{page}Valeu, Yugi...
+Agora eu tô livre do
+Anel do Milênio.{page}{fx 14 80}{f8 15 A1}{state 0F 28 00}{f8 16}{end}
+
+[055F]
+É isso! Fim de jogo!{page}Cê não tem o que
+precisa pra ganhar!{end}
+
+[0571]
+Foca, Yugi...
+Pensa... VENCEDOR!{page}E agora, o que cê quer fazer?{end}
+
+[0560]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 70 70}{state 05 09 00}{fx 54 00}Quartas de final!
+Yugi vs Pegasus!{page}{fx 54 80}{fx 15 00}Olha só... Yugi Boy.
+Cê chegou longe.
+Mas agora é hora de perder.{page}{f8 11 00}{f8 0D 0F 82 83 00 E0 71}{end}
+
+[0561]
+{f8 19 0F}Derrota é amarga...{page}{f8 15 A1}{fx 3A 82}{state 05 15 01}{f8 15 A0}{fx 56 00}Oh, céus!{page}{f8 10 2D 00}{f8 15 91}{state 05 16 01}{f8 15 90}Não acredito!
+Meu Olho do Milênio...{page}{fx 56 80}{f8 15 21}{state 0F 28 00}{f8 16}{end}
+
+[0562]
+Yugi Boy...
+A vitória é doce!{page}Cê foi tolo de
+me desafiar...{end}
+
+[0572]
+Mais um duelo, Yugi! E
+aí é a batalha final!{page}O que cê quer fazer?{end}
+
+[0563]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 70 70}{state 05 09 00}{fx 54 00}Semifinal
+Yugi vs Isis!{page}{fx 54 80}{fx 2F 00}É um prazer te encarar
+na batalha, Yugi.{page}Mas só um sai
+vitorioso... EU!!!{page}{f8 11 00}{f8 0D 10 84 85 00 E0 71}{end}
+
+[0564]
+{f8 19 10}Como...
+Como eu pude perder...{page}{f8 15 A1}{fx 40 82}{state 05 17 01}{f8 15 A0}{fx 57 00}!!!{page}{f8 10 2D 00}{f8 15 91}{state 05 18 01}{f8 15 90}Quê...? Meu Colar do Milênio...
+Tá sendo puxado pra uma carta!?{page}{fx 57 80}{f8 15 21}{state 0F 28 00}{f8 16}{end}
+
+[0565]
+Nossa!
+Acho que eu ganhei...
+Não ganhei?{page}Ouvi que cê era forte...
+Mas não o bastante!!!{end}
+
+[0573]
+Cê chegou na final!
+Tô torcendo por cê!!!{page}O que cê quer fazer?{end}
+
+[0566]
+{f8 15 A1}{f8 11 83}{fx 16 82}{f8 0E 80 70}{state 05 09 00}{fx 54 00}Então, é agora!!!{page}Nossos finalistas são o
+brabo Kaiba...{page}...e o invicto Yugi!!!{page}{fx 54 80}{fx 0E 00}Eu achei que ia
+te encarar, Yugi...{page}Meu Cetro do Milênio é o
+item final...{page}Mas o Cetro sussurra pra mim
+que eu tenho que te derrotar.{page}Yugi!
+Se prepara pra perder!!!{page}{f8 11 00}{f8 0D 11 86 87 00 F0 71}{end}
+
+[0567]
+{f8 19 11}Não pode ser...
+Eu...? Derrotado...?{page}{fx 49 00}...{page}{fx 49 80}{f8 15 A1}{fx 34 82}{state 05 19 01}{f8 15 A0}{fx 58 00}Que que é isso!?
+Luz...! Tão forte...!{page}{f8 10 2D 00}{f8 15 91}{state 05 20 01}{f8 15 90}Meu Item do Milênio... puxado
+pra... pra uma carta!?{page}{fx 58 80}{jump L79B1}
+
+[0568]
+HAHAHAHAHAHAHA!!!
+Yugi!!!
+Eu esperei esse dia!!!{page}Esse é um dia que eu nunca
+vou esquecer!!!{page}HAHAHAHAHAHAHA!!!{end}
+
+[0569]  {:L79B1}
+{f8 11 00}{state 05 21 01}{fx 49 00}Agora eu tenho todas as cartas
+com os Itens do Milênio...{page}{fx 49 80}{f8 15 91}{state 05 07 82 60 00 00}{f8 15 90}{f8 10 02 80 1E 00}{state 0B 8C 00 00 00 04 01}{state 0A}{call L125A}...{page}Era isso que cê queria...?{page}{f8 15 A1}{f8 16}{end}
+
+[056A]
+{fx 01 08}{call L125A}... Cê conseguiu!{page}Agora cê volta
+pro seu mundo.{page}Agradece aquele moleque
+por isso...{page}Yugi... Se eu puder falar,
+acho que o moleque mostra
+o que cê vai ser.{page}Agora, com os Itens do Milênio
+se puxando pelo tempo...{page}O portal pro nosso mundo
+pode abrir.{page}{f8 15 A1}{fx 01 82}{state 05 22 01}{f8 15 A0}{fx 41 00}Heishin já tem seis dos
+Itens do Milênio e manda
+num reino enorme.{page}Com os itens, ele
+conseguiu soltar um pedaço
+do poder da treva.{page}Ele botou cada item num templo
+em cada área que tomou
+pra guardar o que é dele.{page}Cria {call L125A}...
+Cê tem que pegar
+todos os Itens do Milênio...{page}E trancar eles de uma
+vez.{page}Onde ficam os templos
+com os Itens do Milênio
+dá pra achar nas ruínas...{page}{fx 41 80}{f8 15 A1}{fx 01 00}{state 05 07 00}{f8 15 A0}Minha hora chegou...{page}Fiz tudo que
+eu podia.{page}Meu corpo já era...
+Essas são minhas últimas
+pra cê, {call L125A}.{page}O resto é com cê.{page}Que cê se dê bem...{page}{f8 11 01}{fx 01 81}{set 4047}{f8 15 91}{f8 16}{state 0F 50 00}{end}
+
+[05F7]
+O que cê quer fazer?{end}
+
+[057B]
+Voltei...{page}Isso parece ruína de
+um templo.{page}Não tem ninguém...{end}
+
+[057C]
+Parece ruína de um templo...{end}
+
+[057D]
+Não tem ninguém...{page}{choice 02}«Entra»
+«Não entra»
+{choose 80 L7EA2 L8106}
+
+{:L7EA2}
+{state 05 14 00}{if 0031 L7FF6}Tá tudo destruído...{page}{fx 18 00}Quem é cê!?
+Ninguém pode entrar!
+Fora! Vaza!{page}{choice 02}«Duelo»
+«Passa»
+{choose 80 L7F16 L7FD9}
+
+{:L7F16}
+Cê ousa me enfrentar!{page}Vou te dar uma lição
+que cê não esquece!{page}{f8 11 00}{f8 0D 12 88 89 00 10 72}{end}
+
+[057E]
+{f8 19 12}Cê manja das cartas
+bem, cria...{page}Eu te subestimei...{page}{fx 18 81}{jump L7FF6}
+
+[057F]
+Otário!{page}Cê não tinha chance
+contra mim, cria!{end}
+
+{:L7FD9}
+Agora...
+Vaza daqui!!!{page}{f8 16}{end}
+
+{:L7FF6}
+Essa sala... era{sp}
+a sala do Simon...{page}{if 0051 L802F}{if 0050 L804E}{jump L802F}
+
+[0580]  {:L802F}
+Tá tudo destruído...{end}
+
+[0581]  {:L804E}
+{choice 02}«Busca»
+«Não busca»
+{choose 80 L806E L80EE}
+
+{:L806E}
+!{page}{state 05 24 01}{call L125A} descobre
+um papiro antigo!{page}É um mapa pras Ruínas Proibidas.{page}Esse mapa deve levar pras
+Ruínas Proibidas...{page}{set 4051}{f8 16}{end}
+
+{:L80EE}
+Acho que eu volto...{end}
+
+{:L8106}
+{f8 16}{end}
+
+[0582]
+Tá tudo destruído...{page}Não tem ninguém...{end}
+
+[0583]
+Não tem ninguém...
+Parece abandonado...{page}{fx 42 00}Ei!
+{call L125A}!{page}{fx 42 80}{set 405A}{fx 02 00}Caraca!
+Cê tá vivo!!!{page}Nunca pensei que ia ver
+cê de novo, {call L125A}!{page}Ainda não acredito!{page}Véi, eu fiquei mó
+surpreso quando soube que cê
+era príncipe de verdade!{page}Que bom te ver!
+Nunca pensei que cê
+ia conseguir vazar!!!{page}{call L125A}... Esse lugar
+mudou desde que cê sumiu.{page}Tá triste, mas os
+duelos seguem... num
+lugar secreto aqui perto.{page}Bora, eu te levo.{page}Vamo!{page}{fx 02 80}{jump L8ACD}
+
+[0574 0584]
+Não tem ninguém...
+Parece abandonado...{end}
+
+[0575 0585]
+{if 0053 L89FE}{if 0051 L88F3}{if 0052 L879F}{fx 17 00}Quem é!?{page}Ninguém entra no Vale
+dos Reis! Vaza!{page}{fx 17 41}!?{page}Meu... meu cria!
+Cê tá vivo!!!{page}{fx 17 40}Eu sou Sadin! Há gerações, minha
+família guarda esse vale!{page}Pode ficar suave que eu
+deixei o Heishin fora
+desse vale, cria.{page}Sinto muito pelo que rolou com
+o faraó e a rainha...{page}Os cara ruim tomaram
+essa terra.{page}Mas agora...
+Agora que cê tá vivo...{page}...tem esperança de novo
+pra geral.{page}{jump L8702}
+
+{:L8505}
+Os restos do faraó e da
+rainha não tão aqui...{page}Heishin, sinto dizer,
+não deixou.{page}Quer mais alguma coisa?{page}{jump L8702}
+
+{:L85D9}
+{set 4050}As Ruínas Proibidas?{page}Simon Muran disse que era
+aqui?{page}Desculpa, nunca vi
+um lugar assim...{page}Tem tumba demais de
+realeza, ninguém sabe qual
+túnel vai pra onde...{page}Se tem uma Tumba Proibida,
+eu não sei onde é...{page}Foi mal, cria...{page}Mais alguma coisa, cria?{page}{jump L8702}
+
+{:L8702}
+{choice 03}«Tumba dos pais»
+«Ruínas Proibidas»
+«Sai daqui»
+{choose 80 L8505 L85D9 L8760}
+
+{:L8760}
+Se precisar de mim,
+eu sempre tô por aqui.{page}{set 4052}{f8 16}{end}
+
+[0576 0586]  {:L879F}
+{fx 17 00}Como eu te ajudo, cria?{page}{choice 02}«Ruínas Proibidas»
+«Sai daqui»
+{choose 80 L87F6 L88B1}
+
+{:L87F6}
+{set 4050}Foi mal, cria.
+Não sei onde fica a Sala
+Proibida.{page}Talvez se cê tivesse uma
+pista do mestre Simon...{page}{choice 02}«Ruínas Proibidas»
+«Sai daqui»
+{choose 80 L87F6 L88B1}
+
+{:L88B1}
+Saquei...
+Se precisar de mim,
+eu sempre tô por aqui.{end}
+
+[0577 0587]  {:L88F3}
+{fx 17 00}Posso ajudar?{page}{choice 02}«Dá o mapa»
+«Sai daqui»
+{choose 80 L8931 L89C5}
+
+{:L8931}
+Então o mestre Simon deixou
+uma pista de onde ficam
+as ruínas...{page}Deixa eu ver...{page}Isso! Eu sei onde é.
+Vem comigo, por favor...{page}{fx 17 80}{f8 11 00}{jump LABDC}
+
+{:L89C5}
+Se precisar de mim,
+eu sempre tô por aqui.{end}
+
+[0578 0588]  {:L89FE}
+{fx 17 00}Tá rolando algo, cria?{page}{choice 02}«Ruínas Proibidas»
+«Volta»
+{choose 80 L8A49 L89C5}
+
+{:L8A49}
+Saquei...
+Se cuida, cria.{page}{fx 17 80}{f8 15 A1}{f8 11 83}{f8 0E 90 71}{jump LB5AD}
+
+[0579 057A 0589]  {:L8ACD}
+{f8 15 A1}{f8 11 83}{f8 0E F0 70}{state 05 19 00}{f8 15 A0}{fx 02 00}Chega... É aqui que a gente
+montou a arena nova.{page}{call L125A}, os magos passaram
+dias tentando achar pra onde
+cê tinha vazado.{page}Quando a gente disse que não sabia,
+eles destruíram a
+arena antiga...{page}Por isso eu e o dono da banca
+trouxemos a arena
+pra cá.{page}{fx 02 21}{fx 43 00}{call L125A}!
+Cê tá vivo!{page}{fx 43 80}{fx 03 01}{fx 03 21}{fx 02 20}Ué, cê achou o quê!?
+{call L125A} não é burro
+pra se deixar pegar!{page}{fx 02 21}{fx 03 20}Véi, é um milagre cê
+ter escapado deles.{page}{fx 03 21}{fx 02 20}É. Esses caras tomaram
+o reino inteiro. Fazem o
+que querem... mandam em tudo...{page}Eles usam um
+bagulho de magia estranha...{page}Ninguém segura eles!{page}Desse jeito, a gente vai
+ter que viver aqui embaixo
+o resto da vida...{page}{call L125A}...{page}Bora um duelo?{page}Melhor que ficar
+só se preocupando...{page}{choice 03}«Duelo com Jono»
+«Duelo com Teana»
+«Deixa»
+{choose 80 L8E1E L8E21 L8E4F}
+
+[05C0]  {:L8E1E}
+{jump LA3C1}
+
+[05C1]  {:L8E21}
+{fx 02 21}{fx 03 20}Acho que eu te surpreendo!{page}{f8 11 00}{f8 0D 14 B3 B4 00 00 72}{end}
+
+[05C2]  {:L8E4F}
+{fx 03 21}{fx 02 20}Tá...
+Quem sabe depois.{page}O véio tem a banca
+aqui embaixo. Cola
+quando der.{page}{fx 02 21}{fx 03 20}Até mais!{end}
+
+[05D8]
+{if 005E L8F3C}Tempo sem te ver...{page}Como cê vê, eu ainda
+tô por aqui...{page}{set 405E}{choice 02}«Banca»
+«Arena»
+{choose 80 LCCBC L8F79}
+
+{:L8F3C}
+No que eu te ajudo?{page}{choice 02}«Banca»
+«Arena»
+{choose 80 LCCBC L8F79}
+
+{:L8F79}
+{f8 15 A1}{fx 08 80}{state 05 19 00}{f8 15 A0}{jump L8FA7}
+
+[05F9]
+E aí. No que eu te ajudo?{end}
+
+[05DA]  {:L8FA7}
+{fx 02 00}{if 005D L93D7}{if 005C L9255}{jump L8FB7}
+
+{:L8FB7}
+{if 0035 L8FD3}{if 0037 L8FEA}{if 0039 L8FFC}{if 003B L9009}{if 003D L9090}{jump L902A}
+
+{:L8FD3}
+{if 0037 L9161}{if 0039 L9161}{if 003B L9161}{if 003D L9161}{jump L9090}
+
+{:L8FEA}
+{if 0039 L9161}{if 003B L9161}{if 003D L9161}{jump L9090}
+
+{:L8FFC}
+{if 003B L9161}{if 003D L9161}{jump L9090}
+
+{:L9009}
+{if 003D L9161}{jump L9090}
+
+{:L902A}
+E aí, {call L125A}.
+Cê tá bem...{page}{jump L904F}
+
+{:L904F}
+Bora duelar?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3C1 L94FB LA3BD}
+
+{:L9090}
+{if 005B L902A}{set 405B}Ei! Eu soube de tudo!
+Cê venceu um mago-mor!?{page}Os magos tão
+com os soldados
+em choque!{page}Isso é mó brabo...
+{call L125A}!{page}{choice 03}«Duelo com Jono»
+«Fala outro»
+«Vaza»
+{choose 80 LA3C1 L94FB LA3BD}
+
+{:L9161}
+{set 405B}{call L125A}!
+A gente tá na zica!{page}Seto e os magos vieram aqui
+enquanto eu tava fora... Levaram
+a Teana!{page}Eles querem cê, {call L125A}...
+Acham que podem te puxar
+usando a Teana de isca!!!{page}Bora, {call L125A}.
+Vamo pro templo
+salvar a Teana!{page}{fx 02 80}{set 405C}{jump LB718}
+
+{:L9255}
+{if 005F L92FF}{set 405F}Véi, foi pesado!{page}Mas pelo menos a
+Teana voltou...{page}Véi, aqueles caras tavam
+mó estranhos...{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3C1 L94FB LA3BD}
+
+{:L92FF}
+{if 8035 L931B}{if 8037 L9332}{if 8039 L9344}{if 803B L9351}{if 803D L9359}{jump L93D7}
+
+{:L931B}
+{if 8037 L902A}{if 8039 L902A}{if 803B L902A}{if 803D L902A}{jump L9359}
+
+{:L9332}
+{if 8039 L902A}{if 803B L902A}{if 803D L902A}{jump L9359}
+
+{:L9344}
+{if 803B L902A}{if 803D L902A}{jump L9359}
+
+{:L9351}
+{if 803D L902A}{jump L9359}
+
+{:L9359}
+Falta um mago-mor, né?{page}{call L125A},
+Se liga...
+A gente conta com cê.{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3C1 L94FB LA3BD}
+
+{:L93D7}
+Cê conseguiu!!!{page}Cê derrubou todos eles!
+Agora só falta derrotar
+Heishin e Seto, né?{page}Eu sabia que cê dava conta!{page}Quando cê virar rei, {call L125A}...
+e as coisa voltarem ao normal,
+espero que cê não esqueça
+que a gente é amigo...{page}...amigo de verdade.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L94FB LA3BD}
+
+[05DB]  {:L94FB}
+{fx 02 80}{fx 30 80}{fx 03 00}{if 005D L977A}{if 005C L9614}{if 0035 L9581}{if 0037 L9581}{if 0039 L9581}{if 003B L9581}{if 003D L9581}{jump L952A}
+
+{:L952A}
+E aí, {call L125A}?{page}Bora um duelo?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3ED L9831 LA3BD}
+
+{:L9581}
+{if 0061 L952A}{set 4061}Ouvi que cê venceu um mago-mor...
+Os outros magos tão com medo!{page}Mandou bem, {call L125A}!{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3ED L9831 LA3BD}
+
+{:L9614}
+{if 0062 L9698}Valeu por me ajudar...{page}{call L125A}... Eu sabia que
+cê vinha me salvar.
+{set 4062}{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3ED L9831 LA3BD}
+
+{:L9698}
+{if 8035 L96B4}{if 8037 L96CB}{if 8039 L96DD}{if 803B L96EA}{if 803D L96F2}{jump L977A}
+
+{:L96B4}
+{if 8037 L952A}{if 8039 L952A}{if 803B L952A}{if 803D L952A}{jump L96F2}
+
+{:L96CB}
+{if 8039 L952A}{if 803B L952A}{if 803D L952A}{jump L96F2}
+
+{:L96DD}
+{if 803B L952A}{if 803D L952A}{jump L96F2}
+
+{:L96EA}
+{if 803D L952A}{jump L96F2}
+
+{:L96F2}
+Derruba mais um mago-mor e
+cê enfrenta o Heishin.{page}Boa sorte, {call L125A}!{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA3ED L9831 LA3BD}
+
+{:L977A}
+Agora só falta o Heishin...{page}Ouvi que o Heishin é um
+duelista brabo...
+Se liga.{page}{call L125A}...
+Tô apostando que cê sai
+vencedor de verdade!{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L9831 LA3BD}
+
+[05DC]  {:L9831}
+{fx 03 80}{fx 31 80}{fx 2B 00}{if 8063 L9860}{if 005D L9BAC}{if 0035 L9A13}{if 0037 L9A13}{if 0039 L9A13}{if 003B L9A13}{if 003D L9A13}{jump L99C2}
+
+{:L9860}
+{call L125A}... Que bom ver que cê
+ainda tá vivo.{page}Cria {call L125A}...
+então cê é da realeza, né?{page}Fica mó estranho, depois de
+tudo que a gente passou...{page}Tudo parece irreal...{page}Por isso a gente segue duelando.
+É o que segura a gente são.{page}Espero que cê não ligue se a gente
+te tratar como antes.{page}Bora, vamo jogar!
+{set 4063}{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA410 L9CD4 LA3BD}
+
+{:L99C2}
+Ei, {call L125A}!
+Bora uma partida?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA410 L9CD4 LA3BD}
+
+{:L9A13}
+{if 0064 L9ABC}{set 4064}Cê reparou que os
+magos tão pra baixo, né?...{page}É tudo por sua causa,
+{call L125A}...
+Bora, vamo jogar!{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA410 L9CD4 LA3BD}
+
+{:L9ABC}
+{if 8035 L9AD8}{if 8037 L9AEF}{if 8039 L9B01}{if 803B L9B0E}{if 803D L9B16}{jump L9BAC}
+
+{:L9AD8}
+{if 8037 L99C2}{if 8039 L99C2}{if 803B L99C2}{if 803D L99C2}{jump L9B16}
+
+{:L9AEF}
+{if 8039 L99C2}{if 803B L99C2}{if 803D L99C2}{jump L9B16}
+
+{:L9B01}
+{if 803B L99C2}{if 803D L99C2}{jump L9B16}
+
+{:L9B0E}
+{if 803D L99C2}{jump L9B16}
+
+{:L9B16}
+Ha! Cê deu uma surra nos
+magos-mor! Brabo!{page}Ouvi que falta mais um
+pra cê... Boa sorte!{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA410 L9CD4 LA3BD}
+
+{:L9BAC}
+Aeee!!!{page}Ouvi que cê derrubou todos
+aqueles magos-mor!!!{page}Notícia braba!!!{page}Ops! Quando cê acabar com
+todos, vou ter que te chamar de
+rei {call L125A}.{page}Melhor eu medir as palavras, né?{page}Espero que cê nunca esqueça a gente
+quando virar faraó...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L9CD4 LA3BD}
+
+[05DD]  {:L9CD4}
+{fx 2B 80}{fx 3C 80}{fx 2C 00}{if 8065 L9D03}{if 005D L9F91}{if 0035 L9DE7}{if 0037 L9DE7}{if 0039 L9DE7}{if 003B L9DE7}{if 003D L9DE7}{jump L9D98}
+
+{:L9D03}
+{set 4065}Tá mó difícil achar carta
+rara hoje em dia...
+Pesado mesmo.{page}E aí, quer jogar?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA43D LA011 LA3BD}
+
+{:L9D98}
+Quer duelar comigo?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA43D LA011 LA3BD}
+
+{:L9DE7}
+{if 0066 L9EBE}{set 4066}Cê venceu um mago-mor!?{page}Talvez as coisa voltem ao normal
+por aqui! Aí, quem sabe,
+eu volto a juntar carta rara
+como antes!!!
+Quer duelar?{page}{choice 03}«Duelo»
+«Fala outro»
+«Vaza»
+{choose 80 LA43D LA011 LA3BD}
+
+{:L9EBE}
+{if 8035 L9EDA}{if 8037 L9EF1}{if 8039 L9F03}{if 803B L9F10}{if 803D L9F18}{jump L9F91}
+
+{:L9EDA}
+{if 8037 L9D98}{if 8039 L9D98}{if 803B L9D98}{if 803D L9D98}{jump L9F18}
+
+{:L9EF1}
+{if 8039 L9D98}{if 803B L9D98}{if 803D L9D98}{jump L9F18}
+
+{:L9F03}
+{if 803B L9D98}{if 803D L9D98}{jump L9F18}
+
+{:L9F10}
+{if 803D L9D98}{jump L9F18}
+
+{:L9F18}
+Cê mandou bem!!!{page}Segue assim e talvez as coisa
+voltem ao normal...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA011 LA3BD}
+
+{:L9F91}
+Cê fez!{page}Mostrou pra esses magos!
+Quando cê virar faraó,
+não esquece a gente, tá?{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA011 LA3BD}
+
+[05DE]  {:LA011}
+{fx 2C 80}{fx 3D 80}{fx 2D 00}{if 8067 LA040}{if 005D LA2F1}{if 0035 LA19B}{if 0037 LA19B}{if 0039 LA19B}{if 003B LA19B}{if 003D LA19B}{jump LA141}
+
+{:LA040}
+{set 4067}Faz tempo, cria...
+Eu venho aqui todo dia.
+Não tenho pra onde ir.{page}As coisa mudaram por aqui...{page}Véi, eu perdi a vontade
+de duelar nesses dias...{page}Agora eu só venho aqui pra
+trocar carta.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA3AB LA3BD}
+
+{:LA141}
+E aí? Quer
+trocar carta comigo,
+cria?{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA3AB LA3BD}
+
+{:LA19B}
+{if 0068 LA205}{set 4068}Nada mal, {call L125A}...{page}Que tal me dar
+aquela carta rara?{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA3AB LA3BD}
+
+{:LA205}
+{if 8035 LA221}{if 8037 LA238}{if 8039 LA24A}{if 803B LA257}{if 803D LA25F}{jump LA2F1}
+
+{:LA221}
+{if 8037 LA141}{if 8039 LA141}{if 803B LA141}{if 803D LA141}{jump LA25F}
+
+{:LA238}
+{if 8039 LA141}{if 803B LA141}{if 803D LA141}{jump LA25F}
+
+{:LA24A}
+{if 803B LA141}{if 803D LA141}{jump LA25F}
+
+{:LA257}
+{if 803D LA141}{jump LA25F}
+
+{:LA25F}
+Véi... duelar não é só
+ganhar e perder...{page}...juntar carta também
+é mó daora.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA3AB LA3BD}
+
+{:LA2F1}
+Parece que pode rolar
+paz de novo...{page}Véi, se as coisa voltarem
+ao normal, acho que vou sentir
+falta da vida aqui embaixo...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA3B4 LA3BD}
+
+{:LA3AB}
+{fx 2D 80}{fx 02 00}{jump L904F}
+
+{:LA3B4}
+{fx 2D 80}{fx 02 00}{jump L93D7}
+
+{:LA3BD}
+{f8 14 0F}{end}
+
+[05DF]  {:LA3C1}
+Tô sentindo que hoje é meu dia!{page}{f8 11 00}{f8 0D 13 B1 B2 00 00 72}{end}
+
+[05E0]  {:LA3ED}
+Se liga! Eu sou bom...{page}{f8 11 00}{f8 0D 14 B3 B4 00 00 72}{end}
+
+[05E1]  {:LA410}
+Ganhar ou perder... sem bronca.{page}{f8 11 00}{f8 0D 04 B5 B6 00 00 72}{end}
+
+[05E2]  {:LA43D}
+Não segura... Senão cê
+se arrepende.{page}{f8 11 00}{f8 0D 05 B7 B8 00 00 72}{end}
+
+[05E3]
+{if 0035 LA56D}{if 0037 LA56D}{if 0039 LA56D}{if 003B LA56D}{if 003D LA56D}{jump LA4AF}
+
+[05E4]
+{if 0035 LA610}{if 0037 LA610}{if 0039 LA610}{if 003B LA610}{if 003D LA610}{jump LA541}
+
+{:LA4AF}
+Véi! Eu tinha certeza que
+ia ganhar dessa vez!{page}Parece que eu vou ter
+que me esforçar mais...{page}{f8 19 13}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L94FB LA3BD}
+
+{:LA541}
+Pô... eu ganhei.{page}Cê deve tá ficando
+fraco...{end}
+
+{:LA56D}
+Ufa! Cê é bom demais!
+Eu não consigo ganhar!{page}Prometo que não vai ser
+tão fácil me vencer
+na próxima...{page}{f8 19 13}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L94FB LA3BD}
+
+{:LA610}
+Que foi, {call L125A}?
+Cê pode mais que isso!{page}Se cê jogar assim contra os
+magos, eles te acabam!{page}Fica ligado no jogo!{end}
+
+[05E5]
+{if 0035 LA793}{if 0037 LA793}{if 0039 LA793}{if 003B LA793}{if 003D LA793}{jump LA6D5}
+
+[05E6]
+{if 0035 LA82B}{if 0037 LA82B}{if 0039 LA82B}{if 003B LA82B}{if 003D LA82B}{jump LA74B}
+
+{:LA6D5}
+{f8 19 14}Droga! Eu perdi...{page}Eu sei que joguei melhor
+do que nunca...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L9831 LA3BD}
+
+{:LA74B}
+Issooo!
+Ganhei! Ganhei!{page}Nada mal, né?
+Aposto que cê ficou
+surpreso!{end}
+
+{:LA793}
+{f8 19 14}Ai! Eu perdi...{page}Bom... Se eu vencesse
+o grande {call L125A}, aí
+eu que tinha que me preocupar.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L9831 LA3BD}
+
+{:LA82B}
+Eita!!!
+Eu ganhei!!!{page}{call L125A}...
+Cê vai ter que jogar melhor
+pra vencer o mago-mor...{end}
+
+[05E7]
+{if 0035 LA962}{if 0037 LA962}{if 0039 LA962}{if 003B LA962}{if 003D LA962}{jump LA8B6}
+
+[05E8]
+{if 0035 LA9D8}{if 0037 LA9D8}{if 0039 LA9D8}{if 003B LA9D8}{if 003D LA9D8}{jump LA90B}
+
+{:LA8B6}
+Ufa...
+Eu não ganho de cê.{page}{f8 19 04}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L9CD4 LA3BD}
+
+{:LA90B}
+Demorou!
+Finalmente te venci na
+leal, {call L125A}!{page}Parece que treinar
+valeu!{end}
+
+{:LA962}
+Ufa...
+Eu não ganho de cê.{page}{f8 19 04}Valeu pelo treino...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 L9CD4 LA3BD}
+
+{:LA9D8}
+Olha só...
+Eu consegui... te venci,
+{call L125A}!{page}Mas se foi assim, quem
+vai salvar o mundo?{end}
+
+[05E9]
+{if 0035 LAB2F}{if 0037 LAB2F}{if 0039 LAB2F}{if 003B LAB2F}{if 003D LAB2F}{jump LAA7F}
+
+[05EA]
+{if 0035 LABA3}{if 0037 LABA3}{if 0039 LABA3}{if 003B LABA3}{if 003D LABA3}{jump LAAEA}
+
+{:LAA7F}
+{f8 19 05}Eu perdi...{page}Parece que eu vou
+precisar de carta mais forte.{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA011 LA3BD}
+
+{:LAAEA}
+Eu ganhei! Eu ganhei!{page}Não acredito!
+Ganhei mesmo com
+essas cartas!!!{end}
+
+{:LAB2F}
+{f8 19 05}Acho que eu perdi...{page}Com essas minhas cartas,
+nem me surpreende...{page}{choice 02}«Fala outro»
+«Vaza»
+{choose 80 LA011 LA3BD}
+
+{:LABA3}
+Eita! Eu ganhei!!!{page}Aposto que cê não curtiu
+isso!{end}
+
+[058A]  {:LABDC}
+{set 4053}{f8 15 A1}{state 05 00 00}{f8 15 A0}{fx 4D 00}Mais pra frente... Cê acha a
+sala marcada no mapa.{page}{f8 0E 90 71}Nossa...{page}{fx 4D 80}{f8 15 A1}{state 05 18 00}{f8 15 A0}{fx 4D 00}Já ouvi história desse
+lugar...{page}Os feiticeiros antigos... eles
+esconderam os segredos da magia
+na Tumba Real...{page}Dizem que um pouco
+dos segredos passou pros
+descendentes.{page}Então é aqui...{page}{fx 4D 80}{fx 17 00}Tem um desenho nessa parede
+mostrando o passado...{page}E ali...
+...uma espécie de mapa...{page}{choice 02}«Ver mapa»
+«Ver desenho»
+{choose 80 LADB2 LB357}
+
+{:LADB2}
+{if 0054 LB3F0}{set 4054}{fx 17 80}{state 05 25 01}{fx 4D 00}Esse mapa...{page}Tem uma marca...{page}{fx 4D 80}{fx 44 00}Aquele desenho na parede marca
+onde tão os Itens do Milênio.{page}E agora mostra os pontos
+no templo onde Heishin escondeu
+os Itens do Milênio dele.{page}Os magos ficam fortes
+enquanto os Itens do Milênio
+ficarem no templo...{page}...dando pra eles uma fonte
+da magia deles.{page}{f8 11 02}{fx 44 80}{fx 4D 00}Cê!{page}{fx 4D 80}{state 05 18 00}{f8 0E 80 71}{fx 04 00}Eu te segui até aqui.
+Eu também tava procurando as
+Ruínas Proibidas.{page}Acho que o Heishin
+também achou esse lugar.{page}Com aquele desenho na parede
+guiando ele, ele achou
+os Itens do Milênio.{page}Ele pode ser mago, mas vem
+de uma linhagem de feiticeiros.{page}Ele quer achar todos os Itens
+do Milênio pra um dia mandar no
+mundo...{page}{fx 04 21}{fx 4D 00}E por que o lacaio do Heishin
+contaria isso tudo!?{page}{fx 4D 80}{fx 04 20}Por quê?{page}Cê descobre já já...{page}Mas antes, vamo ver do que o cria
+{call L125A} é capaz.{page}Agora cê sabe onde achar
+os magos-mor...{page}Se cê for metade do mestre de carta
+que cê acha que é, usa o seu
+Item do Milênio e derrota eles!{page}{fx 04 21}{fx 4D 00}A gente não precisa te ouvir...{page}{fx 4D 80}{fx 04 20}Não tô falando com cê, guardião!
+Falo com o seu cria!{page}Tchau!{page}{fx 04 80}{fx 4D 00}{f8 11 02}Segura!{page}{f8 0E 90 71}{fx 4D 80}{fx 17 00}Tô sentindo zica...{page}Seto... Ele é o braço direito
+do Heishin. Por que ele
+ia querer te ajudar?{page}Cria, eu aconselho cuidado.
+Tem mais coisa nisso
+do que parece.{page}{jump LB324}
+
+{:LB2FC}
+{choice 02}«Ver mapa»
+«Ver desenho»
+{choose 80 LADB2 LB357}
+
+{:LB324}
+{choice 03}«Ver mapa»
+«Ver desenho»
+«Volta»
+{choose 80 LADB2 LB357 LB4B5}
+
+{:LB357}
+{if 0060 LB464}{f8 15 A1}{fx 17 80}{state 05 00 82 00 C0 00}{f8 15 A0}{fx 4D 00}Parece um desenho de
+algum feitiço...{page}Será que descreve um
+dos itens proibidos?{page}{fx 4D 80}{set 4060}{f8 15 A1}{fx 17 00}{state 05 18 00}{f8 15 A0}{if 0054 LB324}{jump LB2FC}
+
+{:LB3F0}
+{f8 15 A1}{fx 17 82}{state 05 25 01}{f8 15 A0}O mapa marca onde ficam os
+templos onde os Itens do Milênio
+escondidos.{page}{f8 15 A1}{fx 17 00}{state 05 18 00}{f8 15 A0}{if 0054 LB324}{jump LB2FC}
+
+{:LB464}
+{f8 15 A1}{fx 17 82}{state 05 00 82 00 C0 00}{f8 15 A0}Parece um desenho de
+um feitiço antigo...{page}{f8 15 A1}{fx 17 00}{state 05 18 00}{f8 15 A0}{if 0054 LB324}{jump LB2FC}
+
+{:LB4B5}
+Vamo voltar...{page}{fx 17 80}{f8 11 00}{state 05 17 00}{f8 0E 00 71}{fx 17 00}Sinto que tem mais segredo
+escondido naquela sala...{page}Cria... Cuidado com os
+planos sujos do Heishin e
+dos capangas.{page}Sempre vou tá aqui por cê.
+Se precisar, é só
+me chamar.{end}
+
+[058B]  {:LB5AD}
+{state 05 18 00}{choice 03}«Ver mapa»
+«Ver desenho»
+«Volta»
+{choose 80 LB5E4 LB63E LB679}
+
+{:LB5E4}
+{state 05 25 01}O mapa marca os lugares
+do templo onde os
+Itens do Milênio tão.{page}{jump LB5AD}
+
+{:LB63E}
+{state 05 00 82 00 C0 00}Parece o desenho de
+um feitiço antigo...{page}{jump LB5AD}
+
+{:LB679}
+{f8 15 A1}{f8 11 83}{f8 0E 00 71}{state 05 17 00}{fx 17 00}Eu fico aqui se cê
+precisar, cria.{end}
+
+[05D9]
+{if 005D LC940}{fx 18 00}Cria, esse templo é sagrado
+do lorde Heishin...{page}Não é pra gente como cê!
+Vaza!{end}
+
+[05EB]
+{end}
+
+[05EC]  {:LB718}
+{f8 15 A1}{f8 11 83}{f8 0E 60 71}{state 05 21 00}{f8 15 A0}{fx 42 00}É aqui...
+Esse lugar me dá um medo...{page}Pra falar a verdade, eu não
+curto ficar aqui.{page}Como não tem mago
+pra barrar a gente, dá pra
+crer que tão esperando.{page}Bora, vamo...{page}{fx 42 80}{jump LB7F7}
+
+[05ED]  {:LB7F7}
+{jump LB7FA}
+
+[05F1]  {:LB7FA}
+{f8 15 A1}{if 006C LBA2E}{if 006B LB9B5}{if 006A LB922}{if 0069 LB89A}{state 05 38 00}{fx 2E 00}{f8 15 A0}Me dá um prazer enorme
+receber otários
+ao enterro de vocês!{page}{fx 2E 21}{fx 42 00}Vaza!
+A gente tem coisa maior!{page}{fx 42 80}{fx 2E 20}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LB89A}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Bem-vindos...
+Espero que estejam prontos
+pra encontrar os ancestrais!{page}{fx 2E 21}{fx 42 00}De novo vocês!?
+{call L125A}! Mostra quem manda!{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LB922}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Bem-vindos...
+Espero que estejam prontos
+pra encontrar os ancestrais!{page}{fx 2E 21}{fx 42 00}Eles não desistem!
+Vamo ter que acabar com ele!{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LB9B5}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Bem-vindos...
+Espero que estejam prontos
+pra ver os ancestrais!{page}{fx 2E 21}{fx 42 00}Acho que tamos perdidos...{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+{:LBA2E}
+{state 05 38 00}{fx 2E 00}{f8 15 A0}Bem-vindos...
+Espero que estejam prontos
+pra ver os ancestrais!{page}{fx 2E 21}{fx 42 00}De novo!
+Bora, vamo cuidar dele!{page}{fx 42 80}{f8 11 00}{f8 0D 1F B9 BA 00 10 72}{end}
+
+[05F2]
+{if 006C LBD2A}{if 006B LBC98}{if 006A LBC05}{if 0069 LBB86}{set 4069}Cê não tem chance de sair
+desse labirinto...{page}{f8 19 1F}{fx 3F 81}{fx 42 00}Olha, ignora esse cara....
+Vamo seguir!{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBDB7 LB7FA}
+
+[05F3]
+Seto e Heishin...
+Meus chefes vão curtir!
+Hahahahaha...!{end}
+
+{:LBB86}
+{set 406A}Cê não tem chance de sair
+desse labirinto...{page}{fx 3F 81}{fx 42 00}Bora, vamo!
+A Teana tá esperando!{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBDB7 LB7FA}
+
+{:LBC05}
+{set 406B}Cê não tem chance de sair
+desse labirinto...{page}{fx 3F 81}{fx 42 00}Por que essa sensação
+de déjà vu...?{page}Qual caminho?{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBDB7 LB7FA}
+
+{:LBC98}
+{set 406C}Cê não tem chance de sair
+desse labirinto...{page}{fx 3F 81}{fx 42 00}Véi! Esses caras tão
+em todo lugar!!!{page}Bora, vamo andando!{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBDB7 LB7FA}
+
+{:LBD2A}
+Cê não tem chance de sair
+desse labirinto...{page}{fx 3F 81}{fx 42 00}Olha, vamo escolher um caminho
+que leve a algum lugar...{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBDB7 LB7FA}
+
+{:LBDB7}
+{state 05 38 00}{fx 42 00}Não aguento mais isso...{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBE00 LB7FA}
+
+{:LBE00}
+{state 05 38 00}{fx 42 00}E agora, qual lado?{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LB7FA LBE36}
+
+{:LBE36}
+{state 05 38 00}{fx 42 00}Todo lugar parece igual!
+Onde a gente tá!?{page}{fx 42 80}{choice 02}«Direita»
+«Esquerda»
+{choose 80 LBE8E LB7FA}
+
+{:LBE8E}
+{state 05 39 00}{fx 42 00}Acho que finalmente chegamos...{page}Vamo...{page}{fx 42 80}{jump LBEC8}
+
+[05EE]  {:LBEC8}
+{if 006D LC57E}{state 05 40 01}{fx 44 00}Então cê veio, finalmente...{page}{fx 44 80}{fx 42 00}Viemos pela Teana!{page}{fx 42 80}{fx 46 00}Hmmm. Nunca pensei que o
+príncipe estivesse vivo...{page}Tem muito o que falar do
+poder do Enigma do Milênio...{page}Na real, eu devia agradecer
+a sorte de o Enigma
+ainda existir pra eu pegar.{page}Seto... Acaba com o príncipe.{page}Derrota ele e eu te faço
+guardião do Enigma.{page}{fx 46 80}{fx 44 00}Obrigado, meu lorde.
+Deixa a vida dele comigo...{page}{fx 44 80}{fx 46 00}Assim será...
+Ele é todo seu!{page}Te encontro de volta no
+Templo Negro.{page}{fx 46 80}{f8 15 A1}{state 05 41 01}{f8 15 A0}{fx 44 00}Ora, ora... Me surpreende que
+cê passou nas provas
+do labirinto...{page}{fx 44 80}{fx 42 00}Tá de brincadeira!
+A gente fazia isso com as
+mãos amarradas nas costas!{page}É o melhor que cê tem?!{page}{fx 42 80}{f8 15 A1}{fx 04 00}{state 05 22 00}{f8 15 A0}Ah, a refém...
+Pode ficar com ela.{page}{if 006E LC1FD}{call L125A}...
+Eu tava esperando essa chance
+de te enfrentar de novo!!!{page}{jump LC23F}
+
+{:LC1FD}
+{call L125A}...
+Cê não sabe como eu esperei
+pra te enfrentar...{page}{jump LC23F}
+
+{:LC23F}
+Não tem graça só trocar
+a refém pelo seu item...{page}A graça é a batalha, {call L125A}!{page}{f8 11 00}{f8 0D 20 BB BC 00 40 72}{end}
+
+[05EF]
+{end}
+
+[05F4]
+{f8 19 20}Nada mal... Nada mal mesmo.{page}Nesse ritmo, duvido que os
+magos consigam te parar...{page}Cê ganhou...
+Pega a carta e a mina.{page}Até a próxima...{page}{fx 04 80}{jump LC3DF}
+
+[05F5]
+Que decepção...{page}Cê não tem chance contra os
+magos se isso é o melhor
+que cê faz.{page}Seu Item do Milênio...
+Fica comigo!
+Hahaha...{end}
+
+[05F0]  {:LC3DF}
+{fx 02 00}Teana...
+Cê tá bem?{page}{fx 02 21}{fx 43 00}Ah, tô...
+Valeu, {call L125A}...
+Cê também, Jono.{page}{fx 43 80}{fx 02 20}Olha. Já deu desse lugar.
+Vamo vazar daqui.{page}{fx 02 80}{f8 11 00}{state 05 19 00}{f8 0E F0 70}{fx 02 00}Véi, tem um bagulho estranho
+nesse Seto...{page}{fx 02 21}{fx 43 00}Eu sei...
+Parece que ele nem queria
+vencer o {call L125A} de verdade.{page}Parece que ele tem outro
+plano...{page}{fx 43 80}{fx 02 20}Sei o que cê quer dizer...{page}Escuta, {call L125A}...
+Se cuida perto desse cara.{page}Ele é perigoso.{end}
+
+{:LC57E}
+{state 05 41 01}{f8 15 A0}{fx 42 00}Viemos pela Teana!{page}{fx 42 80}{fx 44 00}Ora, ora... Me surpreende que
+cê passou nas provas
+do labirinto...{page}{fx 44 80}{fx 42 00}Tá de brincadeira!
+A gente fazia isso com as
+mãos amarradas nas costas!{page}É o melhor que cê tem?!{page}{fx 42 80}{f8 15 A1}{fx 04 00}{state 05 22 00}{f8 15 A0}Ah, a refém...
+Pode ficar com ela.{page}Não usei ela de isca
+pra pegar o seu
+item precioso...{page}Fiz isso pra te guiar
+até a sala do Heishin.{page}Cê acha ele no templo à frente.
+Enfrenta ele! Derrota ele!{page}{fx 04 21}{fx 42 00}Não escuta ele, {call L125A}!
+É uma armadilha!!!{page}{fx 42 80}{fx 04 20}Não seja otário...{page}Tô te dando a chance de
+derrotar o Heishin... Cê pode
+ignorar uma chance dessas?{page}{choice 02}«Vai em frente»
+«Deixa pra lá»
+{choose 80 LC808 LC8DD}
+
+{:LC808}
+Cê fez uma escolha sábia,
+cria.{page}{fx 04 21}{fx 42 00}Cê quer seguir, {call L125A}?{page}Se é isso que cê quer,
+eu não te paro...{page}Mas se cuida, tá?
+A gente te espera!{page}{fx 42 80}{fx 43 00}É. A gente te espera...{page}{fx 43 80}{jump LC9AE}
+
+{:LC8DD}
+Se cê não for agora, nunca
+vai ter outra chance...{page}{choice 02}«Vai em frente»
+«Deixa pra lá»
+{choose 80 LC808 LC8DD}
+
+[05F6]  {:LC940}
+{choice 02}«Vai em frente»
+«Deixa pra lá»
+{choose 80 LC96A LCCBC}
+
+{:LC96A}
+{state 05 22 00}{fx 04 00}Aqui...
+Essa é uma passagem secreta...{page}Eu abro pra cê.{page}{jump LC9AE}
+
+{:LC9AE}
+{f8 15 A1}{f8 10 00 80 00 00}{fx 04 82}{state 05 26 01}{f8 15 A0}{fx 44 00}O Templo Negro do Heishin fica
+logo à frente...{page}No caminho, cê acha magos
+que juraram proteger ele.{page}É sábio ter cuidado...{page}{fx 44 80}{f8 15 A1}{jump LE1D9}
+
+[058C]
+{if 0034 LCBE1}{if 0037 LCAF8}{if 0039 LCAF8}{if 003B LCAF8}{if 003D LCAF8}Cê! Quem é...?{page}Espera! Cê... cê é...
+o cria {call L125A}...!{page}Como cê chegou aqui!?{page}Não importa...
+Cê não sai daqui vivo!{page}{f8 11 00}{f8 0D 15 8A 8B 05 10 72}{end}
+
+{:LCAF8}
+Finalmente cê chegou!{page}Não posso deixar cê entrar
+no Templo do Mar.{page}É nosso dever proteger os
+Itens do Milênio, a fonte
+do nosso poder místico.{page}Esse Templo do Mar vai ser
+seu descanso eterno!{page}Prepara pra perder!{page}{f8 11 00}{f8 0D 15 8A 8B 05 10 72}{end}
+
+[058E]  {:LCBE1}
+Cê voltou!?{page}Dessa vez cê não vaza!{page}{f8 11 00}{f8 0D 15 8A 8B 05 10 72}{end}
+
+[058F]
+Cê foi otário de achar
+que nos vencia...{page}Hahahaha...!{end}
+
+[0590]
+Não...{page}Não pode ser...
+Cê não devia ganhar...{page}Secmeton...
+Me perdoa...{page}{f8 19 15}{fx 19 81}{choice 02}«Segue»
+«Volta»
+{choose 80 LCCBF LCCBC}
+
+[0591]
+{end}
+
+[0592]  {:LCCBC}
+{f8 16}{end}
+
+[0593]  {:LCCBF}
+{f8 15 A1}{state 05 24 00}{fx 1A 00}{f8 15 A0}Eu sou o mago-mor
+Secmeton...{page}Desde sempre, foi
+nosso dever proteger
+os Itens do Milênio...{page}E a gente nunca vai deixar
+eles caírem na sua mão!{page}Prepara pro meu Deck do Mar!
+Prepara pra sua ruína!{page}Cê vai pagar caro
+pela burrice!{page}{f8 11 00}{f8 0D 16 8C 8D 05 20 72}{end}
+
+[0594]
+Espero que tenha aprendido!{page}Pena que já é tarde!{end}
+
+[0595]
+{f8 19 16}Cê... é... forte...{page}Mas não tem chance contra
+o poder do mestre Heishin!{page}{fx 1A 81}{f8 15 A1}{f8 0E 60 73}{state 05 17 01}{f8 15 A0}{call L125A} ganha o
+Colar do Milênio.
+{state 0F 1E 00}{page}{if 8035 LE10C}{if 8039 LE10C}{if 803B LE10C}{if 803D LE10C}{if 8037 LE10C}{if 805C LE1D3}{state 05 24 00}{jump LE10F}
+
+[058D]
+Não tem ninguém nesse templo...{end}
+
+[0596]
+{if 0036 LD03A}{if 0035 LCF89}{if 0039 LCF89}{if 003B LCF89}{if 003D LCF89}Quem!?{page}Cê...!?
+Cria {call L125A}!{page}É um milagre cê ter chegado
+tão longe!{page}Pena...
+Cê não sai daqui vivo!!!{page}{f8 11 00}{f8 0D 17 8E 8F 01 10 72}{end}
+
+{:LCF89}
+Bem-vindo ao Templo da Mata...{page}Infelizmente, cê não vai
+passar daqui.{page}Isso mesmo...
+Aqui é seu descanso final...{page}Eu garanto isso!!!{page}{f8 11 00}{f8 0D 17 8E 8F 01 10 72}{end}
+
+[0598]  {:LD03A}
+Cê!
+Cê não põe a mão
+no Item do Milênio hoje...{page}Eu garanto isso!!!{page}{f8 11 00}{f8 0D 17 8E 8F 01 10 72}{end}
+
+[0599]
+Meu Deck da Mata é forte mesmo!
+Gostou do gosto da
+derrota!?{page}Hahaha...!!!{end}
+
+[059A]
+Eu fui derrotado...{page}Mas o nosso mago-mor não vai
+ser presa fácil...{page}{f8 19 17}{fx 1B 81}{choice 02}«Segue»
+«Volta»
+{choose 80 LD16D LD16A}
+
+[059B]
+{end}
+
+[059C]  {:LD16A}
+{f8 16}{end}
+
+[059D]  {:LD16D}
+{f8 15 A1}{state 05 26 00}{fx 1C 00}{f8 15 A0}Eu mando na mata...
+Eu sou o mago-mor Anubisius!{page}Tô aqui pra proteger o
+Item do Milênio que
+o lorde Heishin me deu...{page}É aqui que o Item
+do Milênio fica. E é
+aqui que ele vai ficar!!!{page}É nosso destino proteger o
+item que alimenta a magia!{page}Prepara pro meu Deck
+da Mata! Prepara pra luta!{page}E prepara pra perder!!!{page}{f8 11 00}{f8 0D 18 90 91 01 20 72}{end}
+
+[059E]
+Moleque burro...{page}Cê errou feio quando
+escolheu me enfrentar!!!{end}
+
+[059F]
+{f8 19 18}Não... Não pode ser...{page}O mestre Heishin vai
+me vingar...!{page}Eu... te... vejo... em... em...{page}{fx 1C 81}{f8 15 A1}{f8 0E 60 73}{state 05 27 01}{f8 15 A0}{call L125A} ganha
+a Chave do Milênio!!!{page}{if 8035 LE10C}{if 8039 LE10C}{if 803B LE10C}{if 803D LE10C}{if 8037 LE10C}{if 805C LE1D3}{state 05 26 00}{jump LE10F}
+
+[0597]
+Não tem ninguém nesse templo...{end}
+
+[05A0]
+{if 0038 LD54D}{if 0037 LD489}{if 0035 LD489}{if 003B LD489}{if 003D LD489}Quem!?{page}Cê...!?
+Cria {call L125A}!{page}Tô impressionado que cê chegou tão longe!{page}Pena...
+Cê não sai daqui vivo!!!{page}{f8 11 00}{f8 0D 19 92 93 03 10 72}{end}
+
+{:LD489}
+Eu te parabenizo...{page}Mas cê vai se arrepender de ter
+chegado ao Templo da Serra!{page}À frente tá o descanso de
+um Item do Milênio sagrado.{page}Eu jurei proteger ele
+com a minha vida!{page}{f8 11 00}{f8 0D 19 92 93 03 10 72}{end}
+
+[05A2]  {:LD54D}
+Cê é otário de voltar
+aqui e me encarar...{page}Vai perder!!!{page}{f8 11 00}{f8 0D 19 92 93 03 10 72}{end}
+
+[05A3]
+Idiota!{page}Cê achou que vencia
+um mago da serra?{end}
+
+[05A4]
+O quê!?
+Não pode ser...{page}Não acredito...{page}{f8 19 19}{fx 1D 81}{choice 02}«Segue»
+«Volta»
+{choose 80 LD623 LD620}
+
+[05A5]
+{end}
+
+[05A6]  {:LD620}
+{f8 16}{end}
+
+[05A7]  {:LD623}
+{f8 15 A1}{state 05 28 00}{fx 1E 00}{f8 15 A0}Eu sou o protetor
+das montanhas...
+Mago-mor Atenza...{page}O Item do Milênio que cê busca
+tá sob minha proteção.{page}Se quiser ele, cê tem que
+encarar a fúria do meu
+Deck da Serra!{page}Prepara pra luta!!!{page}{f8 11 00}{f8 0D 1A 94 95 03 20 72}{end}
+
+[05A8]
+Eu já te disse...
+Cê não vencia.{page}Cê é só um rato de chão...
+...feito pra vagar na terra.
+E pra ser enterrado nela!!!{end}
+
+[05A9]
+{f8 19 1A}Como pode ser...?{page}Eu...?
+Derrotado...?{page}{fx 1E 81}{f8 15 A1}{f8 0E 60 73}{state 05 13 01}{f8 15 A0}{call L125A} ganha
+o Anel do Milênio!!!{page}{if 8035 LE10C}{if 8039 LE10C}{if 803B LE10C}{if 803D LE10C}{if 8037 LE10C}{if 805C LE1D3}{state 05 28 00}{jump LE10F}
+
+[05A1]
+Não tem ninguém nesse templo...{end}
+
+[05AA]
+{if 003B LDC08}{if 003A LD9A5}{if 0037 LD8CF}{if 0039 LD8CF}{if 0035 LD8CF}{if 003D LD8CF}Quem!?{page}Cê...!?
+Cria {call L125A}!{page}Tô impressionado que cê chegou tão longe!{page}Pena...
+Cê não sai daqui vivo!!!{page}{f8 11 00}{f8 0D 1B 96 97 02 10 72}{end}
+
+{:LD8CF}
+Cê me fez esperar
+demais...{page}Os Itens do Milênio são a
+fonte do nosso poder místico...
+e vão continuar sendo!{page}Nunca vão ser seus!!!{page}Esse Templo do Deserto vai ser
+seu descanso final!!!{page}{f8 11 00}{f8 0D 1B 96 97 02 10 72}{end}
+
+[05AC]  {:LD9A5}
+Então cê voltou...
+Cê vai se arrepender.{page}Vou te mostrar!!!{page}{f8 11 00}{f8 0D 1B 96 97 02 10 72}{end}
+
+[05AD]
+Pena que o mestre Heishin
+não tá aqui pra ver
+sua queda...{page}Que pena...{end}
+
+[05AE]
+Não...
+Não posso... perder...{page}Não assim...{page}{f8 19 1B}{fx 1F 81}{choice 02}«Segue»
+«Volta»
+{choose 80 LDA87 LDA84}
+
+[05AF]
+{end}
+
+[05B0]  {:LDA84}
+{f8 16}{end}
+
+[05B1]  {:LDA87}
+{f8 15 A1}{state 05 30 00}{fx 20 00}{f8 15 A0}Eu sou o mago-mor Martis...
+Lorde do Deserto.{page}Eu jurei proteger
+o Item do Milênio.{page}É meu destino te eliminar!!!{page}Que o deserto seja sua cova...{page}Se defende!!!{page}{f8 11 00}{f8 0D 1C 98 99 02 20 72}{end}
+
+[05B2]
+Esse é o seu destino...{page}O deserto abraça o que restou de cê...{end}
+
+[05B3]
+{f8 19 1C}O deserto me leva hoje...{page}{fx 20 81}{f8 15 A1}{f8 0E 60 73}{state 05 28 01}{f8 15 A0}{call L125A} ganha
+a Balança do Milênio!{page}{if 8035 LE10C}{if 8039 LE10C}{if 803B LE10C}{if 803D LE10C}{if 8037 LE10C}{if 805C LE1D3}{state 05 30 00}{jump LE10F}
+
+[05AB]  {:LDC08}
+Não tem ninguém nesse templo...{end}
+
+[05B4]
+{if 003C LDD6E}{if 0037 LDCBE}{if 0039 LDCBE}{if 003B LDCBE}{if 0035 LDCBE}Quem!?{page}Cê...!?
+Cria {call L125A}!{page}Tô impressionado que cê chegou
+tão longe!{page}Pena...
+Cê não sai daqui vivo!!!{page}{f8 11 00}{f8 0D 1D 9A 9B 04 10 72}{end}
+
+{:LDCBE}
+Parabéns são devidos
+por chegar tão longe...{page}Mas é até aqui que cê vai.
+O mago-mor Kepura não vai
+se incomodar com gente como cê!{page}Prepara pra perder!!!{page}{f8 11 00}{f8 0D 1D 9A 9B 04 10 72}{end}
+
+[05B6]  {:LDD6E}
+{call L125A}...?{page}Dessa vez cê não ganha!{page}{f8 11 00}{f8 0D 1D 9A 9B 04 10 72}{end}
+
+[05B7]
+Ha!
+É aqui que acaba
+pra cê!{page}Hahaha...{end}
+
+[05B8]
+{call L125A}...
+Cê vai se arrepender dessa vitória...{page}Porque vai encarar o poder
+do mago-mor Kepura...{page}{f8 19 1D}{fx 21 81}{choice 02}«Segue»
+«Volta»
+{choose 80 LDE4D LDE4A}
+
+[05B9]
+{end}
+
+[05BA]  {:LDE4A}
+{f8 16}{end}
+
+[05BB]  {:LDE4D}
+{f8 15 A1}{state 05 32 00}{fx 22 00}{f8 15 A0}Eu sou o guardião das planícies...
+Eu sou o mago-mor Kepura.{page}Cê é o protetor da luz...
+O dono do Enigma do Milênio.{page}Nosso Item do Milênio não é
+pra gente como cê...
+Nunca pode ser seu!{page}O Item do Milênio é{sp}
+do mestre Heishin e a nossa
+chave pra dominar o mundo.{page}Primeiro, eu te derroto...
+Depois, eu pego o seu Enigma
+e ofereço pro
+mestre Heishin.
+Prepara pra se defender!!!{page}{f8 11 00}{f8 0D 1E 9C 9D 04 20 72}{end}
+
+[05BC]
+Cê ainda achou que ia encarar
+o mestre Heishin...?{page}Moleque burro...{end}
+
+[05BD]
+{f8 19 1E}Então... esse... é o poder
+da luz...{page}Heishin... meu lorde...
+Eu te falhei...{page}{fx 22 81}{f8 15 A1}{f8 0E 60 73}{state 05 15 01}{f8 15 A0}{call L125A} ganha
+o Olho do Milênio!!!{page}{if 8035 LE10C}{if 8039 LE10C}{if 803B LE10C}{if 803D LE10C}{if 8037 LE10C}{if 805C LE1D3}{state 05 32 00}{jump LE10F}
+
+[05B5]
+Não tem ninguém nesse templo...{end}
+
+[05BE]  {:LE10C}
+{f8 16}{end}
+
+[05BF]  {:LE10F}
+{f8 11 00}{f8 0E 80 71}{fx 04 00}{call L125A}...
+Cê derrotou mesmo
+os magos-mor...{page}Só falta o templo do Heishin,
+o da Treva. Mas cê
+não vai direto pra lá.{page}Cê tem que voltar...
+Volta pro Templo Vasto.{page}{fx 04 80}{set 405D}{f8 16}{end}
+
+{:LE1D3}
+{set 406D}{f8 16}{end}
+
+[05C3]  {:LE1D9}
+{f8 15 A1}{f8 11 83}{f8 0E 70 71}{state 05 33 00}{fx 23 00}Para!!!{page}{fx 24 01}{fx 23 21}Cê não pode
+seguir mais!{page}{fx 24 21}{fx 23 20}Assim falam os Magos Reais
+Sebek, o Poderoso, e...{page}{fx 23 21}{fx 24 20}Neku, o Habilidoso!
+É aqui que tudo acaba...{page}{fx 24 80}{fx 23 20}Prepara pra perder!!!{page}{f8 11 00}{f8 0D 21 9E 9F 06 20 72}{end}
+
+[05C4]
+Hahaha!
+Somos os duelistas escolhidos...
+Os jogadores supremos...{page}Cê não teve chance...
+Hahaha!!!{end}
+
+[05C5]
+{f8 19 21}Maldito, {call L125A}...
+Cê ganhou por agora...{page}Mas o Neku...
+Ele vai te derrotar!!!{page}{fx 23 81}{fx 24 01}Nunca pensei que ia ver
+o Sebek derrotado...{page}Vamo ver o que cê tem!!!{page}{f8 11 00}{f8 0D 22 A0 A1 06 20 72}{end}
+
+[05C6]
+Aff!
+Cê achou seu par hoje!{page}E ainda achou que ia encarar
+o mestre Heishin... HA!{end}
+
+[05C7]
+{f8 19 22}Então isso...
+Esse é... o seu poder...{page}Eu te subestimei...{page}{fx 24 81}{f8 15 A1}{f8 11 83}{state 0F 28 00}{f8 16}{end}
+
+[05C8]
+Faz um tempo desde
+a última vez, cria!{page}Eu te saúdo por chegar
+tão longe...{page}Mas acaba aqui.{page}Eu não vim tão longe pra
+perder pra um moleque!!!{page}{f8 11 00}{f8 0D 23 A2 A3 06 30 72}{end}
+
+[05C9]
+Agora cê sabe, cria...{page}Sabe o poder de verdade!!!{end}
+
+[05CA]
+Que piada...
+Eu... Derrotado por isso...
+Esse moleque!!!{page}Não...
+Não vou deixar acabar assim...{page}{fx 33 81}{f8 19 23}{f8 11 00}{fx 44 00}Mandou bem...{page}{state 05 08 82 00 00 00}Agora todos os itens foram
+reunidos como um...{page}{fx 44 80}{f8 15 A1}{state 05 34 00}{fx 04 00}{f8 15 A0}Vamo pras
+Ruínas Proibidas...{page}{f8 15 A1}{fx 04 82}{f8 11 00}{f8 16}{end}
+
+[05CB]
+{fx 04 00}{f8 0E 80 71}{call L125A}...
+Hora de acabar com essa farsa.{page}Agora eu te derroto de
+uma vez.
+E todos os itens vão ser meus!{page}Não fica tão surpreso...
+Eu só te ajudei porque
+precisava de cê nos planos.{page}Servi Heishin de braço direito
+na esperança de roubar os
+Itens do Milênio um dia.{page}Aí cê apareceu. Cê
+achou o templo, e ganhou
+cada um dos itens preciosos...{page}...me poupando o trabalho de
+fazer eu mesmo!!!{page}Resumindo, cê não passava
+de um peão nos meus planos!{page}Eu nunca deixaria humanos baixos
+como cê ou o Heishin
+pegarem esses itens...{page}Eles são dos nobres...
+Só um nobre pode ter eles...
+Alguém como eu.{page}{f8 15 A1}{fx 04 82}{state 05 32 01}{f8 15 A0}{fx 44 00}Esse lugar é a casa
+dos meus ancestrais...{page}A tumba real de quem
+prosperou com o poder da treva...{page}Cê sabe por que esse lugar se
+chama Ruínas Proibidas?{page}É por causa de... ISSO!!!{page}{fx 44 80}{f8 15 A1}{f8 10 2E 00}{state 0F 28 00}{state 05 09 82 60 00 00}{f8 15 A0}{state 0B 00 00 FB FF B4 00}{state 0A}{fx 44 00}Os Itens do Milênio são
+um pacto... um acordo pra
+puxar o poder da treva.{page}Os reis antigos e os feiticeiros
+ganharam um poder supremo do
+Senhor da Treva...{page}E agora eu pretendo chamar ele...
+Aqui, nessas salas...{page}Vou renovar esse pacto e retomar
+o poder de mandar em tudo!!!{page}{fx 44 80}{f8 15 A1}{state 05 35 00}{fx 04 00}{f8 15 A0}E agora... a batalha final!{page}Vou te eliminar de uma
+vez. Os itens vão ser meus!!!{page}{f8 11 00}{f8 0D 24 A4 A5 00 40 72}{end}
+
+[05CC]
+Hahahahahahaha!!!{page}Finalmente...
+Tô com todos.
+O poder é meu hoje!!!{page}{call L125A}... Valeu!{end}
+
+[05CD]
+{f8 19 24}Não assim...{page}Chegar tão perto...
+E perder pra cê...{page}Por favor... Não assim...{page}{fx 32 81}{f8 16}{end}
+
+[05CE]
+{choice 02}«Destrói itens»
+«Não destrói»
+{choose 80 LEC3D LEC3D}
+
+[05CF]  {:LEC3D}
+{fx 46 00}Para aí!!!{page}{fx 46 80}{state 05 33 01}{f8 0E B0 71}Se cê quer o Seto vivo,
+entrega os Itens do Milênio.{page}{fx 46 00}Cê me achou otário o bastante
+pra cair no plano desse idiota?{page}Eu já sabia que ele vem da
+Casa da Treva faz tempo.{page}Fechei os olhos pra traição dele,
+e encenei minha derrota pra
+descobrir a real intenção!{page}Talvez cê me achasse gagá?
+Cego pros seus planos pífios?{page}Graças a cê, agora eu tô na
+Câmara Proibida, que só
+abre pra quem é da Treva.{page}Vem... Entrega os itens e
+eu poupo esse otário.{page}{jump LEE5C}
+
+[05D0]  {:LEE5C}
+{choice 02}«Entrega os itens»
+«Recusa»
+{choose 80 LEEAA LEE83}
+
+[05D1]  {:LEE83}
+Meu cria...
+Cê me testa demais!{page}{jump LEE5C}
+
+[05D2]  {:LEEAA}
+{fx 46 80}{fx 44 00}Não...{page}{fx 44 80}{f8 15 A1}{state 05 35 00}{fx 07 00}{f8 15 A0}Hahah!!!
+Consegui! Finalmente são meus!!!{page}Agora eu posso chamar o
+DarkNite!!!{page}Príncipes de dinastia caída...
+Têm o privilégio de ver o
+nascimento de um rei! Uma era!{page}Vem pra mim, Treva!!!
+Me dá o poder!!!
+Me dá o mundo!!!{page}{f8 15 A1}{f8 11 82}{fx 07 82}{state 05 34 01}{f8 15 A0}{state 0F 14 00}{f8 10 01 80 78 00}{f8 15 91}{state 0F 8C 00}{f8 0E C0 71}{fx 25 00}{state 05 35 00}{state 0F 23 00}{f8 15 90}{fx 25 21}{fx 46 00}Eu te recebo, ser da treva...
+Preso pelo pacto antigo...
+Eu te mando obedecer!!!{page}{fx 46 80}{fx 25 20}Heheheh... Eu volto depois de milhares
+de anos, e o que eu acho...?{page}Cê me manda o quê?{page}{fx 25 21}{fx 46 00}Obedece! Cê tem que obedecer...
+Tá no pacto antigo!{page}{fx 46 80}{fx 25 20}Eu não fiz pacto com
+gente como cê...{page}Por que eu seria obrigado
+a te obedecer...?{page}{fx 25 21}{fx 46 00}Os Itens... Os Itens do Milênio!
+Eu tenho todos!!!{page}{fx 46 80}{fx 25 20}Os Itens do Milênio?
+Não vejo item nenhum...{page}{fx 25 21}{fx 46 00}Claro que não!
+Eu usei eles... Usei eles pra
+te chamar!{page}E agora cê tem que honrar o
+pacto! Tem que me obedecer!!!{page}{fx 46 80}{fx 25 20}Cansei dessa conversa...{page}{fx 25 21}{fx 46 00}Não... Não!!!
+Não! Nãããão!!!{page}{fx 46 80}{f8 15 91}{f8 10 2C 00}{fx 25 82}{state 05 35 01}{f8 15 90}{fx 59 00}Assim tá melhor...
+Cê fica melhor como carta.{page}{fx 59 80}{fx 46 00}Socorro!
+Me ajudaaaaaa!!!{page}{fx 46 80}{fx 59 00}Essa é a carta mais barulhenta
+que eu já criei...{page}...sem falar, a
+mais feia também.{page}Francamente, não merece
+um lugar no deck...{page}{fx 59 80}{f8 10 28 00}{state 05 29 01}{fx 46 00}Nãããããããããããããão!!!{page}{fx 46 80}{fx 59 00}Ops...{page}{fx 59 80}{f8 15 A1}{state 05 35 00}{fx 25 00}{f8 15 A0}Há tempos divido meu poder
+pelas cartas que eu criei...{page}Agora é hora de eu cobrar
+o preço do meu poder.{page}E o melhor lugar pra começar é
+com esse planeta miserável...
+essas criaturas miseráveis...{page}{fx 25 21}{fx 44 00}{call L125A}!!!
+Seu deck! Ainda tem a
+Carta do Milênio...{page}A carta que cê usou pra voltar
+pra esse mundo...{page}Usa elas! Usa as cartas
+pra mandar ele de volta...{page}{fx 44 80}{fx 25 20}Heheheh... Acho que vocês
+vão ser ótimos acréscimos
+no meu deck pessoal...{page}{f8 15 A1}{fx 25 82}{state 05 36 01}{f8 15 A0}{fx 59 00}O quê!?{page}{fx 59 80}{fx 44 00}Ainda temos uma carta que
+representa nosso pacto com cê.{page}{fx 44 80}{f8 15 A1}{fx 25 00}{state 05 35 00}{f8 15 A0}Vejo que têm. Mas eu não{sp}
+pretendo voltar de mãos vazias
+depois de vir até aqui...{page}Vou te falar...
+Te dou uma chance.{page}É justo que o rumo do
+nosso pacto se decida nas
+cartas.{page}Me vence num duelo, e eu
+vou pra casa... quieto.{page}Agora, bora...
+Vamo jogar...{page}{f8 11 00}{f8 0D 25 A6 A7 00 50 72}{end}
+
+[05D3]
+Patético!!!{page}Eu devia saber que cê era
+fraco demais pra ser um desafio!{page}Bom, cê sabe as regras...{page}Eu ganhei...
+E o mundo é meu!
+Heheh...{page}{fx 25 41}Heheheheheheheheheheh!!!
+Heheheheheheheheheheh!!!
+Heheheheheheheheheheh!!!{page}Heheheheheheheheheheh!!!
+Heheheheheheheheheheh!!!
+Heheheheheheheheheheh...{end}
+
+[05D4]
+{f8 19 25}I...isso não é justo!
+Eu...!? EU!? Eu não perco!!!
+Eu criei as cartas!!!{page}Não...
+Não...{page}EU NÃO PERCO!!!{page}{f8 15 91}{fx 25 80}{fx 26 00}{f8 15 90}VEM, CRIA!!!
+MAIS UMA VEZ!!!
+MAIS UM JOGO!!!{page}{f8 11 00}{f8 0D 26 A8 A9 00 60 72}{end}
+
+[05D5]
+E O GANHADOR ÉÉÉÉÉ...
+EU!!!{page}ISSOOOOO!!!
+ESSE MUNDO É MEU!!!{page}TUDO MEU!!!{end}
+
+[05D6]
+{f8 19 26}NÃO!
+DE NOVO NÃO!!!{page}{f8 10 2B 00}NOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO{page}OOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOO{page}{f8 15 91}{fx 26 81}{state 0F 3C 00}{f8 15 90}{state 0F 3C 00}......{page}{f8 15 A1}{state 05 01 82 60 00 00}{f8 15 A0}{state 0B 00 00 0F 00 04 01}{state 0A}{page}{jump LF9DC}
+
+[05D7]  {:LF9DC}
+{state 05 00 00}{f8 0E 20 73}Naquele dia, Seto saiu das ruínas...
+E nunca mais foi visto.{page}{state 05 06 82 60 00 00}{f8 15 A0}{state 0B 00 00 00 00 30 02}O Egito se uniu de novo
+sob o mando de {call L125A}.
+Pra proteger a galera, ele mandou...{page}...enterrar as Ruínas Proibidas.{page}{call L125A} virou o
+maior dos faraós, trazendo
+prosperidade a todos.{page}Os magos ruins sumiram.
+Essa foi a história de {call L125A},
+o tal que chamam...{page}"Yu-Gi-Oh"{page}{state 0A}{f8 16}{end}
+
+
+
+[FE00]
+NOVA{end}
+
+[FE01]
+%d CARTA A MAIS{end}
+
+[FE02]
+%d CARTAS A MAIS{end}
+
+[FE03]
+PAG %d DE %d{end}
+
+[FE10]
+BARALHOS{end}
+
+[FE11]
+PAG %d/%d{end}
+
+[FE20]
+PACOTES{end}
+
+[FE21]
+COMPRA{end}
+
+[FE22]
+SAI{end}
+
+[FE23]
+VOLTA{end}
+
+[FE24]
+INFO{end}
+
+[FE25]
+PROX{end}
+
+[FE26]
+PULA{end}
+
+[FE27]
+OK{end}
+
+[FE28]
+FIM{end}
+
+[FE29]
+ACABOU{end}
+
+[FE2A]
+RESTA %d{end}
+
+[FE2B]
+%d CARTAS{end}
+
+[FE2C]
+TRAVADO{end}
+
+[FE2D]
+VENDE %s{end}
+
+[FE2E]
+VENDE %s %d VEZ{end}
+
+[FE2F]
+GANHA %d DUELO{end}
+
+[FE30]
+SEGUE A HISTORIA{end}
+
+[FE31]
+TEM %s{end}
+
+[FE32]
+TEM %d %s{end}
+
+[FE33]
+GASTA %d A MAIS{end}
+
+[FE34]
+ABRE %d PACOTE{end}
+
+[FE35]
+ABRE %s x%d{end}
+
+[FE36]
+NO MIN %d %s{end}
+
+[FE37]
+%s EM %d PACOTE{end}
+
+[FE38]
+%d CARTA{end}
+
+[FE39]
+JA TEM TUDO{end}
+
+[FE70]
+ANDAR %d DE %d: %s{end}
+
+[FE71]
+DUELO{end}
+
+[FE72]
+VAZA{end}
+
+[FE73]
+SEM FUSAO{end}
+
+[FE74]
+SEM EQUIPA{end}
+
+[FE75]
+LP VOCE %d COM %d{end}
+
+[FE76]
+LIMPOU x%d{end}
+
+[FE77]
+ANDAR %d LIMPO!{end}
+
+[FE78]
+%d FICHA{end}
+
+[FE79]
+%s LIBEROU{end}
+
+[FE7A]
+CHECKPOINT{end}
+
+[FE7B]
+A TORRE CAIU!{end}
+
+[FE7C]
+PERDEU. VOLTA ANDAR %d.{end}
+
+[FE7D]
+SALVA AQUI?{end}
+
+[FE7E]
+SIM{end}
+
+[FE7F]
+NAO{end}
+
+@bank descriptions
+
+[D100 D3D3 D3D4 D3D5 D3D6 D3D7 D3D8 D3D9 D3DA D3DB D3DC D3DD D3DE D3DF D3E0 D3E1 D3E2 D3E3 D3E4 D3E5 D3E6 D3E7 D3E8 D3E9 D3EA D3EB D3EC D3ED D3EE D3EF D3F0 D3F1 D3F2 D3F3 D3F4 D3F5 D3F6 D3F7 D3F8 D3F9 D3FA D3FB D3FC D3FD D3FE D3FF]
+{end}
+
+[D101]  # Blue-eyes White Dragon
+Carta mó rara{sp}
+cê vê atk
+e def sem
+igual, né.{end}
+
+[D102]  # Mystical Elf
+Elfa delicada{sp}
+fraca no atk
+mas a def
+é mó braba
+c magia.{end}
+
+[D103]  # Hitotsu-me Giant
+Gigante de 1 olho{sp}
+braço grosso
+e forte pra
+dar porrada
+braba, véi.{end}
+
+[D104]  # Baby Dragon
+Mais q filhote,{sp}
+esse dragão
+tem poder
+guardado.{end}
+
+[D105]  # Ryu-kishin
+Mó difícil de achar{sp}
+parece estátua{sp}
+inofensiva
+até partir
+pra cima.{end}
+
+[D106]  # Feral Imp
+Diabinho brincalhão{sp}
+se esconde no escuro{sp}
+esperando
+pegar quem
+tá distraído.{end}
+
+[D107]  # Winged Dragon #1
+Dragão comum{sp}
+q guarda{sp}
+forte na serra.
+O golpe dele
+é um rasante{sp}
+do nada.{end}
+
+[D108]  # Mushroom Man
+Achado em lugar
+úmido, o bicho{sp}
+solta esporo
+venenoso nos
+inimigo.{end}
+
+[D109]  # Shadow Specter
+Bicho fantasma{sp}
+q surge no
+deserto e é
+mó chato
+quando vem
+em bando
+grande.{end}
+
+[D10A]  # Blackland Fire Dragon
+Dragão q mora
+no fundo da
+treva. A def
+dele é fraca
+pq enxerga
+mal, véi.{end}
+
+[D10B]  # Sword Arm of Dragon
+Corpo coberto{sp}
+de espinho
+tipo espada.
+Ninguém fica
+na frente{sp}
+quando avança.{end}
+
+[D10C]  # Swamp Battleguard
+Esse bicho{sp}
+usa porrete{sp}
+cravado q
+quebra quase
+tudo na frente.
+Dizem q tem
+irmão tão
+destruidor.{end}
+
+[D10D]  # Tyhone
+Cospe bala
+de canhão da
+boca, atk de
+longe nos
+inimigo.{end}
+
+[D10E]  # Battle Steer
+Touro q vive
+no mato.
+Investe nos
+bicho com
+chifre afiado.{end}
+
+[D10F]  # Flame Swordsman
+Lutador com
+poder do
+fogo.
+Ataca os cara
+c espada q
+solta chama.{end}
+
+[D110]  # Time Wizard
+Mago capaz
+de torcer o
+tempo. No 1o
+olhar parece
+fraco, mas{sp}
+cê se engana.{end}
+
+[D111]  # Right Leg of the Forbidden One
+Membro proibido
+lacrado c magia.
+Quem quebrar
+o selo ganha
+poder infinito.
+Só 1 carta
+desse tipo
+no deck.{end}
+
+[D112]  # Left Leg of the Forbidden One
+Membro proibido
+lacrado c magia.
+Quem quebrar
+o selo ganha
+poder infinito.
+Só 1 carta
+desse tipo
+no deck.{end}
+
+[D113]  # Right Arm of the Forbidden One
+Membro proibido
+lacrado c magia.
+Quem quebrar
+o selo ganha
+poder infinito.
+Só 1 carta
+desse tipo
+no deck.{end}
+
+[D114]  # Left Arm of the Forbidden One
+Membro proibido
+lacrado c magia.
+Quem quebrar
+o selo ganha
+poder infinito.
+Só 1 carta
+desse tipo
+no deck.{end}
+
+[D115]  # Exodia the Forbidden
+Juntando braço
+e perna, ele{sp}
+se solta
+das corrente
+mágica.
+Só 1 carta
+desse tipo
+no deck.{end}
+
+[D116]  # Summoned Skull
+Ser de poder
+sombrio pra
+confundir. Entre
+os Fiend,
+essa carta{sp}
+é mó rara.{end}
+
+[D117]  # The Wicked Worm Beast
+Minhoca criada
+pelo poder
+da treva.{sp}
+Surge do nada{sp}
+debaixo da
+terra e ataca
+os inimigo.{end}
+
+[D118]  # Skull Servant
+Fantasma osso
+não é forte
+mas dá ruim
+em bando.{end}
+
+[D119]  # Horn Imp
+Diabinho q
+mora no escuro.
+O único chifre
+deixa ele
+brabo demais.{end}
+
+[D11A]  # Battle Ox
+Bicho com
+força braba.
+Acaba os cara
+com um golpe
+do machado.{end}
+
+[D11B]  # Beaver Warrior
+O q esse bicho{sp}
+perde no tamanho,
+compensa na
+def quando
+briga no
+campo.{end}
+
+[D11C]  # Rock Ogre Grotto #1
+Protegido por
+corpo de pedra,
+solta um soco
+q quebra
+osso.{end}
+
+[D11D]  # Mountain Warrior
+Guerreiro firme
+corre ligeiro
+no terreno ruim.{end}
+
+[D11E]  # Zombie Warrior
+Parece frágil
+de mentira.
+Esqueleto lutador
+conhecido por
+atk rápido
+e certeiro.{end}
+
+[D11F]  # Koumori Dragon
+Dragão mau
+cospe fogo
+e a chama
+corrompe a
+alma da vítima.{end}
+
+[D120]  # Two-headed King Rex
+Dragão estranho
+raro de ver
+com 2 cabeças.{end}
+
+[D121]  # Judge Man
+Pra esse
+lutador de taco
+só existe
+um fim:
+ganhar
+ou perder.{end}
+
+[D122]  # Saggi the Dark Clown
+Palhaço surge{sp}
+do nada e{sp}
+faz uns{sp}
+passo zica{sp}
+pra desviar.{end}
+
+[D123]  # Dark Magician
+Mago supremo{sp}
+no atk
+e na def, né.{end}
+
+[D124]  # The Snake Hair
+Bicho com
+cabeça de cobra
+venenosa. Um olhar
+distraído vira
+pedra.{end}
+
+[D125]  # Gaia the Dragon Champion
+A skill do cara{sp}
+junta com a
+velocidade do dragão
+e vira força
+ofensiva.{end}
+
+[D126]  # Gaia the Fierce Knight
+Cavaleiro num{sp}
+cavalo mais
+rápido q o vento.
+A investida
+é pra
+respeitar.{end}
+
+[D127]  # Curse of Dragon
+Dragão mau q
+usa a treva pra{sp}
+dar um atk
+brabo, véi.{end}
+
+[D128]  # Dragon Piper
+Bagulho com
+risco estranho.
+Tem def
+mó alta.{end}
+
+[D129]  # Celtic Guardian
+Elfo q aprendeu
+a usar espada
+e confunde
+com atk
+relâmpago.{end}
+
+[D12A]  # Illusionist Faceless Mage
+Mexe no atk
+do inimigo c
+ilusão.
+Carta mó rara.{end}
+
+[D12B]  # Karbonala Warrior
+Lutador
+cara comum
+com atk
+alto
+demais, véi.{end}
+
+[D12C]  # Rogue Doll
+Boneca única
+com magia.
+Fica
+braba quando
+ataca a
+treva.{end}
+
+[D12D]  # Oscillo Hero #2
+Ataca os cara
+com trovão.{end}
+
+[D12E]  # Griffore
+O couro dele
+desvia
+quase todo
+atk, véi.{end}
+
+[D12F]  # Torike
+Não é tão duro
+na def
+quanto parece.
+O chifre
+afiado dá
+vantagem
+no atk.{end}
+
+[D130]  # Sangan
+Bicho pequeno
+com 3 olhos
+perigoso
+quando cê
+tá no escuro.{end}
+
+[D131]  # Big Insect
+Formiga gigante
+da selva.
+Braba no
+atk e na def
+tb.{end}
+
+[D132]  # Basic Insect
+Geralmente
+anda em bando.
+O lugar
+ideal é
+a floresta.{end}
+
+[D133]  # Armored Lizard
+Lagarto com
+couro duro e
+mordida braba.{end}
+
+[D134]  # Hercules Beetle
+Besouro enorme
+couro duro
+e chifre zica.{end}
+
+[D135]  # Killer Needle
+Abelha enorme
+força braba.
+Fica
+perigosa em
+enxame.{end}
+
+[D136]  # Gokibore
+Barata redonda
+grande q ataca
+os cara
+rolando em cima.
+A def dura
+deixa ela{sp}
+braba.{end}
+
+[D137]  # Giant Flea
+Pulga gigante
+chupa sangue
+e é zica
+no atk.{end}
+
+[D138]  # Larvae Moth
+Na forma
+de larva,
+esse bicho é
+pra respeitar
+quando cresce
+e vira mariposa
+colossal.{end}
+
+[D139]  # Great Moth
+Bicho brabo
+da floresta.
+Mariposa enorme
+ataca os cara
+soltando pó
+venenoso das asa.{end}
+
+[D13A]  # Kuriboh
+Sozinho, esse
+bichinho pode
+parecer nada.
+Mas no escuro
+ataca em bando
+e fica
+brabo.{end}
+
+[D13B]  # Mammoth Graveyard
+Mamute q
+protege o
+túmulo da
+manada. É
+sem dó
+contra quem
+rouba tumba.{end}
+
+[D13C]  # Great White
+Tubarão branco
+gigante com
+dente afiado.{end}
+
+[D13D]  # Wolf
+Lobo raro
+com faro brabo
+pra pegar
+cheiro do inimigo.{end}
+
+[D13E]  # Harpie Lady
+Bicho forma
+de gente, c asa.
+Bonita de ver,
+mas letal
+na briga.{end}
+
+[D13F]  # Harpie Lady Sisters
+3 irmãs brabas
+q não param
+de atacar juntas.{end}
+
+[D140]  # Tiger Axe
+Guerreiro fera
+rápido e brabo
+com machado.{end}
+
+[D141]  # Silver Fang
+Lobo da neve
+bonito de ver
+mas mó
+mau na briga.{end}
+
+[D142]  # Kojikocy
+Caçador de gente
+braço brabo q
+quebra pedra.{end}
+
+[D143]  # Perfectly Ultimate Great Moth
+A forma
+final do
+inseto supremo,
+a Grande Mariposa!{end}
+
+[D144]  # Garoozis
+Guerreiro fera
+gira machado
+com cabeça
+de dragão.{end}
+
+[D145]  # Thousand Dragon
+Dragão q
+cresceu e evoluiu
+por mil
+anos.{end}
+
+[D146]  # Fiend Kraken
+Lula enorme q
+surge do nada
+do fundo do
+mar pra atacar
+quem tá distraído.{end}
+
+[D147]  # Jellyfish
+Quase invisível,
+meio transparente,
+água-viva q
+flutua no mar.{end}
+
+[D148]  # Cocoon of Evolution
+Esse bicho
+evolui larva
+em adulto
+na hora, véi.{end}
+
+[D149]  # Kairyu-shin
+Dragão do mar
+chamado de
+Rei do Oceano.
+Ataca os cara
+com onda
+gigante.{end}
+
+[D14A]  # Giant Soldier of Stone
+Guerreiro gigante
+de pedra. O soco
+dele faz
+a terra
+tremer.{end}
+
+[D14B]  # Man-eating Plant
+Planta carnívora
+bonita de ver
+mas perigosa
+quando cê
+chega perto.{end}
+
+[D14C]  # Krokodilus
+Crocodilo mau
+e esperto.
+Escama dura
+vira armadura
+natural.{end}
+
+[D14D]  # Grappler
+Cobra esperta
+corpo grosso q
+enrola no
+bicho inimigo
+e espreme
+até acabar.{end}
+
+[D14E]  # Axe Raider
+Bicho de machado
+com força
+braba e
+agilidade.{end}
+
+[D14F]  # Megazowler
+Nada para
+na frente desse
+dino coberto
+de espinho.{end}
+
+[D150]  # Uraby
+Dino ligeiro
+rasga os cara
+em pedaço
+c garra afiada.{end}
+
+[D151]  # Crawling Dragon #2
+Dragão brabo
+com dente q
+tritura quase
+tudo em pó.{end}
+
+[D152]  # Red-eyes B. Dragon
+Carta mó rara
+com atk
+alto, cê viu?{end}
+
+[D153]  # Castle of Dark Illusions
+Bicho q cria
+treva pra
+cobrir tudo
+ao redor.{end}
+
+[D154]  # Reaper of the Cards
+Bicho com
+def braba e
+foice enorme
+q corta
+quase tudo.{end}
+
+[D155]  # King of Yamimakai
+Usa o poder
+da treva pra
+acabar os cara.{end}
+
+[D156]  # Barox
+Bicho voa
+no escuro,
+atacando os
+cara com braço
+longo e peludo.{end}
+
+[D157]  # Dark Chimera
+Bicho q cospe
+fogo e mora
+no submundo.{end}
+
+[D158]  # Metal Guardian
+Fiend q guarda
+o tesouro do
+submundo.
+A def dele
+fica mó alta
+no escuro.{end}
+
+[D159]  # Catapult Turtle
+Bem protegida
+pelo casco,
+joga tiro
+da catapulta
+dela.{end}
+
+[D15A]  # Gyakutenno Megami
+Usa magia
+pra proteger
+os fraco e dar
+apoio espiritual.{end}
+
+[D15B]  # Mystic Horseman
+Meio homem,
+meio cavalo.
+Conhecido pela
+velocidade zica.{end}
+
+[D15C]  # Rabid Horseman
+Combo brabo
+e imparável
+de touro
+e cavalo.{end}
+
+[D15D]  # Zanki
+Prefere encarar
+os cara 1 a 1.
+Puxa a lâmina
+rápido e
+acaba na
+hora.{end}
+
+[D15E]  # Crawling Dragon
+Dragão fraco
+q não voa
+mais, mas ainda
+é força
+pra respeitar.{end}
+
+[D15F]  # Crass Clown
+Artista
+do Circo Negro,
+esse palhaço
+suga a força
+dos cara com
+dança estranha.{end}
+
+[D160]  # Armored Zombie
+Guerreiro erguido
+do além.
+Balança cego
+uma lâmina
+com força zica.{end}
+
+[D161]  # Dragon Zombie
+Dragão revivido
+por magia. O bafo
+corroi demais.{end}
+
+[D162]  # Clown Zombie
+Palhaço revivido
+pelo poder
+da treva.
+A dança estranha
+já mandou mto{sp}
+bicho pro
+fim.{end}
+
+[D163]  # Pumpking the King of Ghosts
+Rei abóbora
+bate nos
+inimigo com
+tentáculo longo.{end}
+
+[D164]  # Battle Warrior
+Guerreiro q
+briga na
+mão limpa.{end}
+
+[D165]  # Wings of Wicked Flame
+Voa por cima
+dos inimigo c asa
+de fogo rubro.
+Esse bicho ataca
+soltando chama
+do corpo.{end}
+
+[D166]  # Mask of Darkness
+Máscara sombra
+feita pelas mão
+de um mago negro.{end}
+
+[D167]  # Job-change Mirror
+Espelho eterno
+e mau q
+bloqueia atk.{end}
+
+[D168]  # Curtain of the Dark Ones
+Cortina tecida
+por mão de
+mago. Dizem
+q aumenta o
+poder de mago.{end}
+
+[D169]  # Tomozaurus
+Bicho pequeno
+de mentira,
+tão mau q ataca
+amigo e inimigo
+sem escolher.{end}
+
+[D16A]  # Spirit of the Winds
+Espírito do vento
+q voa solto
+no céu. Faz
+tempestade quando
+tá de mau.{end}
+
+[D16B]  # Kageningen
+Usa o corpo
+e a sombra
+pra atacar.
+Fica um
+bicho difícil
+de vencer.{end}
+
+[D16C]  # Graveyard and the Hand of Invitation
+Descanso final
+q aumenta o
+poder dos
+condenado e suga
+o dos vivo.{end}
+
+[D16D]  # Goddess with the Third Eye
+Deusa com olho
+q vê tudo
+e revela tudo.{end}
+
+[D16E]  # Hero of the East
+Samurai do
+Oriente c
+espada afiada.{end}
+
+[D16F]  # Doma The Angel of Silence
+Anjo q manda
+nos condenado
+e aplica
+quando precisa.{end}
+
+[D170]  # That Which Feeds on Life
+Bicho nojento
+q se fortalece
+sugando a
+essência de vida
+dos oponente.{end}
+
+[D171]  # Dark Gray
+Todo cinza,
+esse bicho
+quase ninguém
+viu, véi.{end}
+
+[D172]  # White Magical Hat
+Ladrão fino
+q foge da lei
+mesmo sendo
+mó chamativo
+com cartola
+de seda e
+capa branca.{end}
+
+[D173]  # Kamion Wizard
+Mago q
+controla o caos
+e usa
+foice braba.{end}
+
+[D174]  # Nightmare Scorpion
+Bicho mó tóxico
+q traz
+pesadelo
+e ataca
+com 4 ferrão
+de veneno
+na ponta.{end}
+
+[D175]  # Spirit of the Books
+Espírito dos
+livro, saber
+infinito e
+mil jeito
+de atacar.{end}
+
+[D176]  # Supporter in the Shadows
+Elfo fofo q
+ajuda contra
+os inimigo
+escondido
+da vista.{end}
+
+[D177]  # Trial of Nightmares
+Julga os
+inimigo q tão
+presos em caixão.{end}
+
+[D178]  # Dream Clown
+A dança misteriosa
+desse bicho
+puxa os inimigo
+pro sono eterno.{end}
+
+[D179]  # Sleeping Lion
+Quase sempre
+tá dormindo.
+Esse bicho é
+mó perigoso
+quando acorda.{end}
+
+[D17A]  # Yamatano Dragon Scroll
+Esse dragão
+é invocado
+dum pergaminho
+pra atacar.
+A def dele
+é bem baixa.{end}
+
+[D17B]  # Dark Plant
+Flor mau
+nascida de terra
+podre e nutrida
+pela treva.{end}
+
+[D17C]  # Ancient Tool
+Bagulho
+de destruição
+achado nas
+ruína de uma
+civilização antiga.{end}
+
+[D17D]  # Faith Bird
+Pássaro de cauda
+bem longa q
+ataca com luz
+q sai do
+corpo inteiro.{end}
+
+[D17E]  # Orion the Battle King
+Bicho misterioso
+conhecido como
+rei dos guerreiro,
+mas ninguém viveu
+o bastante pra
+contar como
+ganhou a fama.{end}
+
+[D17F]  # Ansatsu
+Guerreiro mudo
+e rápido, expert
+em atk surpresa.{end}
+
+[D180]  # LaMoon
+Mago q mora
+na lua e
+ataca os cara
+com o poder
+da luz lunar.{end}
+
+[D181]  # Nemuriko
+Bicho tipo
+criança q
+controla um
+espírito do sono
+e chama os
+cara pro sono.{end}
+
+[D182]  # Weather Control
+Esse bicho
+consegue
+mexer no
+clima. É por
+isso q o
+tempo muda
+na serra.{end}
+
+[D183]  # Octoberser
+Bicho estranho
+cabeça
+de peixe e
+tentáculo
+de polvo q
+ataca os cara
+com lança.{end}
+
+[D184]  # The 13th Grave
+Zumbi q
+apareceu
+da cova
+#13 - supposedly
+q era vazia.{end}
+
+[D185]  # Charubin the Fire Knight
+Guerreiro protegido
+por casco
+q até
+desvia o calor
+do fogo.{end}
+
+[D186]  # Mystical Capture Chain
+Corrente mística
+q dizem
+capaz de prender
+os inimigo e
+impedir o
+atk deles.{end}
+
+[D187]  # Fiend's Hand
+Braço longo sai
+do Pântano
+do Caos e puxa
+bicho inimigo.{end}
+
+[D188]  # Witty Phantom
+Vestido de
+smoking preto,
+esse bicho
+comanda
+os condenado.{end}
+
+[D189]  # Mystery Hand
+Torcendo a
+realidade, braço
+sai de
+outra dimensão
+pra atacar.{end}
+
+[D18A]  # Dragon Statue
+Guerreiro granito
+alma de dragão
+usa espada
+braba contra
+todo inimigo.{end}
+
+[D18B]  # Blue-eyed Silver Zombie
+Bicho q dizem
+transformar os
+cara em zumbi
+com um raio
+estranho q sai
+dos olho.{end}
+
+[D18C]  # Toad Master
+Milhares de anos,
+esse sapo
+mago ataca
+os cara com
+exército de girino.{end}
+
+[D18D]  # Spiked Snail
+Evoluindo do
+poder da treva,
+esse caracol tem
+braço e perna
+pra atk rápido
+nos inimigo.{end}
+
+[D18E]  # Flame Manipulator
+Ataca os cara
+com magia de fogo,
+tipo
+Mar de Chamas
+né, e
+Muralha de Fogo.{end}
+
+[D18F]  # Necrolancer the Timelord
+O 1o de uma
+linha de golem
+q aparece quase
+em todo lugar
+de um anel.{end}
+
+[D190]  # Djinn the Watcher of the Wind
+Controla o ar
+pra criar
+vento violento
+e tornado q
+leva os inimigo.{end}
+
+[D191]  # The Bewitching Phantom Thief
+Ladrão
+chamativo de capa
+preta q usa
+bengala mágica.{end}
+
+[D192]  # Temple of Skulls
+Templo esquisito
+de crânio e osso
+q suga a
+essência viva
+de quem
+ousa chegar.{end}
+
+[D193]  # Monster Egg
+Guerreiro escondido
+num ovo q
+ataca os cara
+jogando casca.{end}
+
+[D194]  # The Shadow Who Controls the Dark
+Sombra viva
+q mora no
+reino da treva.
+Paralisa
+os inimigo
+pra impedir atk.{end}
+
+[D195]  # Lord of the Lamp
+Gigante q sai
+dum lampião
+místico e obedece
+as ordem
+do dono.{end}
+
+[D196]  # Akihiron
+Bicho
+misterioso q mora
+no fundo do mar.{end}
+
+[D197]  # Rhaimundos of the Red Sword
+Guerreiro armado
+com a Espada
+das Chamas Rubras.
+Usa fogo pra
+prender o
+movimento.{end}
+
+[D198]  # The Melting Red Shadow
+Bicho q
+derrete na terra,
+se funde com
+a sombra do
+oponente e
+ataca de baixo.{end}
+
+[D199]  # Dokuroizo the Grim Reaper
+Espírito vivo
+q caça a
+essência dos cara.{end}
+
+[D19A]  # Fire Reaper
+Bicho q
+castiga
+com flecha
+de fogo.{end}
+
+[D19B]  # Larvas
+Bicho rápido,
+tipo pássaro,
+q enforca
+o monstro
+com braço
+longo e fino.{end}
+
+[D19C]  # Hard Armor
+Armadura viva
+q ataca os
+cara com
+tranco q dói.{end}
+
+[D19D]  # Firegrass
+Planta q cospe
+fogo e cresce
+perto de vulcão.{end}
+
+[D19E]  # Man Eater
+Planta carnívora
+com gavinha
+venenosa pra
+atacar.{end}
+
+[D19F]  # Dig Beak
+Enrolando o
+corpo de cobra,
+gira e
+ataca com
+bico q morde.{end}
+
+[D1A0]  # M-warrior #1
+Expert em
+atk combinado,
+usa ímã pra
+bloquear a
+fuga do inimigo.{end}
+
+[D1A1]  # M-warrior #2
+Expert em
+atk combinado,
+esse guerreiro
+tem armadura
+dura coberta
+de ímã.{end}
+
+[D1A2]  # Tainted Wisdom
+Cérebro parasita
+q se alimenta
+do saber
+e da inteligência
+dos oponente.{end}
+
+[D1A3]  # Lisark
+Bicho estranho
+olho de safira
+cria visão
+pra confundir.{end}
+
+[D1A4]  # Lord of Zemia
+Ser nojento q
+engana os cara
+pra seguir um
+caminho de ruína.{end}
+
+[D1A5]  # The Judgement Hand
+A mão do
+julgamento final
+dá atk intenso
+no inimigo.{end}
+
+[D1A6]  # Mysterious Puppeteer
+Mestre fantoche
+q manipula os
+cara na briga.{end}
+
+[D1A7]  # Ancient Jar
+Bagulho frágil
+do passado com
+um bicho
+misterioso.{end}
+
+[D1A8]  # Darkfire Dragon
+Chama ardente
+q acaba os
+cara num
+piscar de olho.{end}
+
+[D1A9]  # Dark King of the Abyss
+Rei do
+submundo. Dizem
+q um dia
+teve poder pra
+mandar na Treva.{end}
+
+[D1AA]  # Spirit of the Harp
+Espírito q
+acalma a alma
+com a música
+da harpa zica.{end}
+
+[D1AB]  # Big Eye
+Bicho coberto
+de olho
+hipnótico pra
+enfeitiçar
+os inimigo.{end}
+
+[D1AC]  # Armaill
+Guerreiro estranho
+q mexe
+3 lâmina braba
+com as
+duas mão e
+o rabo.{end}
+
+[D1AD]  # Dark Prisoner
+Bicho q
+mexe na luz
+pra apagar
+todo rastro
+da aparência.{end}
+
+[D1AE]  # Hurricail
+Tornado
+q corre solto
+no deserto,
+cortando os cara
+com lâmina de vento.{end}
+
+[D1AF]  # Ancient Brain
+Fora da realidade,
+esse bicho
+manda bem
+brigando no escuro.{end}
+
+[D1B0]  # Fire Eye
+Olho alado
+envolto em chama
+q ataca os cara
+com fogo.{end}
+
+[D1B1]  # Monsturtle
+Tartaruga mau
+casco cravado.{end}
+
+[D1B2]  # Claw Reacher
+Braço q estica
+e garra afiada
+deixam o bicho
+brabo demais.{end}
+
+[D1B3]  # Phantom Dewan
+Mago
+q trava o
+movimento inimigo{sp}
+c 1 maldição.{end}
+
+[D1B4]  # Arlownay
+Moça
+nas flor
+espalha
+pólen venenoso
+nos oponente.{end}
+
+[D1B5]  # Dark Shade
+Solta luz
+ofuscante do
+cristal pra cegar
+os inimigo.{end}
+
+[D1B6]  # Masked Clown
+Guerreiro dançarino
+q faz picadinho
+dos oponente
+com foice afiada.{end}
+
+[D1B7]  # Lucky Trinket
+Bicho fino
+e magro protegido
+por poder sagrado.{end}
+
+[D1B8]  # Genin
+Usa truque
+de mão zica
+pra enganar
+e acabar os cara.{end}
+
+[D1B9]  # Eyearmor
+Guerreiro q
+confunde e
+acaba os cara
+copiando
+a cara deles.{end}
+
+[D1BA]  # Fiend Refrection #2
+Fera-pássaro
+q chama
+reforço
+com espelhinho.{end}
+
+[D1BB]  # Gate Deeg
+Bicho
+com portal
+na barriga pra
+invocar monstro
+do submundo.{end}
+
+[D1BC]  # Synchar
+Bicho feio
+2 cabeça e
+boca q solta
+raio laser.{end}
+
+[D1BD]  # Fusionist
+Gato monstro
+com asa e rabo
+longo q bate.{end}
+
+[D1BE]  # Akakieisu
+Mago
+cujo feitiço
+entorpece os
+bicho inimigo.{end}
+
+[D1BF]  # LaLa Li-oon
+Sob o trovão,
+nuvem perigosa
+ataca os cara
+com chuva ácida.{end}
+
+[D1C0]  # Key Mace
+Anjinho
+tão fofo q
+derrete o
+coração dos cara.{end}
+
+[D1C1]  # Turtle Tiger
+Tigre num
+casco protetor
+q ataca os
+inimigo com
+presa afiada.{end}
+
+[D1C2]  # Terra the Terrible
+Conhecido morador
+do pântano,
+esse bicho é
+servo das
+força da Treva.{end}
+
+[D1C3]  # Doron
+Bicho imprevisível
+q se divide
+em 2 e ataca
+o inimigo de
+lado oposto.{end}
+
+[D1C4]  # Arma Knight
+Guerreiro amonite
+q protege
+os mares desde
+o começo dos tempo.{end}
+
+[D1C5]  # Mech Mole Zombie
+Bicho da
+noite q ataca
+os cara com{sp}
+braço foguete.{end}
+
+[D1C6]  # Happy Lover
+Anjinho
+q solta raio
+de felicidade
+da joia do
+coração na testa.{end}
+
+[D1C7]  # Penguin Knight
+Bicho tipo
+pinguim q desliza
+de barriga
+pra dar um golpe
+com a
+espada esticada.{end}
+
+[D1C8]  # Petit Dragon
+Dragão bem
+pequeno, famoso
+por atk mau.{end}
+
+[D1C9]  # Frenzied Panda
+Fera selvagem
+q carrega
+um bambu grande
+pra bater
+nos inimigo.{end}
+
+[D1CA]  # Air Marmot of Nefariousness
+Castor com chifre
+e asa q
+joga bolota
+muito rápida
+do céu com
+mira zica.{end}
+
+[D1CB]  # Phantom Ghost
+Espírito mau
+q anda no mundo
+dos vivo,
+sem achar o
+descanso final.{end}
+
+[D1CC]  # Mabarrel
+Bicho tipo
+canhão q atira
+globo ocular
+rápido no inimigo.{end}
+
+[D1CD]  # Dorover
+Bicho feio
+derretendo q
+solta
+gás venenoso.{end}
+
+[D1CE]  # Twin Long Rods #1
+Bicho balança
+braço tipo chicote
+pra atk de
+média distância
+nos inimigo.{end}
+
+[D1CF]  # Droll Bird
+Com um grito
+q coalha
+o sangue do
+oponente,
+esse bicho
+ataca com
+bico enorme.{end}
+
+[D1D0]  # Petit Angel
+Anjo minúsculo
+e ligeiro,
+mó difícil
+de acertar.{end}
+
+[D1D1]  # Winged Cleaver
+Bicho
+ataca girando
+os braço
+tipo foice.{end}
+
+[D1D2]  # Hinotama Soul
+Criatura chama
+mó quente q
+atropela quem
+fica na frente.{end}
+
+[D1D3]  # Kaminarikozou
+Bicho guarda
+raio no
+corpo pra dar
+atk elétrico.{end}
+
+[D1D4]  # Meotoko
+Bicho enorme
+com 1 olho q
+solta um
+raio intenso.{end}
+
+[D1D5]  # Aqua Madoor
+Mago das
+água q invoca
+muralha líquida
+pra esmagar quem
+enfrenta ele.{end}
+
+[D1D6]  # Kagemusha of the Blue Flame
+Sósia do
+rei da Chama
+Azul. Mestre
+espadachim q
+usa lâmina fina.{end}
+
+[D1D7]  # Flame Ghost
+Espírito de fogo
+q queima tudo
+no caminho.{end}
+
+[D1D8]  # Dryad
+Espírito da
+floresta protegido
+pelas planta
+ao redor.{end}
+
+[D1D9]  # B. Skull Dragon
+Bicho mó raro
+criado da
+fusão de uma
+fera incomum e
+um dragão mau.{end}
+
+[D1DA]  # Two-mouth Darkruler
+Dino com duas
+mandíbula braba.
+Guarda eletricidade
+no chifre e
+solta raio
+de alta
+voltagem da boca
+das costas.{end}
+
+[D1DB]  # Solitude
+Guerreiro fera
+gira foice enorme
+q suga o
+espírito dos
+inimigo pra dar
+golpe zica.{end}
+
+[D1DC]  # Masked Sorcerer
+Mago misterioso
+rosto sempre
+escondido
+atrás de uma
+máscara estranha.{end}
+
+[D1DD]  # Kumootoko
+Aranha
+enorme e esperta
+q prende os
+cara na teia.{end}
+
+[D1DE]  # Midnight Fiend
+Bicho alado
+q dizem surgir
+à meia-noite.{end}
+
+[D1DF]  # Roaring Ocean Snake
+Serpente
+do mar enorme
+cria onda
+pra varrer
+os inimigo.{end}
+
+[D1E0]  # Trap Master
+Guerreiro q
+manda bem em
+armadilha tipo
+poço sem fundo,
+pra prender
+os cara pra sempre.{end}
+
+[D1E1]  # Fiend Sword
+Poucos fugiram
+da maldição
+desse bicho. Quem
+conseguiu ganhou
+poder sem fim.{end}
+
+[D1E2]  # Skull Stalker
+Rápido e mau,
+agarra a vítima
+com pinça e
+ataca o preso
+com ferrão
+venenoso.{end}
+
+[D1E3]  # Hitodenchak
+Estrela-do-mar mau
+cospe ácido
+pra derreter
+os inimigo.{end}
+
+[D1E4]  # Wood Remains
+Zumbi q ergueu
+dos resto do
+rei da floresta.{end}
+
+[D1E5]  # Hourglass of Life
+Bicho
+q deixa ganhar
+poder pagando
+com a vida.{end}
+
+[D1E6]  # Rare Fish
+Peixe estranho
+e feroz com
+cabeça de fera.{end}
+
+[D1E7]  # Wood Clown
+Bicho com
+sorriso chato
+usa foice pra
+desviar golpe.{end}
+
+[D1E8]  # Madjinn Gunn
+Arma viva q
+atira projétil
+da boca.{end}
+
+[D1E9]  # Dark Titan of Terror
+Espírito q
+mora no mundo
+dos sonho.
+Ataca os cara
+enquanto dormem.{end}
+
+[D1EA]  # Beautiful Headhuntress
+Mestra da espada
+linda, com
+golpe ágil.{end}
+
+[D1EB]  # Wodan the Resident of the Forest
+Guerreiro q
+mora há mto na
+floresta e tem
+a proteção
+da Mãe Natureza.{end}
+
+[D1EC]  # Guardian of the Labyrinth
+Guerreiro q
+guarda a entrada
+do submundo.{end}
+
+[D1ED]  # Haniwa
+Boneco de barro
+q protege
+o tesouro
+nos túmulo
+de rei antigo.{end}
+
+[D1EE]  # Yashinoki
+Palmeira com
+vontade própria
+ataca os cara
+jogando coco.{end}
+
+[D1EF]  # Vishwar Randi
+Guerreira q
+serve as força
+da treva.{end}
+
+[D1F0]  # The Drdek
+Bicho olho
+com perna pra
+pular alto e
+dar o golpe
+final com garra
+afiada.{end}
+
+[D1F1]  # Dark Assailant
+Armado com a
+Espada Psycho,
+bandido sinistro
+reina lá fora.{end}
+
+[D1F2]  # Candle of Fate
+O destino do
+oponente se
+decide quando
+a chama de cada
+dedo apaga.{end}
+
+[D1F3]  # Water Element
+Espírito da água
+q envolve
+o oponente
+numa névoa grossa
+pra cobrir o atk.{end}
+
+[D1F4]  # Dissolverock
+Bicho nascido
+das poça de lava.
+Gera calor
+brabo q derrete
+os inimigo.{end}
+
+[D1F5]  # Meda Bat
+Fiend olho
+criado por servo
+da treva.
+Usa Esfera Negra
+pra voar os
+inimigo longe.{end}
+
+[D1F6]  # One Who Hunts Souls
+Bicho
+com espada
+q ganha poder
+da força vital
+das vítima.{end}
+
+[D1F7]  # Root Water
+Anfíbio capaz
+de chamar uma
+onda gigante
+do mar negro
+pra varrer
+bicho inimigo.{end}
+
+[D1F8]  # Master & Expert
+Dupla braba:
+um mestre de
+fera e o
+servo fiel.{end}
+
+[D1F9]  # Water Omotics
+Transforma a água
+q transborda
+do jarro em
+dragão q ataca.{end}
+
+[D1FA]  # Hyo
+Guerreiro de gelo
+um toque e
+congela o cara.{end}
+
+[D1FB]  # Enchanting Mermaid
+Sereia linda
+q atrai viajante
+pro fundo.{end}
+
+[D1FC]  # Nekogal #1
+Bicho gato
+fofo de ver
+mas arranha
+com golpe
+de garra afiada.{end}
+
+[D1FD]  # Angelwitch
+Bicho
+q escolheu
+o caminho da magia
+pra virar bruxa.{end}
+
+[D1FE]  # Embryonic Beast
+Bicho nojento
+barriga aberta
+q engole quase
+tudo.{end}
+
+[D1FF]  # Prevent Rat
+Bicho
+protegido por{sp}
+couro coberto
+de pelo grosso.{end}
+
+[D200]  # Dimensional Warrior
+Bicho
+capaz de abrir
+fenda dimensional
+pra prender os cara.{end}
+
+[D201]  # Stone Armadiller
+Corpo blindado
+por pelo duro
+que pedra.
+A def, véi,
+é zica.{end}
+
+[D202]  # Beastking of the Swamps
+Bicho
+transforma o chão
+nos pé em
+areia movediça
+pra prender os cara.{end}
+
+[D203]  # Ancient Sorcerer
+Lutador mestre
+usa vários
+cajado pra
+apagar os cara.{end}
+
+[D204]  # Lunar Queen Elzaim
+Deusa
+da lua linda
+q ergue
+cortina lunar
+pra bloquear
+atk inimigo.{end}
+
+[D205]  # Wicked Mirror
+Espelho mau
+q hipnotiza
+quem olha e
+deixa a vítima
+aberta
+pra atk.{end}
+
+[D206]  # The Little Swordsman of Aile
+Elfo guerreiro
+montado num
+lagarto enorme.{end}
+
+[D207]  # Rock Ogre Grotto #2
+Golem de pedra
+transforma os cara
+em pedra e
+esmaga em pó.{end}
+
+[D208]  # Wing Egg Elf
+Escondido na
+casca do ovo,
+bloqueia
+atk inimigo
+com asa enorme.{end}
+
+[D209]  # The Furious Sea King
+Grão Rei dos
+Sete Mares.
+Chama onda
+gigante pra
+afogar o inimigo.{end}
+
+[D20A]  # Princess of Tsurugi
+Rainha das espada
+quase sem
+igual no
+domínio de toda
+lâmina q
+existe.{end}
+
+[D20B]  # Unknown Warrior of Fiend
+A velocidade
+desse guerreiro
+cria vácuo
+tão forte q
+corta até
+o couro do bicho.{end}
+
+[D20C]  # Sectarian of Secrets
+Mago q
+adora a treva
+e consegue
+invocar mão
+enorme pra
+arrastar os cara
+pro submundo.{end}
+
+[D20D]  # Versago the Destroyer
+Senhor da
+destruição
+nascido do
+coração da treva.
+Esse bicho
+chama tempestade
+pra acabar os cara.{end}
+
+[D20E]  # Wetha
+Espírito da chuva
+q chama tufão
+pra levar
+os inimigo.{end}
+
+[D20F]  # Megirus Light
+Os olho
+sinistro dele
+soltam raio
+perfurante nos
+inimigo.{end}
+
+[D210]  # Mavelus
+Parente da
+fênix, mora
+na serra.
+O bafo de
+fogo é
+mó ardente.{end}
+
+[D211]  # Ancient Tree of Enlightenment
+Cheio de
+saber, esse
+bicho consegue
+bloquear quase
+todo atk.{end}
+
+[D212]  # Green Phantom King
+Rei jovem
+das floresta vive
+num mundo verde,
+cheio de árvore
+e bicho.{end}
+
+[D213]  # Ground Attacker Bugroth
+Robô blindado
+de terra. Dizem
+q já teve
+atk marinho.{end}
+
+[D214]  # Ray & Temperature
+O Sol e o
+Vento Norte
+juntam a mão
+pra um combo
+zica de calor
+e vendaval.{end}
+
+[D215]  # Gorgon Egg
+Ovo de górgona
+olho q dizem
+criar o bicho
+q passa na frente.{end}
+
+[D216]  # Petit Moth
+Ninguém faz ideia
+que bicho pode
+nascer dessa
+larva misteriosa.{end}
+
+[D217]  # King Fog
+Espectro q
+mora numa cortina
+cega de fumaça.{end}
+
+[D218]  # Protector of the Throne
+Bicho q
+protege o trono
+de usurpador.{end}
+
+[D219]  # Mystic Clown
+Nada para
+o atk louco
+desse bicho brabo.{end}
+
+[D21A]  # Mystical Sheep #2
+Ovelha monstro
+rabo longo pra
+hipnotizar os cara
+e deixar eles
+sem força.{end}
+
+[D21B]  # Holograh
+Máquina bicho
+q gera
+imagem pra
+confundir os cara
+e deixar aberto
+pra atk.{end}
+
+[D21C]  # Tao the Chanter
+Mago q
+corrói o yin
+e o yang pra
+criar poder
+torto de atk.{end}
+
+[D21D]  # Serpent Marauder
+Cobra com
+1 olho q
+solta bafo
+gelado pra
+congelar os cara.{end}
+
+[D21E]  # Gatekeeper
+Máquina
+indestrutível
+feita pra guardar
+entrada chave.{end}
+
+[D21F]  # Ogre of the Black Shadow
+Ogro possuído
+pelo poder
+da treva.
+Poucos aguentam
+a investida rápida.{end}
+
+[D220]  # Dark Artist
+Artista doido
+q cria
+obra de arte
+pra esmagar os cara.{end}
+
+[D221]  # Change Slime
+Slime q muda
+de forma e
+consegue virar
+a forma de
+outro bicho.{end}
+
+[D222]  # Moon Envoy
+Servo da
+deusa da lua,
+guerreiro q
+usa lança
+com lâmina
+em lua
+crescente.{end}
+
+[D223]  # Fireyarou
+Bicho
+mau, véi
+envolto em chama
+q ataca os cara
+com fogo intenso.{end}
+
+[D224]  # Psychic Kappa
+Anfíbio com
+poder psíquico
+pra bloquear atk.{end}
+
+[D225]  # Masaki the Legendary Swordsman
+Lendário
+mestre da espada
+veterano de mais
+de 100 briga.{end}
+
+[D226]  # Dragoness the Wicked Knight
+Guerreiro
+equipado com
+equipamento feito
+de escama de dragão.{end}
+
+[D227]  # Bio Plant
+Bicho monstro
+nascido de um
+experimento falho.{end}
+
+[D228]  # One-eyed Shield Dragon
+Dragão usa
+escudo não só
+pra se proteger
+mas tb pra
+atropelar os cara.{end}
+
+[D229]  # Cyber Soldier of Darkworld
+Soldado mecânico
+imparável
+movido por
+força da treva.{end}
+
+[D22A]  # Wicked Dragon with the Ersatz Head
+Dragão de 2 cabeça
+com um par de
+mandíbula mau
+pra esmagar os cara.{end}
+
+[D22B]  # Sonic Maid
+Moça
+q usa som
+a favor dela.
+Usa foice
+em formato
+de nota musical.{end}
+
+[D22C]  # Kurama
+Pássaro mau q
+ataca do
+céu com rabo
+tipo chicote.{end}
+
+[D22D]  # Legendary Sword
+Espada q tira
+o melhor dos
+guerreiro. Servo
+da treva não
+pode usar.{end}
+
+[D22E]  # Sword of Dark Destruction
+A treva
+aumenta o poder
+dos Guerreiro!{end}
+
+[D22F]  # Dark Energy
+A treva aumenta
+o poder de Fiend
+e outros bicho
+da Treva!{end}
+
+[D230]  # Axe of Despair
+Fiend e
+Fera-Guerreiro
+usam sempre
+força máxima!{end}
+
+[D231]  # Laser Cannon Armor
+Arma Inseto com
+laser brabo!{end}
+
+[D232]  # Insect Armor with Laser Cannon
+Deixa Inseto
+soltar um jato
+intenso de fogo!{end}
+
+[D233]  # Elf's Light
+Aumenta o poder
+dos elfo com
+luz mística!{end}
+
+[D234]  # Beast Fangs
+Aumenta o poder
+de Fera e outros
+bicho de presa!{end}
+
+[D235]  # Steel Shell
+Sobe o poder
+de bicho c casco!
+Dizem q não
+afeta quem
+não tem casco.{end}
+
+[D236]  # Vile Germs
+Micróbio mau sobe
+o poder de Planta
+no mato!{end}
+
+[D237]  # Black Pendant
+Pingente dá
+poder extra
+a mago da Treva!{end}
+
+[D238]  # Silver Bow and Arrow
+Arco e flecha
+de prata sobe
+poder de Fada.{end}
+
+[D239]  # Horn of Light
+Aumenta o poder
+de bicho com chifre!
+Não afeta
+monstro da Treva.{end}
+
+[D23A]  # Horn of the Unicorn
+Aumenta o poder
+de monstro da Treva
+com chifre!{end}
+
+[D23B]  # Dragon Treasure
+Tesouro lendário
+q aumenta o
+poder de dragão.{end}
+
+[D23C]  # Electro-whip
+Chicote pra
+paralisar os cara.
+Sobe o poder
+quando equipa
+em bicho fêmea.{end}
+
+[D23D]  # Cyber Shield
+Aumenta o poder
+de bicho fêmea
+mudando a
+atitude delas.{end}
+
+[D23E]  # Elegant Egotist
+Cria dois
+clone da
+Harpy Lady pra
+atk em
+3 frente!{end}
+
+[D23F]  # Mystical Moon
+Luar aumenta
+o poder das Fera!{end}
+
+[D240]  # Stop Defense
+Força a carta
+monstro do
+oponente em
+def a ir
+pra posição de atk.{end}
+
+[D241]  # Malevolent Nuzzler
+Força diabólica
+age pra aumentar
+poder de fêmea
+e monstro Treva!{end}
+
+[D242]  # Violet Crystal
+Força mística
+do cristal sobe
+poder de Zumbi.{end}
+
+[D243]  # Book of Secret Arts
+Livro mágico pra
+aumentar o poder
+de mago.
+Não pode ser
+usado por
+mago de coração mau.{end}
+
+[D244]  # Invigoration
+Aumenta o poder
+de Trovão, Pedra
+e monstro Pyro.{end}
+
+[D245]  # Machine Conversion Factory
+Fábrica
+q afina
+todo monstro
+Máquina.{end}
+
+[D246]  # Raise Body Heat
+Absorve a
+energia do sol
+pra aumentar
+poder de Dino!{end}
+
+[D247]  # Follow Wind
+O vento dá
+apoio pra subir
+o poder de Fera
+Alada e outros
+bicho q voa!{end}
+
+[D248]  # Power of Kaishin
+A força de Poseidon
+é dividida pra
+subir o poder
+de Aqua, Peixe
+e Serpente
+do Mar!{end}
+
+[D249]  # Dragon Capture Jar
+Destrói
+todo Dragão
+do oponente
+no campo!{end}
+
+[D24A]  # Forest
+Muda o campo
+a favor de
+Fera-Guerreiro,
+Inseto, Planta
+e Fera!{end}
+
+[D24B]  # Wasteland
+Muda o campo
+a favor de Zumbi,
+Dino e
+monstro Pedra!{end}
+
+[D24C]  # Mountain
+Muda o campo
+a favor de Dragão,
+Fera Alada e
+monstro Trovão!{end}
+
+[D24D]  # Sogen
+Muda o campo
+pra campina
+a favor de
+Guerreiro e
+Fera-Guerreiro!{end}
+
+[D24E]  # Umi
+Muda o campo
+a favor de Aqua
+e monstro Trovão,
+mas desfavor
+pra Máquina
+e Pyro!{end}
+
+[D24F]  # Yami
+Muda o campo
+a favor de
+Mago e
+monstro Fiend,
+mas desfavor
+pra Fada!{end}
+
+[D250]  # Dark Hole
+Suga toda carta
+do campo, véi!{end}
+
+[D251]  # Raigeki
+Destrói todo
+monstro inimigo
+com um golpe
+de raio!{end}
+
+[D252]  # Mooyan Curry
+Curry de carne
+mó gostoso, sobe
+a vida em 200!{end}
+
+[D253]  # Red Medicine
+Poção mágica
+que sobe
+a vida em 500!{end}
+
+[D254]  # Goblin's Secret Remedy
+Erva de goblin
+que sobe
+a vida em 1000!{end}
+
+[D255]  # Soul of the Pure
+Poção de fada
+que sobe
+a vida em 2000!{end}
+
+[D256]  # Dian Keto the Cure Master
+Poder místico
+que sobe
+a vida em 5000!{end}
+
+[D257]  # Sparks
+Chuva de faísca
+tira 50 pontos
+de dano
+da vida do
+outro!!{end}
+
+[D258]  # Hinotama
+Bola de fogo
+tira 100 pontos
+de dano
+da vida do
+outro!!{end}
+
+[D259]  # Final Flame
+Chamas
+tiram 200 pontos
+de dano
+da vida do
+outro!!{end}
+
+[D25A]  # Ookazi
+Chamas
+tiram 500 pontos
+de dano
+da vida do
+outro!{end}
+
+[D25B]  # Tremendous Fire
+Um inferno
+tira 1000 pontos
+de dano
+da vida do
+outro!{end}
+
+[D25C]  # Swords of Revealing Light
+Monstro inimigo
+fica à mostra e
+o outro
+não pode atacar
+por 3 turnos.{end}
+
+[D25D]  # Spellbinding Circle
+Maldição corta
+o atk de todo
+monstro inimigo!{end}
+
+[D25E]  # Dark-piercing Light
+Uma luz zica
+revela todo monstro
+no campo.{end}
+
+[D25F]  # Yaranzo
+Um bicho que
+ataca quem
+tenta abrir
+a tampa.{end}
+
+[D260]  # Kanan the Swordmistress
+Espadachim que
+flutua que nem
+borboleta e ferra
+que nem abelha.{end}
+
+[D261]  # Takriminos
+Bicho de barbatana
+parente distante
+de dragão do mar.{end}
+
+[D262]  # Stuffed Animal
+Bichinho fofo
+de pelúcia que
+morde.{end}
+
+[D263]  # Megasonic Eye
+Bagulho críptico
+do fim do mundo
+que veio da borda
+do universo.{end}
+
+[D264]  # Super War-lion
+Leão mó brabo
+com garra afiada
+e longa.{end}
+
+[D265]  # Yamadron
+Três cabeças,
+cospe fogo,
+monstro.{end}
+
+[D266]  # Seiyaryu
+Dragão sagrado
+que queima o mal
+com suas chamas
+místicas.{end}
+
+[D267]  # Three-legged Zombies
+Ossudo e Gordinho,
+dupla amiga
+de esqueleto.{end}
+
+[D268]  # Zera The Mant
+Bicho enorme
+e brutal que ataca
+com garras
+afiadas.{end}
+
+[D269]  # Flying Penguin
+Pinguim raro que
+voa com as asas
+da cabeça.{end}
+
+[D26A]  # Millennium Shield
+Candidato a item
+do milênio
+que dizem
+bloquear qualquer
+atk brabo.{end}
+
+[D26B]  # Fairy's Gift
+Voa por aí
+espalhando alegria
+pra geral.{end}
+
+[D26C]  # Black Luster Soldier
+Guerreiro brabo
+com o mesmo
+poder do lendário
+Blue-eyes
+dragão branco.{end}
+
+[D26D]  # Fiend's Mirror
+Vidro arcano
+que puxa
+inimigo pra dentro
+do mundo espelho.{end}
+
+[D26E]  # Labyrinth Wall
+Paredes surgem
+no campo e formam
+um labirinto
+sem saída.{end}
+
+[D26F]  # Jirai Gumo
+Aranha monstro
+que mora
+debaixo da terra.{end}
+
+[D270]  # Shadow Ghoul
+Zumbi perigoso
+que rasteja
+no escuro.{end}
+
+[D271]  # Wall Shadow
+Bicho rápido demais
+que varre
+as paredes pra
+atacar inimigo.{end}
+
+[D272]  # Labyrinth Tank
+Tanque que corre
+no labirinto
+caçando
+os inimigo.{end}
+
+[D273]  # Sanga of the Thunder
+Golem que usa
+atk de raio
+igual os
+irmãos labirinto.{end}
+
+[D274]  # Kazejin
+Golem que
+controla os ventos
+igual os irmãos
+do labirinto.{end}
+
+[D275]  # Suijin
+Golem que usa
+atk de água igual
+os irmãos
+do labirinto.{end}
+
+[D276]  # Gate Guardian
+Sanga, Kazejin e
+Suijin se juntam
+num monstro
+só, mó brabo.{end}
+
+[D277]  # Dungeon Worm
+Escondido sob
+o chão do
+labirinto,
+engole quem
+passa em cima.{end}
+
+[D278]  # Monster Tamer
+Mestre dos bicho
+que manda
+em vários
+bichos.{end}
+
+[D279]  # Ryu-kishin Powered
+Ryu-kishin buffado
+pelo poder das
+trevas. Garra
+afiada, rival
+de respeito.{end}
+
+[D27A]  # Swordstalker
+Monstro feito
+das almas vingativas
+de quem morreu
+na batalha.{end}
+
+[D27B]  # La Jinn the Mystical Genie
+Gênio da lâmpada
+que obedece
+na hora o
+mestre.{end}
+
+[D27C]  # Blue-eyes Ultimate Dragon
+Dragão supremo
+fusão de três
+Blue-eyes
+dragão branco.{end}
+
+[D27D]  # Toon Alligator
+Jacaré monstro
+saído direto
+do desenho.{end}
+
+[D27E]  # Rude Kaiser
+Com machado
+em cada mão, esse
+bicho dá
+dano pesado.{end}
+
+[D27F]  # Parrot Dragon
+Dragão de desenho
+mais perigoso
+do que parece
+ser, né.{end}
+
+[D280]  # Dark Rabbit
+Coelho de desenho
+que pula rápido
+pra todo lado,
+alvo difícil
+demais.{end}
+
+[D281]  # Bickuribox
+Caixa surpresa
+que manda bem
+em atk surpresa.{end}
+
+[D282]  # Harpie's Pet Dragon
+Bicho favorito das
+hárpias, mas um
+dragão zica.{end}
+
+[D283]  # Mystic Lamp
+Lâmpada
+que mago usa
+pra misturar poção.{end}
+
+[D284]  # Pendulum Machine
+Máquina de tortura
+horrível, com lâmina
+de pêndulo.{end}
+
+[D285]  # Giltia the D. Knight
+Armado com
+lança que queima
+a alma, prefere
+atk mágico.{end}
+
+[D286]  # Launcher Spider
+Aranha máquina
+que lança
+foguete explosivo
+nos inimigo.{end}
+
+[D287]  # Zoa
+Monstro
+cujo potencial
+só vem quando
+vira a forma
+de metal.{end}
+
+[D288]  # Metalzoa
+Zoa de metal
+capaz de
+atk pesado.{end}
+
+[D289]  # Zone Eater
+Bicho do mar que
+engole inimigo e
+digere devagar.{end}
+
+[D28A]  # Steel Scorpion
+Bicho de rabo
+de ferro, com
+tesoura
+bem afiada.{end}
+
+[D28B]  # Dancing Elf
+Elfo que dança
+no céu com asas
+de lâmina
+afiadas.{end}
+
+[D28C]  # Ocubeam
+Assustador no
+visual, esse
+bicho usa os
+olho e orelha grande
+pra rastrear
+qualquer movimento.{end}
+
+[D28D]  # Leghul
+Não é tão brabo
+mesmo com presa
+e espinho
+grandes.{end}
+
+[D28E]  # Ooguchi
+Sapo-boi monstro
+com espinho veneno.{end}
+
+[D28F]  # Swordsman from a Foreign Land
+Guerreiro do oriente
+armado com espada
+amaldiçoada.{end}
+
+[D290]  # Emperor of the Land and Sea
+Réptil monstro
+que cospe fogo.{end}
+
+[D291]  # Ushi Oni
+Monstro touro
+ressuscitado pelas
+artes das trevas
+que aparece
+de dentro do pote.{end}
+
+[D292]  # Monster Eye
+Servo que fica
+de olho bem perto
+em qualquer coisa
+e em tudo.
+Solta uma
+cortina de fumaça
+se descobrem.{end}
+
+[D293]  # Leogun
+Monstro enorme
+com juba de leão
+parecido com o
+"rei das feras".{end}
+
+[D294]  # Tatsunootoshigo
+Bicho do mar rápido
+que tem o corpo
+de cavalo
+e de peixe.{end}
+
+[D295]  # Saber Slasher
+Máquina furiosa
+que empunha
+espada enorme.{end}
+
+[D296]  # Yaiba Robo
+Máquina
+com várias lâminas
+escondidas no
+corpo quadrado.{end}
+
+[D297]  # Machine King
+Com armadura de
+super liga, esse
+robô ataca com
+rajada de fogo
+dos dois braços.{end}
+
+[D298]  # Giant Mech-soldier
+Esse bicho gira
+um machado que
+treme a terra e
+apaga inimigo
+num golpe.{end}
+
+[D299]  # Metal Dragon
+Dourado,
+cospe fogo,
+dragão que queima
+qualquer rival
+no caminho.{end}
+
+[D29A]  # Mechanical Spider
+Formato aranha,
+monstro mecânico
+com foice na
+ponta das pernas.{end}
+
+[D29B]  # Bat
+Morcego mecânico
+que ataca
+soltando
+orbe explosivo.{end}
+
+[D29C]  # Giga-tech Wolf
+Lobo feito todo
+de ferro. Mandíbula
+de aço morde
+qualquer bagulho.{end}
+
+[D29D]  # Cyber Soldier
+Soldado redondo
+que rola por aí
+e age como
+guarda do
+Rei Máquina.{end}
+
+[D29E]  # Shovel Crusher
+Armado com
+um par de pá,
+esse bicho é
+motor ambulante
+de destruição.{end}
+
+[D29F]  # Mechanicalchacer
+Caçador que
+persegue sem parar
+o alvo por ordem
+do Rei Máquina.{end}
+
+[D2A0]  # Blocker
+Cada parte
+desse bicho é
+uma arma própria,
+capaz de
+atk devastador.{end}
+
+[D2A1]  # Blast Juggler
+Relógio ambulante
+que adora
+estourar inimigo
+longe.{end}
+
+[D2A2]  # Golgoil
+Golem de ferro mó
+que surge de
+fenda dimensional.{end}
+
+[D2A3]  # Giganto
+Esse bicho gira
+uma bola cravada
+enorme pra destruir
+inimigo.{end}
+
+[D2A4]  # Cyber-Stein
+Criado num
+porão secreto, esse
+bagulho infernal
+lança foguete
+de dentro da
+boca.{end}
+
+[D2A5]  # Cyber Commander
+Tropa de ataque
+equipada com
+detector radar
+e sensor.{end}
+
+[D2A6]  # Jinzo #7
+Criado num
+porão secreto,
+esse ser
+artificial às vezes
+pira, tá ligado.{end}
+
+[D2A7]  # Dice Armadillo
+Tipo tatu, esse
+bicho vira um dado
+sempre que
+enrola o corpo.{end}
+
+[D2A8]  # Sky Dragon
+Dragão tipo pássaro
+com quatro asas
+de lâmina.{end}
+
+[D2A9]  # Thunder Dragon
+Dragão que
+chama trovão e
+raio pra atacar
+os rival.{end}
+
+[D2AA]  # Stone D.
+Com o corpo
+feito inteiro
+de pedra,{sp}
+esse dragão
+atira pedregulho
+nos inimigo.{end}
+
+[D2AB]  # Kaiser Dragon
+Dragão imperador
+mó orgulhoso
+e brabo.{end}
+
+[D2AC]  # Magician of Faith
+Mesmo fraco
+de força, esse
+bicho consegue
+lançar magia
+pra apagar
+as trevas.{end}
+
+[D2AD]  # Goddess of Whim
+Deusa tímida que
+parece passar
+a maior parte
+dormindo, né.{end}
+
+[D2AE]  # Water Magician
+Esse bicho
+cerca o rival
+com água e
+envolve num
+atk varredor.{end}
+
+[D2AF]  # Ice Water
+Sereia mó agressiva
+com espinho pra
+atacar
+inimigo.{end}
+
+[D2B0]  # Waterdragon Fairy
+Fada que
+vaga pelos mares.
+Dizem que tem
+o poder
+de invocar dragão
+do mar.{end}
+
+[D2B1]  # Ancient Elf
+Dizem que esse elfo
+viveu milhares
+de anos.
+Ele lidera um
+exército de espírito
+contra inimigo.{end}
+
+[D2B2]  # Beautiful Beast Trainer
+Maga rara
+armada com
+chicote brabo.{end}
+
+[D2B3]  # Water Girl
+Criatura linda
+que atira flecha
+de gelo.{end}
+
+[D2B4]  # White Dolphin
+Golfinho branco
+de chifre que ataca
+chamando
+onda gigante.{end}
+
+[D2B5]  # Deepsea Shark
+Tubarão violento que
+ataca qualquer
+coisa no mar.{end}
+
+[D2B6]  # Metal Fish
+Peixe de aço
+armado com nadadeira
+afiada.{end}
+
+[D2B7]  # Bottom Dweller
+Nadadora linda
+de gênio
+péssimo.{end}
+
+[D2B8]  # 7 Colored Fish
+Peixe arco-íris raro
+quase impossível
+de pegar, né.{end}
+
+[D2B9]  # Mech Bass
+Esse bicho
+carrega um canhão
+plasma nas costas.{end}
+
+[D2BA]  # Aqua Dragon
+Dragão que mora
+no mar. Cospe
+jato de água
+com pressão
+alta.{end}
+
+[D2BB]  # Sea King Dragon
+Rei dos mares,
+esse bicho tem
+casco duro e
+cospe bolha
+venenosa nos
+inimigo.{end}
+
+[D2BC]  # Turu-Purun
+Bicho estranho
+de um olho só
+com lança zica.{end}
+
+[D2BD]  # Guardian of the Sea
+Guerreiro tritão
+que ataca quem
+ousa
+sujar o mar.{end}
+
+[D2BE]  # Aqua Snake
+Bicho que afoga
+o rival, né,
+hipnotizando
+com a bola da
+ponta do rabo.{end}
+
+[D2BF]  # Giant Red Seasnake
+Serpente do mar
+que morde qualquer
+coisa que passa.{end}
+
+[D2C0]  # Spike Seadra
+Com os espinhos
+que saem do corpo,
+esse bicho
+esfaqueia o rival
+e enche eles
+de eletricidade.{end}
+
+[D2C1]  # 30,000-Year White Turtle
+Tartaruga gigante
+bem protegida
+que viveu
+mais de
+30000 anos.{end}
+
+[D2C2]  # Kappa Avenger
+Anfíbio que jurou
+vingar a morte
+dos irmãos.{end}
+
+[D2C3]  # Kanikabuto
+Caranguejo monstro
+com duas tesouras
+enormes pra cortar
+inimigo.{end}
+
+[D2C4]  # Zarigun
+Lagostim evoluído
+com tesoura afiada
+pra cortar
+o inimigo.{end}
+
+[D2C5]  # Millennium Golem
+Golem
+que protegeu
+tesouro por quase
+um milênio.{end}
+
+[D2C6]  # Destroyer Golem
+Golem com a
+mão direita enorme
+pra esmagar
+as vítimas.{end}
+
+[D2C7]  # Barrel Rock
+Monstro que
+avança no inimigo
+atirando dois
+canhões montados
+nos ombros.{end}
+
+[D2C8]  # Minomushi Warrior
+Guerreiro de pedra
+que empunha
+espada pesada
+talhada em pedra.{end}
+
+[D2C9]  # Stone Ghost
+Bicho que
+explode de raiva
+e solta uma
+chuva esmagadora
+de pedra.{end}
+
+[D2CA]  # Kaminari Attack
+Monstro que
+julga quem errou
+e pune
+na medida.{end}
+
+[D2CB]  # Tripwire Beast
+Esse bicho
+ataca inimigo
+com onda
+eletromagnética.{end}
+
+[D2CC]  # Bolt Escargot
+Esse bicho cospe
+um gosma que
+tira a mobilidade
+do inimigo e depois
+atordoa com
+choque elétrico.{end}
+
+[D2CD]  # Bolt Penguin
+Monstro
+com um par de
+chicote elétrico
+no lugar dos braços.{end}
+
+[D2CE]  # The Immortal of Thunder
+Bicho que
+ataca inimigo
+com raio.{end}
+
+[D2CF]  # Electric Snake
+Serpente com
+rabo que guarda
+eletricidade.{end}
+
+[D2D0]  # Wing Eagle
+Caçador dos céus
+que nunca errou
+um alvo.{end}
+
+[D2D1]  # Punished Eagle
+Juiz dos céus
+que dá a sentença
+com as garras
+brancas de prata
+que punem.{end}
+
+[D2D2]  # Skull Red Bird
+Esse monstro
+despenca
+e ataca com
+chuva de faca
+guardada nas asas.{end}
+
+[D2D3]  # Crimson Sunbird
+Monstro em chamas
+carmesim, capaz
+de soltar uma
+chuva de faísca
+batendo
+as asas.{end}
+
+[D2D4]  # Queen Bird
+Bicho que
+ataca inimigo
+com o bico enorme.{end}
+
+[D2D5]  # Armed Ninja
+Ninja azul
+que ataca
+com foice grande
+e pé com espinho.{end}
+
+[D2D6]  # Magical Ghost
+Esse bicho lança
+magia de terror
+e confusão antes
+de atacar
+inimigo.{end}
+
+[D2D7]  # Soul Hunter
+Esse palhaço dá
+a força vital do
+inimigo pra um
+lagarto monstro.{end}
+
+[D2D8]  # Air Eater
+Monstro que
+sufoca o inimigo
+comendo
+o ar que tá
+em volta.{end}
+
+[D2D9]  # Vermillion Sparrow
+Guerreiro de fogo
+que solta
+um calor mó
+intenso do corpo.{end}
+
+[D2DA]  # Sea Kamen
+Monstro cruel que
+corta inimigo
+com garra afiada.{end}
+
+[D2DB]  # Sinister Serpent
+Cobra voadora
+venenosa que é
+ruim demais
+de manobrar
+no chão.{end}
+
+[D2DC]  # Ganigumo
+Aranha armada
+com tesoura pra
+atacar o que
+cair na teia.{end}
+
+[D2DD]  # Alinsection
+Besouro-veado
+monstro com
+chifre serrilhado
+e braços.{end}
+
+[D2DE]  # Insect Soldiers of the Sky
+Soldado inseto
+que ataca em enxame.{end}
+
+[D2DF]  # Cockroach Knight
+Guerreiro barata
+que se esconde
+em espaço pequeno
+e sai pra atacar.{end}
+
+[D2E0]  # Kuwagata α
+Besouro brabo
+com um{sp}
+cortador afiado.{end}
+
+[D2E1]  # Burglar
+Rato esperto
+com a garra
+esquerda afiada.{end}
+
+[D2E2]  # Pragtical
+Monstro mó perigoso
+com espinho na
+cabeça e no rabo.{end}
+
+[D2E3]  # Garvas
+Criatura malvada
+que parece
+um leão
+alado.{end}
+
+[D2E4]  # Ameba
+Monstro
+que envolve
+o inimigo e
+digere devagar.{end}
+
+[D2E5]  # Korogashi
+Esse bicho rola
+objeto enorme
+pra esmagar inimigo.{end}
+
+[D2E6]  # Boo Koo
+Mago livro
+com página e página
+de magia forte.{end}
+
+[D2E7]  # Flower Wolf
+Fera
+coberta de flor
+da cabeça ao pé.{end}
+
+[D2E8]  # Rainbow Flower
+Flor criatura
+com flor colorida
+de arco-íris que
+atrai inimigo
+pra mandíbula.{end}
+
+[D2E9]  # Barrel Lily
+Flor perigosa
+que atira
+pólen.{end}
+
+[D2EA]  # Needle Ball
+Bola coberta
+de agulha afiada.
+Geralmente cai
+nos inimigo
+em grupo.{end}
+
+[D2EB]  # Peacock
+Tipo pavão,
+bicho lindo que
+atira as penas
+nos rival.{end}
+
+[D2EC]  # Hoshiningen
+Com um rastro
+lindo, essa
+estrela cadente
+dá dano quando
+acerta o inimigo.{end}
+
+[D2ED]  # Maha Vailo
+Mago vestido de
+azul, costuma
+ficar meditando.{end}
+
+[D2EE]  # Rainbow Marine Mermaid
+Sereia diferente
+que aparece
+quando o arco-íris
+liga o céu.{end}
+
+[D2EF]  # Musician King
+Guitarrista zica
+que ataca inimigo
+com som
+ultrassônico.{end}
+
+[D2F0]  # Wilmee
+Coelho feroz
+com garra afiada.{end}
+
+[D2F1]  # Yado Karu
+Caranguejo-eremita
+cabeça de dragão.{end}
+
+[D2F2]  # Morinphen
+Demônio estranho
+com braço longo e
+garra afiada.{end}
+
+[D2F3]  # Kattapillar
+Ataca soprando
+teia nos inimigo.
+Ninguém sabe
+qual a forma final
+desse inseto
+pode ser.{end}
+
+[D2F4]  # Dragon Seeker
+Monstro temido
+mandado do
+submundo
+pra destruir dragão.{end}
+
+[D2F5]  # Man-eater Bug
+Bicho que
+corta e fatia
+com a tesoura
+e come
+as vítimas.{end}
+
+[D2F6]  # D. Human
+Com poder de dragão,
+esse guerreiro usa
+espada feita
+de presa
+de dragão.{end}
+
+[D2F7]  # Turtle Raccoon
+Bicho tipo raposa
+com casco
+protetor.{end}
+
+[D2F8]  # Fungi of the Musk
+Monstro que vaza
+ácido dos poros
+e derrete o que
+encostar
+na pele.{end}
+
+[D2F9]  # Prisman
+Cristal transparente
+que foca a luz
+pra criar um laser
+brabo.{end}
+
+[D2FA]  # Gale Dogra
+Mariposa enorme
+que gera um
+redemoinho com
+pó venenoso.{end}
+
+[D2FB]  # Crazy Fish
+Peixe voador
+com cabeça afiada
+pra furar alvo.{end}
+
+[D2FC]  # Cyber Saurus
+Dinossauro
+mecânico com
+canhão de raio.{end}
+
+[D2FD]  # Bracchio-raidus
+Dinossauro colossal
+que pisa
+em qualquer
+coisa que entra
+no caminho.{end}
+
+[D2FE]  # Laughing Flower
+Flor que ri
+e a risada deixa
+o inimigo louco.{end}
+
+[D2FF]  # Bean Soldier
+Guerreiro planta
+que ataca
+com golpe de espada
+e projétil de
+ervilha.{end}
+
+[D300]  # Cannon Soldier
+Máquina destruidora
+armada com canhão
+potente.{end}
+
+[D301]  # Guardian of the Throne Room
+Robô guarda armado
+com foguete guiado
+pra guardar o trono
+de intruso.{end}
+
+[D302]  # Brave Scizzar
+Bicho capaz
+de controlar
+várias tesouras
+com resultado
+certo.{end}
+
+[D303]  # The Statue of Easter Island
+Ídolo de pedra mó
+da Ilha de Páscoa
+que atira anel
+laser da boca.{end}
+
+[D304]  # Muka Muka
+Monstro que
+irrita o rival
+até o ponto
+que o inimigo
+pira, véi.{end}
+
+[D305]  # Sand Stone
+Surge
+do subterrâneo e
+ataca com tentáculo
+comprido de cobra.{end}
+
+[D306]  # Boulder Tortoise
+Tartaruga de pedra
+com def
+altíssima.{end}
+
+[D307]  # Fire Kraken
+Lula de fogo que
+mantém a chama
+até debaixo d'água.{end}
+
+[D308]  # Turtle Bird
+Tartaruga voadora
+rara que mora
+no mar.{end}
+
+[D309]  # Skullbird
+O sopro desse
+pássaro rouba
+a força vital.{end}
+
+[D30A]  # Monstrous Bird
+Pássaro enorme
+famoso pelo
+ataque em mergulho.{end}
+
+[D30B]  # The Bistro Butcher
+Inimigo derrotado
+vira ingrediente
+desse monstro
+gourmet.{end}
+
+[D30C]  # Star Boy
+Ser de outro planeta
+que ama
+viver na água.{end}
+
+[D30D]  # Spirit of the Mountain
+A música da flauta
+desse bicho
+drena{sp}
+a força de vontade.{end}
+
+[D30E]  # Neck Hunter
+Com foice enorme,
+esse monstro atira
+raio
+dos olho grande.{end}
+
+[D30F]  # Milus Radiant
+Muita gente acha
+que é bicho fofo,
+mas é um bicho
+mó perigoso.{end}
+
+[D310]  # Togex
+Monstro mó rápido
+que enrola e
+atropela inimigo.{end}
+
+[D311]  # Flame Cerebrus
+Fera em chamas
+letal se
+cê encostar.{end}
+
+[D312]  # Eldeen
+Usa varinha pra
+lançar várias magias
+no inimigo.{end}
+
+[D313]  # Mystical Sand
+Vira inimigo
+em pedra e esmaga
+até virar pó.{end}
+
+[D314]  # Gemini Elf
+Elfos gêmeos
+que atacam inimigo
+dos dois lados.{end}
+
+[D315]  # Kwagar Hercules
+Inseto monstro
+com mandíbula
+de besouro-veado
+e chifre de besouro.{end}
+
+[D316]  # Minar
+Monstro com quatro
+braços ágeis pra
+fazer atk
+separado.{end}
+
+[D317]  # Kamakiriman
+Louva-a-deus humano
+com duas foices
+afiadas.{end}
+
+[D318]  # Mechaleon
+Tipo camaleão,
+pode se esconder
+em qualquer lugar
+mudando de cor.{end}
+
+[D319]  # Mega Thunderball
+Rola no chão
+soltando raio
+pra atacar
+geral, né
+véi.{end}
+
+[D31A]  # Niwatori
+Engole os cara
+inteiro e usa
+a essência
+de energia.{end}
+
+[D31B]  # Corroding Shark
+Tubarão zumbi
+vaga no fundo
+do mar xingando
+quem cruza
+o caminho.{end}
+
+[D31C]  # Skelengel
+Fada fantasma
+mete flecha
+em quem tá
+afim de
+atacar.{end}
+
+[D31D]  # Hane-Hane
+Trava o passo
+do cara com
+vento brabo
+e mete um
+machadão.{end}
+
+[D31E]  # Misairuzame
+Peixe que lança
+foguete e tem
+espinho brabo.{end}
+
+[D31F]  # Tongyo
+Esse bicho vive
+da força dos
+peixe que cê
+pega com a
+língua longa.{end}
+
+[D320]  # Dharma Cannon
+Mó preciso
+monstro máquina
+coberto de canhão
+grosso.{end}
+
+[D321]  # Skelgon
+Dragão zumbi
+de osso que
+voa pelo
+céu.{end}
+
+[D322]  # Wow Warrior
+Peixão brabo
+com braço, perna
+e dente{sp}
+afiado.{end}
+
+[D323]  # Griggle
+Gira em volta
+do inimigo
+solta folha
+que cega e
+semente.{end}
+
+[D324]  # Bone Mouse
+Rato zumbi
+que caça gato.{end}
+
+[D325]  # Frog The Jam
+Gosma com
+cara de sapo
+que coaxa
+atacando.{end}
+
+[D326]  # Behegon
+Serpente do mar
+estranha com
+boca enorme
+e presa braba.{end}
+
+[D327]  # Dark Elf
+Elfo zica
+que ama
+batalha.{end}
+
+[D328]  # Winged Dragon #2
+Faz tornado
+brabo com
+asa enorme.{end}
+
+[D329]  # Mushroom Man #2
+Cogumelo
+crescido com
+ataque mais
+brabo.{end}
+
+[D32A]  # Lava Battleguard
+Irmão do guarda
+do pântano.
+Não é brabo,
+mas defende
+mó bem.{end}
+
+[D32B]  # Tyhone #2
+Dragão vermelho
+cospe bola
+de fogo.{end}
+
+[D32C]  # The Wandering Doomed
+Monstro que
+anda à toa
+caçando inimigo.{end}
+
+[D32D]  # Steel Ogre Grotto #1
+Ídolo de aço
+adorado na
+terra máquina.{end}
+
+[D32E]  # Pot the Trick
+Servo de mago
+mó vacilão.{end}
+
+[D32F]  # Oscillo Hero
+Guerreiro zica
+de outra
+dimensão.{end}
+
+[D330]  # Invader from Another Dimension
+Bicho que veio
+de outra galáxia.{end}
+
+[D331]  # Lesser Dragon
+Dragão fraco
+que nem
+cospe fogo.{end}
+
+[D332]  # Needle Worm
+Larva
+com espinho
+pega o vacilão.{end}
+
+[D333]  # Wretched Ghost of the Attic
+Bicho inofensivo
+que mora
+no sótão
+de casa.{end}
+
+[D334]  # Great Mammoth of Goldfine
+Elefante zumbi
+de osso dourado
+que brilha,
+mó raro.{end}
+
+[D335]  # Man-eating Black Shark
+Tubarão preto
+que fareja
+quase tudo
+na água.{end}
+
+[D336]  # Yormungarde
+Cobra mó longa
+que aparece
+em lenda.{end}
+
+[D337]  # Darkworld Thorns
+Planta espinhosa
+das treva que
+se enrola
+em viajante
+distraído.{end}
+
+[D338]  # Anthrosaurus
+Dino com cara
+de gente, fraco,
+mas QI alto.{end}
+
+[D339]  # Drooling Lizard
+Cobra humana
+que suga sangue
+e ataca quem
+passa
+perto.{end}
+
+[D33A]  # Trakadon
+Listra de tigre
+num dragão que
+corre no
+deserto mó
+rápido.{end}
+
+[D33B]  # B. Dragon Jungle King
+Dragão preto
+que mora na
+selva e come
+árvore.{end}
+
+[D33C]  # Empress Judge
+Imperatriz do
+reino dourado.
+Ninguém recusa.{end}
+
+[D33D]  # Little D
+Monstro brabo
+filho de
+T-Rex.{end}
+
+[D33E]  # Witch of the Black Forest
+Bruxa da mata
+que vê tudo
+com o olho
+da testa.{end}
+
+[D33F]  # Ancient One of the Deep Forest
+Cabra branca
+que mora na
+mata há eras.
+Na real é
+um ancião
+da floresta.{end}
+
+[D340]  # Giant Scorpion of the Tundra
+Escorpião raro
+vermelho da
+tundra, véi,
+não do deserto.{end}
+
+[D341]  # Crow Goblin
+Goblin sábio
+de nariz longo
+com poder
+sobrenatural.{end}
+
+[D342]  # Leo Wizard
+Mago de capa
+preta que é
+um leão falante
+disfarçado
+de gente.{end}
+
+[D343]  # Abyss Flower
+Flor rara
+que nasce num
+abismo escuro.{end}
+
+[D344]  # Patrol Robo
+Robô moderno
+que apaga
+invasor assim
+que detecta.{end}
+
+[D345]  # Takuhee
+Esse pássaro
+anuncia
+desastre!!{end}
+
+[D346]  # Dark Witch
+Bruxa famosa
+do mito que
+julga com
+lança afiada.{end}
+
+[D347]  # Weather Report
+Esse bicho
+prevê o clima
+mó mal,
+véi.{end}
+
+[D348]  # Binding Chain
+Esse bicho
+encurrala e
+sela o poder
+do inimigo.{end}
+
+[D349]  # Mechanical Snail
+Caracol máquina
+turbinado que
+continua
+lento igual.{end}
+
+[D34A]  # Greenkappa
+Bicho que vira
+a cara do
+inimigo e copia
+cada golpe
+ofensivo.{end}
+
+[D34B]  # Mon Larvas
+Larvas evoluída
+ainda mais
+braba que
+antes.{end}
+
+[D34C]  # Living Vase
+Vaso vivo que
+cega com pólen
+e morde com
+dente afiado.{end}
+
+[D34D]  # Tentacle Plant
+Ataca quem tá
+perto esticando
+cipó azul
+pra fora.{end}
+
+[D34E]  # Beaked Snake
+Enrola o
+inimigo e
+bica com o
+bico enorme.{end}
+
+[D34F]  # Morphing Jar
+Jarro grande
+que ataca
+quem tá perto
+soltando o
+bagulho
+de dentro.{end}
+
+[D350]  # Muse-A
+Fada das arte
+que toca
+harpa braba.{end}
+
+[D351]  # Giant Turtle Who Feeds on Flames
+Tartaruga monstro
+casco vermelho.
+Come fogo.{end}
+
+[D352]  # Rose Spectre of Dunn
+Rosa vermelha
+com espírito zica
+que suga a
+força vital
+dos outro pra
+alimentar
+a flor.{end}
+
+[D353]  # Fiend Refrection #1
+Puxa inimigo
+pro mundo espelho.{end}
+
+[D354]  # Ghoul with an Appetite
+Monstro que come
+o que quiser e
+nunca enche.{end}
+
+[D355]  # Pale Beast
+Pele azulada
+e branca, bicho
+estranho mó
+feio de
+ver.{end}
+
+[D356]  # Little Chimera
+Monstro feito
+num teste pra
+colar asa
+em bicho.{end}
+
+[D357]  # Violent Rain
+Monstro que
+traz chuva
+do nada.{end}
+
+[D358]  # Key Mace #2
+Sela o bem
+da alma pra
+criar um zica.{end}
+
+[D359]  # Tenderness
+Fada fofa
+focada
+em trazer
+amor eterno.{end}
+
+[D35A]  # Penguin Soldier
+Pinguim soldado
+fraco que ataca
+em grupo.{end}
+
+[D35B]  # Fairy Dragon
+Dragão fada
+bonito e
+brabo.{end}
+
+[D35C]  # Obese Marmot of Nefariousness
+Rato gordo
+mal educado que
+rói tudo.{end}
+
+[D35D]  # Liquid Beast
+Ser líquido
+que se move
+na água.{end}
+
+[D35E]  # Twin Long Rods #2
+Bicho do fundo
+que bate com
+2 rabo chicote.{end}
+
+[D35F]  # Great Bill
+Monstro de boca
+enorme que
+engole o
+inimigo inteiro.{end}
+
+[D360]  # Shining Friendship
+O pacificador
+dos monstro.{end}
+
+[D361]  # Bladefly
+Mosca monstro
+que desce
+com braço
+de espada
+na frente.{end}
+
+[D362]  # Electric Lizard
+Lagarto
+que solta
+choque guardado
+no corpo.{end}
+
+[D363]  # Hiro's Shadow Scout
+Servo de demônio
+usado pra
+espiar área.{end}
+
+[D364]  # Lady of Faith
+Acalma a alma
+dos outro
+com feitiço.{end}
+
+[D365]  # Twin-headed Thunder Dragon
+Dragão trovão
+de 2 cabeça
+com ataque
+elétrico brabo.{end}
+
+[D366]  # Hunter Spider
+Caçador que usa
+a teia pra
+prender inimigo.{end}
+
+[D367]  # Armored Starfish
+Estrela do mar
+azulada com
+casca dura que
+segura golpe.{end}
+
+[D368]  # Hourglass of Courage
+Fada que
+controla o
+sentimento alheio,
+enchendo de
+coragem.{end}
+
+[D369]  # Marine Beast
+Bicho do mar
+com dente afiado
+que não solta
+a vítima
+quando morde.{end}
+
+[D36A]  # Warrior of Tradition
+Guerreira
+encharcada da{sp}
+essência de
+mil
+batalha.{end}
+
+[D36B]  # Rock Spirit
+Ídolo de barro
+que representa
+espírito pedra.
+O bicho tem
+ATK e DEF
+mó alto.{end}
+
+[D36C]  # Snakeyashi
+Bicho feito
+de várias cobra
+que atacam
+separado.{end}
+
+[D36D]  # Succubus Knight
+Cavaleiro
+mago zica
+bom em magia
+de ruína.{end}
+
+[D36E]  # Ill Witch
+Controla o ar
+e solta
+uma rajada
+de vento pra
+levar o
+inimigo.{end}
+
+[D36F]  # The Thing That Hides in the Mud
+A vinda
+desse bicho
+vem depois do
+chão derreter
+no pé do cara.{end}
+
+[D370]  # High Tide Gyojin
+Guerreiro anfíbio
+que nada fácil
+por baixo
+d'água.{end}
+
+[D371]  # Fairy of the Fountain
+Fada que cuida
+das fonte pra
+não sujar.{end}
+
+[D372]  # Amazon of the Seas
+Sereia sentinela
+do Rei do Mar
+e do reino.{end}
+
+[D373]  # Nekogal #2
+Bicho rápido
+desvia fácil
+do ataque e
+rebate com
+garra braba.{end}
+
+[D374]  # Witch's Apprentice
+Bruxa iniciante
+que acabou
+de começar
+as arte mística.{end}
+
+[D375]  # Armored Rat
+Rato
+protegido
+por pelo duro.{end}
+
+[D376]  # Ancient Lizard Warrior
+Guerreiro lagarto
+pré-histórico
+mó brabo.{end}
+
+[D377]  # Maiden of the Moonlight
+Feiticeira lunar
+que usa magia
+pra causar
+alucinação.{end}
+
+[D378]  # Stone Ogre Grotto
+Gigante de pedra
+feito de
+pedra braba.{end}
+
+[D379]  # Winged Egg of New Life
+Mensageiro
+de vida nova.{end}
+
+[D37A]  # Night Lizard
+Guerreiro lagarto
+de escama verde
+focado em{sp}
+proteger o mar.{end}
+
+[D37B]  # Queen's Double
+Sósia de rainha
+mó inútil.{end}
+
+[D37C]  # Blue-winged Crown
+Pássaro que brilha
+com fogo azul e
+cabelo em
+forma de coroa.{end}
+
+[D37D]  # Trent
+Protetor
+da mata,
+árvore enorme
+que cresce.{end}
+
+[D37E]  # Queen of Autumn Leaves
+Rainha do
+espírito árvore
+abraçada
+por folha
+de outono.{end}
+
+[D37F]  # Amphibious Bugroth
+Unidade Bugroth
+modificada pra
+guerra na água.{end}
+
+[D380]  # Acid Crawler
+Lagarta
+gigante que
+cospe ácido
+que derrete
+quase tudo.{end}
+
+[D381]  # Invader of the Throne
+Rainha trama
+que quer
+o trono do rei
+na ausência.{end}
+
+[D382]  # Mystical Sheep #1
+Ovelha de pelo
+preto que
+faz magia.{end}
+
+[D383]  # Disk Magician
+Bicho que
+se esconde
+num disco e
+só sai pra atacar.{end}
+
+[D384]  # Flame Viper
+Víbora rápida
+que cospe fogo.{end}
+
+[D385]  # Royal Guard
+Soldado máquina
+com mente
+própria.
+Feito pra
+proteger a
+família real.{end}
+
+[D386]  # Gruesome Goo
+Parece gosma
+normal,
+mas é
+mó mais braba!{end}
+
+[D387]  # Hyosube
+Anfíbio
+com ataque
+alto, mas
+defesa
+fraca.{end}
+
+[D388]  # Machine Attacker
+Máquina feita
+pra atropelar geral.{end}
+
+[D389]  # Hibikime
+Confunde o
+monstro com
+barulho
+mó chato.{end}
+
+[D38A]  # Whiptail Crow
+Ataca do
+céu com
+rabo chicote.{end}
+
+[D38B]  # Kunai with Chain
+Bumerangue
+com efeito
+de 2 carta:
+Espada Lendária
+e Espada da
+Destruição Negra.{end}
+
+[D38C]  # Magical Labyrinth
+Carta pra subir
+o poder do
+Muro Labirinto.{end}
+
+[D38D]  # Warrior Elimination
+Destrói toda
+carta Guerreiro
+do oponente
+em campo.{end}
+
+[D38E]  # Salamandra
+Sobe a força
+de quem
+controla o
+poder Salamandra.{end}
+
+[D38F]  # Cursebreaker
+Cancela magia
+de todo{sp}
+nível baixo
+e zera eles
+no nível 0.{end}
+
+[D390]  # Eternal Rest
+Apaga todo
+Zumbi.{end}
+
+[D391]  # Megamorph
+Carta que
+sobe o poder
+do monstro
+em 2 nível.{end}
+
+[D392]  # Metalmorph
+Carta que muda
+o monstro
+pra Máquina.{end}
+
+[D393]  # Winged Trumpeter
+Trombeta que
+sobe o poder
+de Fada.{end}
+
+[D394]  # Stain Storm
+Chuva ácida
+destrói Máquina
+do oponente.{end}
+
+[D395]  # Crush Card
+Monstro inimigo
+em jogo com ATK
+1500 ou mais
+é apagado.{end}
+
+[D396]  # Eradicating Aerosol
+Inseticida pra
+apagar Inseto
+do oponente
+que tá
+em jogo.{end}
+
+[D397]  # Breath of Light
+Vento mágico que
+esfarela Rocha
+do oponente
+que tá
+em jogo.{end}
+
+[D398]  # Eternal Draught
+Rajada de calor
+seca e
+apaga Peixe
+do oponente
+que tá
+em jogo.{end}
+
+[D399]  # Curse of Millennium Shield
+Sacrifica o
+monstro com
+maior defesa{sp}
+e invoca o
+Escudo.{end}
+
+[D39A]  # Yamadron Ritual
+Sacrifica
+Besta-Guerreiro,
+Dragão,
+e Fogo pra
+invocar Yamadron.{end}
+
+[D39B]  # Gate Guardian Ritual
+Sacrifica Kazejin,
+Suijin e Sanga
+do Trovão pra
+Guardião Portão.{end}
+
+[D39C]  # Bright Castle
+Luz forte que
+sobe o poder
+de todo monstro.{end}
+
+[D39D]  # Shadow Spell
+Baixa o
+monstro inimigo
+em jogo em
+2 nível.{end}
+
+[D39E]  # Black Luster Ritual
+Ritual pra
+invocar o
+Soldado Luster.
+Precisa sacrifício.{end}
+
+[D39F]  # Zera Ritual
+Ritual pra
+invocar Zera.
+Precisa sacrifício.{end}
+
+[D3A0]  # Harpie's Feather Duster
+Destrói toda
+Magia inimiga
+em jogo.{end}
+
+[D3A1]  # War-lion Ritual
+Ritual pra
+invocar Leão.
+Precisa sacrifício.{end}
+
+[D3A2]  # Beastry Mirror Ritual
+Ritual pra
+invocar o
+Espelho Demônio.
+Precisa sacrifício.{end}
+
+[D3A3]  # Ultimate Dragon
+Sacrifica 3
+Olho Azul pra
+invocar Supremo.{end}
+
+[D3A4]  # Commencement Dance
+Sacrifica Dançarina
+e Guerreiro pra
+Dança da Espada.{end}
+
+[D3A5]  # Hamburger Recipe
+Carta com
+ingrediente
+pra fazer um
+hambúrguer.{end}
+
+[D3A6]  # Revival of Sennen Genjin
+Sacrifica
+Besta-Guerreiro e
+Golem pra chamar
+Sengenjin.{end}
+
+[D3A7]  # Novox's Prayer
+Sacrifica Guerreiro
+e Ceifador pra
+invocar o
+Guardião.{end}
+
+[D3A8]  # Curse of Tri-Horned Dragon
+Sacrifica um
+com chifre pra
+Dragão 3 Chifre.{end}
+
+[D3A9]  # House of Adhesive Tape
+Monstro
+com ATK
+500 ou menos
+é apagado
+do campo.{end}
+
+[D3AA]  # Eatgaboon
+Monstro
+com ATK
+1000 ou menos
+é apagado
+do campo.{end}
+
+[D3AB]  # Bear Trap
+Quando o ATK
+do monstro
+inimigo é
+1500 ou menos,
+ele é apagado
+do campo.{end}
+
+[D3AC]  # Invisible Wire
+Quando o ATK
+do monstro
+inimigo é
+2000 ou menos,
+ele é apagado
+do campo.{end}
+
+[D3AD]  # Acid Trap Hole
+Quando o ATK
+do monstro
+inimigo é
+3000 ou menos,
+ele é apagado
+do campo.{end}
+
+[D3AE]  # Widespread Ruin
+Quando o monstro
+inimigo ataca,
+ele explode
+em pedaço e
+some
+do campo.{end}
+
+[D3AF]  # Goblin Fan
+Reflete o dano
+de ataque direto
+tipo{sp}
+Faísca e
+Inferno de
+volta pro cara.{end}
+
+[D3B0]  # Bad Reaction to Simochi
+Carta que inverte
+efeito de
+cura e vira
+os ponto
+em dano.{end}
+
+[D3B1]  # Reverse Trap
+Carta que inverte
+efeito de
+carta de força
+e transforma{sp}
+o efeito
+em redução.{end}
+
+[D3B2]  # Fake Trap
+Armadilha
+pra enganar
+o oponente.
+Nada rola
+quando atacam.{end}
+
+[D3B3]  # Revived of Serpent Night Dragon
+Escolhe um
+monstro pra
+sacrificar e chamar
+Dragão Serpente.{end}
+
+[D3B4]  # Turtle Oath
+Sacrifica siri
+e tartaruga pra
+Siri Tartaruga.{end}
+
+[D3B5]  # Contruct of Mask
+Sacrifica um
+mascarado pra
+chamar máscara.{end}
+
+[D3B6]  # Resurrection of Chakra
+Sacrifica 3
+Demônio pra
+fazer o ritual
+da volta do
+Chakra.{end}
+
+[D3B7]  # Puppet Ritual
+Sacrifica titereiro
+e Máquina pra
+chamar o Boneco.{end}
+
+[D3B8]  # Javelin Beetle Pact
+Sacrifica besouro
+veado e besouro
+pra invocar
+Besouro Lança.{end}
+
+[D3B9]  # Garma Sword Oath
+Sacrifica o
+Braço de Ashura
+e o espadachim
+chamar Garma.{end}
+
+[D3BA]  # Cosmo Queen's Prayer
+Sacrifica uma
+Rainha normal pra
+chamar Cosmo.{end}
+
+[D3BB]  # Revival of Skeleton Rider
+Sacrifica Templo
+e Barata pra
+chamar Dokurorider.{end}
+
+[D3BC]  # Fortress Whale's Oath
+Sacrifica Chifre
+e Peixe Máquina
+chamar Forte Mar.{end}
+
+[D3BD]  # Performance of Sword
+Dançarina guerreira
+com passo
+estiloso.{end}
+
+[D3BE]  # Hungry Burger
+Atrai inimigo
+com fome pelo
+cheiro e come
+quando chega
+perto.{end}
+
+[D3BF]  # Sengenjin
+Homem teimoso,
+primitivo
+com um{sp}
+Item Milênio.{end}
+
+[D3C0]  # Skull Guardian
+Guardião da lei
+que não perdoa
+trapaça.
+Ataca com
+braço espada.{end}
+
+[D3C1]  # Tri-horned Dragon
+Dragão zica
+com 3 chifre
+saindo da
+cabeça.{end}
+
+[D3C2]  # Serpent Night Dragon
+Dragão feito
+da alma de
+cavaleiro zica.{end}
+
+[D3C3]  # Skull Knight
+Monge
+que fez
+vários ritual
+no submundo,
+e usa tanto
+arma quanto
+magia.{end}
+
+[D3C4]  # Cosmo Queen
+Rainha que manda
+em toda estrela
+do universo.{end}
+
+[D3C5]  # Chakra
+Forma torcida
+que ataca com
+braço tentáculo.{end}
+
+[D3C6]  # Crab Turtle
+Bicho com casco
+de tartaruga e
+tesoura de siri
+com ATK e DEF
+alto.{end}
+
+[D3C7]  # Mikazukinoyaiba
+Guerreiro dragão
+armado com
+espada lua.
+Dizem que veio
+da lua.{end}
+
+[D3C8]  # Meteor Dragon
+Dragão que
+chegou na terra
+num cometa
+que caiu
+lá do fundo
+do espaço.{end}
+
+[D3C9]  # Meteor B. Dragon
+Com couro
+de meteoro em
+chamas, esse
+bicho vaporiza
+o que toca.{end}
+
+[D3CA]  # Firewing Pegasus
+Cavalo do céu
+que voa
+pelo céu
+com asa vermelha.{end}
+
+[D3CB]  # Psycho-Puppet
+Boneco misterioso
+com dança zica
+que rouba o poder
+do monstro inimigo.{end}
+
+[D3CC]  # Garma Sword
+Guerreiro brabo
+que usa 6
+espada contra
+monstro inimigo.{end}
+
+[D3CD]  # Javelin Beetle
+Bicho com
+tesoura letal que
+corta quase
+tudo.{end}
+
+[D3CE]  # Fortress Whale
+Monstro do mar
+com canhão nas
+costas pra
+tirar inimigo
+da água.{end}
+
+[D3CF]  # Dokurorider
+Cavaleiro solitário
+que corre no
+deserto levantando
+poeira braba.{end}
+
+[D3D0]  # Mask of Shine & Dark
+Bicho que
+torce luz
+e escuridão
+pra criar imagem
+e confundir.{end}
+
+[D3D1]  # Dark Magic Ritual
+Ritual
+pra invocar
+o Mago do
+Caos Negro.
+Precisa sacrifício.{end}
+
+[D3D2]  # Magician of Black Chaos
+O mago
+supremo,
+com o poder
+do caos que vem
+da fusão de
+Treva e Luz.{end}
+
+
+@bank names
+
+[8000 82D3 82D4 82D5 82D6 82D7 82D8 82D9 82DA 82DB 82DC 82DD 82DE 82DF 82E0 82E1 82E2 82E3 82E4 82E5 82E6 82E7 82E8 82E9 82EA 82EB 82EC 82ED 82EE 82EF 82F0 82F1 82F2 82F3 82F4 82F5 82F6 82F7 82F8 82F9 82FA 82FB 82FC 82FD 82FE 82FF]
+{end}
+
+[8001]
+Dragão Branco Olho Azul{end}
+
+[8002]
+Elfa Mística{end}
+
+[8003]
+Hitotsu-me Gigante{end}
+
+[8004]
+Dragão Bebê{end}
+
+[8005]
+Ryu-kishin{end}
+
+[8006]
+Capetinha{end}
+
+[8007]
+Dragão Alado #1{end}
+
+[8008]
+Cara Cogumelo{end}
+
+[8009]
+Espectro Sombra{end}
+
+[800A]
+Dragão Fogo Terra Preta{end}
+
+[800B]
+Braço Espada Dragão{end}
+
+[800C]
+Guarda do Pântano{end}
+
+[800D]
+Tyhone{end}
+
+[800E]
+Touro Brabo{end}
+
+[800F]
+Espadachim de Fogo{end}
+
+[8010]
+Mago do Tempo{end}
+
+[8011]
+Perna Direita do Proibido{end}
+
+[8012]
+Perna Esquerda do Proibido{end}
+
+[8013]
+Braço Direito do Proibido{end}
+
+[8014]
+Braço Esquerdo do Proibido{end}
+
+[8015]
+Exodia o Proibido{end}
+
+[8016]
+Caveira Invocada{end}
+
+[8017]
+Verme Sinistro{end}
+
+[8018]
+Servo Caveira{end}
+
+[8019]
+Capetinha Chifrudo{end}
+
+[801A]
+Boi Brabo{end}
+
+[801B]
+Guerreiro Castor{end}
+
+[801C]
+Ogro da Gruta #1{end}
+
+[801D]
+Guerreiro da Serra{end}
+
+[801E]
+Zumbi Guerreiro{end}
+
+[801F]
+Dragão Koumori{end}
+
+[8020]
+Rei Rex 2 Cabeças{end}
+
+[8021]
+Cara Juiz{end}
+
+[8022]
+Saggi Palhaço Treva{end}
+
+[8023]
+Mago Negro{end}
+
+[8024]
+Cabelo de Cobra{end}
+
+[8025]
+Gaia Campeão Dragão{end}
+
+[8026]
+Gaia Cavaleiro Brabo{end}
+
+[8027]
+Maldição do Dragão{end}
+
+[8028]
+Flautista Dragão{end}
+
+[8029]
+Guardião Celta{end}
+
+[802A]
+Mago Sem Rosto{end}
+
+[802B]
+Guerreiro Karbonala{end}
+
+[802C]
+Boneca Ladra{end}
+
+[802D]
+Herói Oscillo #2{end}
+
+[802E]
+Griffore{end}
+
+[802F]
+Torike{end}
+
+[8030]
+Sangan{end}
+
+[8031]
+Insetão{end}
+
+[8032]
+Inseto Básico{end}
+
+[8033]
+Lagarto Blindado{end}
+
+[8034]
+Besouro Hércules{end}
+
+[8035]
+Agulha Mortal{end}
+
+[8036]
+Gokibore{end}
+
+[8037]
+Pulga Gigante{end}
+
+[8038]
+Larva de Mariposa{end}
+
+[8039]
+Mariposa Grande{end}
+
+[803A]
+Kuriboh{end}
+
+[803B]
+Mamute do Cemitério{end}
+
+[803C]
+Tubarão Branco{end}
+
+[803D]
+Lobo{end}
+
+[803E]
+Dama Harpia{end}
+
+[803F]
+Irmãs da Harpia{end}
+
+[8040]
+Machado Tigre{end}
+
+[8041]
+Presa de Prata{end}
+
+[8042]
+Kojikocy{end}
+
+[8043]
+Mariposa Suprema{end}
+
+[8044]
+Garoozis{end}
+
+[8045]
+Dragão de Mil Anos{end}
+
+[8046]
+Kraken Capeta{end}
+
+[8047]
+Água-viva{end}
+
+[8048]
+Casulo da Evolução{end}
+
+[8049]
+Kairyu-shin{end}
+
+[804A]
+Soldado Gigante de Pedra{end}
+
+[804B]
+Planta Come-Gente{end}
+
+[804C]
+Krokodilus{end}
+
+[804D]
+Lutador{end}
+
+[804E]
+Invasor de Machado{end}
+
+[804F]
+Megazowler{end}
+
+[8050]
+Uraby{end}
+
+[8051]
+Dragão Rastejante #2{end}
+
+[8052]
+Dragão Negro Olho Vermelho{end}
+
+[8053]
+Castelo das Ilusões{end}
+
+[8054]
+Ceifador das Cartas{end}
+
+[8055]
+Rei de Yamimakai{end}
+
+[8056]
+Barox{end}
+
+[8057]
+Quimera Treva{end}
+
+[8058]
+Guarda de Metal{end}
+
+[8059]
+Tartaruga Catapulta{end}
+
+[805A]
+Gyakutenno Megami{end}
+
+[805B]
+Cavaleiro Místico{end}
+
+[805C]
+Cavaleiro Raivoso{end}
+
+[805D]
+Zanki{end}
+
+[805E]
+Dragão Rastejante{end}
+
+[805F]
+Palhaço Grosso{end}
+
+[8060]
+Zumbi Blindado{end}
+
+[8061]
+Zumbi Dragão{end}
+
+[8062]
+Zumbi Palhaço{end}
+
+[8063]
+Pumpking Rei Fantasma{end}
+
+[8064]
+Guerreiro Brabo{end}
+
+[8065]
+Asas da Chama Má{end}
+
+[8066]
+Máscara da Treva{end}
+
+[8067]
+Espelho Muda Classe{end}
+
+[8068]
+Cortina dos Trevosos{end}
+
+[8069]
+Tomozaurus{end}
+
+[806A]
+Espírito do Vento{end}
+
+[806B]
+Kageningen{end}
+
+[806C]
+Mão Convite Cemitério{end}
+
+[806D]
+Deusa do 3o Olho{end}
+
+[806E]
+Herói do Leste{end}
+
+[806F]
+Doma Anjo do Silêncio{end}
+
+[8070]
+Come Vida{end}
+
+[8071]
+Cinza Treva{end}
+
+[8072]
+Chapéu Mágico Branco{end}
+
+[8073]
+Mago Kamion{end}
+
+[8074]
+Escorpião Pesadelo{end}
+
+[8075]
+Espírito dos Livros{end}
+
+[8076]
+Apoio da Sombra{end}
+
+[8077]
+Prova do Pesadelo{end}
+
+[8078]
+Palhaço Sonhador{end}
+
+[8079]
+Leão Adormecido{end}
+
+[807A]
+Rolo Dragão Yamatano{end}
+
+[807B]
+Planta Treva{end}
+
+[807C]
+Ferramenta Antiga{end}
+
+[807D]
+Ave da Fé{end}
+
+[807E]
+Orion Rei da Luta{end}
+
+[807F]
+Ansatsu{end}
+
+[8080]
+LaMoon{end}
+
+[8081]
+Nemuriko{end}
+
+[8082]
+Controle do Clima{end}
+
+[8083]
+Octoberser{end}
+
+[8084]
+A 13a Cova{end}
+
+[8085]
+Charubin do Fogo{end}
+
+[8086]
+Corrente Mística{end}
+
+[8087]
+Mão do Capeta{end}
+
+[8088]
+Fantasma Esperto{end}
+
+[8089]
+Mão Misteriosa{end}
+
+[808A]
+Estátua de Dragão{end}
+
+[808B]
+Zumbi Prata Olho Azul{end}
+
+[808C]
+Mestre Sapo{end}
+
+[808D]
+Caracol de Espinho{end}
+
+[808E]
+Manipulador de Fogo{end}
+
+[808F]
+Necrolancer do Tempo{end}
+
+[8090]
+Djinn Vigia do Vento{end}
+
+[8091]
+Ladrão Fantasma{end}
+
+[8092]
+Templo das Caveiras{end}
+
+[8093]
+Ovo de Monstro{end}
+
+[8094]
+Sombra Manda na Treva{end}
+
+[8095]
+Senhor da Lâmpada{end}
+
+[8096]
+Akihiron{end}
+
+[8097]
+Rhaimundos Espada Vermelha{end}
+
+[8098]
+Sombra Vermelha Mole{end}
+
+[8099]
+Dokuroizo Ceifador{end}
+
+[809A]
+Ceifador de Fogo{end}
+
+[809B]
+Larvas{end}
+
+[809C]
+Armadura Dura{end}
+
+[809D]
+Capim de Fogo{end}
+
+[809E]
+Come-Gente{end}
+
+[809F]
+Bico Cavador{end}
+
+[80A0]
+M-guerreiro #1{end}
+
+[80A1]
+M-guerreiro #2{end}
+
+[80A2]
+Sabedoria Suja{end}
+
+[80A3]
+Lisark{end}
+
+[80A4]
+Senhor de Zemia{end}
+
+[80A5]
+Mão do Julgamento{end}
+
+[80A6]
+Marionetista{end}
+
+[80A7]
+Jarro Antigo{end}
+
+[80A8]
+Dragão Fogo Treva{end}
+
+[80A9]
+Rei Treva do Abismo{end}
+
+[80AA]
+Espírito da Harpa{end}
+
+[80AB]
+Olhão{end}
+
+[80AC]
+Armaill{end}
+
+[80AD]
+Preso da Treva{end}
+
+[80AE]
+Hurricail{end}
+
+[80AF]
+Cérebro Antigo{end}
+
+[80B0]
+Olho de Fogo{end}
+
+[80B1]
+Tartaruga Monstro{end}
+
+[80B2]
+Garra Longa{end}
+
+[80B3]
+Fantasma Dewan{end}
+
+[80B4]
+Arlownay{end}
+
+[80B5]
+Sombra Treva{end}
+
+[80B6]
+Palhaço Mascarado{end}
+
+[80B7]
+Amuleto da Sorte{end}
+
+[80B8]
+Genin{end}
+
+[80B9]
+Eyearmor{end}
+
+[80BA]
+Reflexo Capeta #2{end}
+
+[80BB]
+Portão Deeg{end}
+
+[80BC]
+Synchar{end}
+
+[80BD]
+Fusionista{end}
+
+[80BE]
+Akakieisu{end}
+
+[80BF]
+LaLa Li-oon{end}
+
+[80C0]
+Maça Chave{end}
+
+[80C1]
+Tigre Tartaruga{end}
+
+[80C2]
+Terra Terrível{end}
+
+[80C3]
+Doron{end}
+
+[80C4]
+Cavaleiro Arma{end}
+
+[80C5]
+Zumbi Toupeira Mech{end}
+
+[80C6]
+Casal Feliz{end}
+
+[80C7]
+Cavaleiro Pinguim{end}
+
+[80C8]
+Mini Dragão{end}
+
+[80C9]
+Panda Furioso{end}
+
+[80CA]
+Marmota Voadora Má{end}
+
+[80CB]
+Fantasma Espectro{end}
+
+[80CC]
+Mabarrel{end}
+
+[80CD]
+Dorover{end}
+
+[80CE]
+Varas Gêmeas #1{end}
+
+[80CF]
+Pássaro Zueiro{end}
+
+[80D0]
+Anjinho{end}
+
+[80D1]
+Cutelo Alado{end}
+
+[80D2]
+Alma Hinotama{end}
+
+[80D3]
+Kaminarikozou{end}
+
+[80D4]
+Meotoko{end}
+
+[80D5]
+Madoor da Água{end}
+
+[80D6]
+Kagemusha Chama Azul{end}
+
+[80D7]
+Fantasma de Fogo{end}
+
+[80D8]
+Dríade{end}
+
+[80D9]
+Dragão Caveira Negro{end}
+
+[80DA]
+Chefe Treva 2 Bocas{end}
+
+[80DB]
+Solidão{end}
+
+[80DC]
+Mago Mascarado{end}
+
+[80DD]
+Kumootoko{end}
+
+[80DE]
+Capeta Meia-Noite{end}
+
+[80DF]
+Cobra do Mar Braba{end}
+
+[80E0]
+Mestre Armadilha{end}
+
+[80E1]
+Espada Capeta{end}
+
+[80E2]
+Caçador Caveira{end}
+
+[80E3]
+Hitodenchak{end}
+
+[80E4]
+Resto de Madeira{end}
+
+[80E5]
+Ampulheta da Vida{end}
+
+[80E6]
+Peixe Raro{end}
+
+[80E7]
+Palhaço de Madeira{end}
+
+[80E8]
+Madjinn Gunn{end}
+
+[80E9]
+Titã do Terror Treva{end}
+
+[80EA]
+Caçadora de Cabeças{end}
+
+[80EB]
+Wodan da Mata{end}
+
+[80EC]
+Guarda do Labirinto{end}
+
+[80ED]
+Haniwa{end}
+
+[80EE]
+Yashinoki{end}
+
+[80EF]
+Vishwar Randi{end}
+
+[80F0]
+Drdek{end}
+
+[80F1]
+Atacante Treva{end}
+
+[80F2]
+Vela do Destino{end}
+
+[80F3]
+Elemento Água{end}
+
+[80F4]
+Rocha Dissolvente{end}
+
+[80F5]
+Morcego Meda{end}
+
+[80F6]
+Caçador de Almas{end}
+
+[80F7]
+Água da Raiz{end}
+
+[80F8]
+Mestre Experiente{end}
+
+[80F9]
+Omotics da Água{end}
+
+[80FA]
+Hyo{end}
+
+[80FB]
+Sereia Encantada{end}
+
+[80FC]
+Nekogal #1{end}
+
+[80FD]
+Bruxa Anjo{end}
+
+[80FE]
+Besta Embrião{end}
+
+[80FF]
+Rato que Trava{end}
+
+[8100]
+Guerreiro Dimensão{end}
+
+[8101]
+Tatu de Pedra{end}
+
+[8102]
+Rei Besta do Pântano{end}
+
+[8103]
+Mago Antigo{end}
+
+[8104]
+Rainha Lunar Elzaim{end}
+
+[8105]
+Espelho Maldito{end}
+
+[8106]
+Espadachim de Aile{end}
+
+[8107]
+Ogro da Gruta #2{end}
+
+[8108]
+Elfo Ovo Alado{end}
+
+[8109]
+Rei do Mar Furioso{end}
+
+[810A]
+Princesa de Tsurugi{end}
+
+[810B]
+Guerreiro Capeta Oculto{end}
+
+[810C]
+Sectário dos Segredos{end}
+
+[810D]
+Versago Destruidor{end}
+
+[810E]
+Wetha{end}
+
+[810F]
+Luz Megirus{end}
+
+[8110]
+Mavelus{end}
+
+[8111]
+Árvore da Iluminação{end}
+
+[8112]
+Rei Fantasma Verde{end}
+
+[8113]
+Bugroth Atacante{end}
+
+[8114]
+Raio e Temperatura{end}
+
+[8115]
+Ovo de Górgona{end}
+
+[8116]
+Mini Mariposa{end}
+
+[8117]
+Rei Névoa{end}
+
+[8118]
+Protetor do Trono{end}
+
+[8119]
+Palhaço Místico{end}
+
+[811A]
+Ovelha Mística #2{end}
+
+[811B]
+Holograh{end}
+
+[811C]
+Tao Cantador{end}
+
+[811D]
+Serpente Saqueadora{end}
+
+[811E]
+Porteiro{end}
+
+[811F]
+Ogro da Sombra Negra{end}
+
+[8120]
+Artista da Treva{end}
+
+[8121]
+Slime Mutante{end}
+
+[8122]
+Enviado da Lua{end}
+
+[8123]
+Fireyarou{end}
+
+[8124]
+Kappa Psíquico{end}
+
+[8125]
+Masaki Espadachim Lenda{end}
+
+[8126]
+Dragoa Cavaleira Má{end}
+
+[8127]
+Planta Bio{end}
+
+[8128]
+Dragão Escudo 1 Olho{end}
+
+[8129]
+Soldado Cyber Treva{end}
+
+[812A]
+Dragão Cabeça Falsa{end}
+
+[812B]
+Empregada Sônica{end}
+
+[812C]
+Kurama{end}
+
+[812D]
+Espada Lendária{end}
+
+[812E]
+Espada Destruição Treva{end}
+
+[812F]
+Energia Treva{end}
+
+[8130]
+Machado do Desespero{end}
+
+[8131]
+Armadura Canhão Laser{end}
+
+[8132]
+Armadura Inseto Laser{end}
+
+[8133]
+Luz do Elfo{end}
+
+[8134]
+Presas da Besta{end}
+
+[8135]
+Casco de Aço{end}
+
+[8136]
+Germes Nojentos{end}
+
+[8137]
+Pingente Preto{end}
+
+[8138]
+Arco e Flecha de Prata{end}
+
+[8139]
+Chifre de Luz{end}
+
+[813A]
+Chifre de Unicórnio{end}
+
+[813B]
+Tesouro do Dragão{end}
+
+[813C]
+Chicote Elétrico{end}
+
+[813D]
+Escudo Cyber{end}
+
+[813E]
+Ego Elegante{end}
+
+[813F]
+Lua Mística{end}
+
+[8140]
+Trava Defesa{end}
+
+[8141]
+Focinho Maldito{end}
+
+[8142]
+Cristal Violeta{end}
+
+[8143]
+Livro das Artes{end}
+
+[8144]
+Revigoração{end}
+
+[8145]
+Fábrica de Máquina{end}
+
+[8146]
+Sobe o Calor{end}
+
+[8147]
+Segue o Vento{end}
+
+[8148]
+Poder de Kaishin{end}
+
+[8149]
+Jarro Pega Dragão{end}
+
+[814A]
+Floresta{end}
+
+[814B]
+Terra Arrasada{end}
+
+[814C]
+Montanha{end}
+
+[814D]
+Sogen{end}
+
+[814E]
+Umi{end}
+
+[814F]
+Yami{end}
+
+[8150]
+Buraco Negro{end}
+
+[8151]
+Raigeki{end}
+
+[8152]
+Curry Mooyan{end}
+
+[8153]
+Remédio Vermelho{end}
+
+[8154]
+Remédio Secreto Goblin{end}
+
+[8155]
+Alma do Puro{end}
+
+[8156]
+Dian Keto Curandeiro{end}
+
+[8157]
+Faíscas{end}
+
+[8158]
+Hinotama{end}
+
+[8159]
+Chama Final{end}
+
+[815A]
+Ookazi{end}
+
+[815B]
+Fogo Tremendo{end}
+
+[815C]
+Espadas da Luz Reveladora{end}
+
+[815D]
+Círculo de Magia{end}
+
+[815E]
+Luz que Fura Treva{end}
+
+[815F]
+Yaranzo{end}
+
+[8160]
+Kanan Mestra Espada{end}
+
+[8161]
+Takriminos{end}
+
+[8162]
+Bicho de Pelúcia{end}
+
+[8163]
+Olho Megassônico{end}
+
+[8164]
+Super Leão de Guerra{end}
+
+[8165]
+Yamadron{end}
+
+[8166]
+Seiyaryu{end}
+
+[8167]
+Zumbis de 3 Pernas{end}
+
+[8168]
+Zera o Mant{end}
+
+[8169]
+Pinguim Voador{end}
+
+[816A]
+Escudo do Milênio{end}
+
+[816B]
+Presente da Fada{end}
+
+[816C]
+Soldado do Lustro Negro{end}
+
+[816D]
+Espelho do Capeta{end}
+
+[816E]
+Muralha do Labirinto{end}
+
+[816F]
+Jirai Gumo{end}
+
+[8170]
+Ghoul da Sombra{end}
+
+[8171]
+Sombra da Muralha{end}
+
+[8172]
+Tanque do Labirinto{end}
+
+[8173]
+Sanga do Trovão{end}
+
+[8174]
+Kazejin{end}
+
+[8175]
+Suijin{end}
+
+[8176]
+Guardião do Portão{end}
+
+[8177]
+Verme da Masmorra{end}
+
+[8178]
+Domador de Monstro{end}
+
+[8179]
+Ryu-kishin Turbo{end}
+
+[817A]
+Espreita-Espada{end}
+
+[817B]
+La Jinn Gênio Místico{end}
+
+[817C]
+Dragão Supremo Olho Azul{end}
+
+[817D]
+Jacaré Toon{end}
+
+[817E]
+Kaiser Grosso{end}
+
+[817F]
+Dragão Papagaio{end}
+
+[8180]
+Coelho Treva{end}
+
+[8181]
+Bickuribox{end}
+
+[8182]
+Dragão Pet da Harpia{end}
+
+[8183]
+Lâmpada Mística{end}
+
+[8184]
+Máquina Pêndulo{end}
+
+[8185]
+Giltia Cavaleiro Treva{end}
+
+[8186]
+Aranha Lançadora{end}
+
+[8187]
+Zoa{end}
+
+[8188]
+Metalzoa{end}
+
+[8189]
+Devora Área{end}
+
+[818A]
+Escorpião de Aço{end}
+
+[818B]
+Elfa Dançante{end}
+
+[818C]
+Ocubeam{end}
+
+[818D]
+Leghul{end}
+
+[818E]
+Ooguchi{end}
+
+[818F]
+Espadachim Estrangeiro{end}
+
+[8190]
+Imperador Terra e Mar{end}
+
+[8191]
+Ushi Oni{end}
+
+[8192]
+Olho Monstro{end}
+
+[8193]
+Leogun{end}
+
+[8194]
+Tatsunootoshigo{end}
+
+[8195]
+Sabre Cortante{end}
+
+[8196]
+Robô Yaiba{end}
+
+[8197]
+Rei Máquina{end}
+
+[8198]
+Soldado Mech Gigante{end}
+
+[8199]
+Dragão de Metal{end}
+
+[819A]
+Aranha Mecânica{end}
+
+[819B]
+Morcego{end}
+
+[819C]
+Lobo Gigatech{end}
+
+[819D]
+Soldado Cyber{end}
+
+[819E]
+Pá Esmagadora{end}
+
+[819F]
+Caçador Mecânico{end}
+
+[81A0]
+Bloqueador{end}
+
+[81A1]
+Malabarista Bomba{end}
+
+[81A2]
+Golgoil{end}
+
+[81A3]
+Giganto{end}
+
+[81A4]
+Cyber-Stein{end}
+
+[81A5]
+Comandante Cyber{end}
+
+[81A6]
+Jinzo #7{end}
+
+[81A7]
+Tatu de Dado{end}
+
+[81A8]
+Dragão do Céu{end}
+
+[81A9]
+Dragão do Trovão{end}
+
+[81AA]
+Dragão Pedra{end}
+
+[81AB]
+Dragão Kaiser{end}
+
+[81AC]
+Mago da Fé{end}
+
+[81AD]
+Deusa do Capricho{end}
+
+[81AE]
+Mago da Água{end}
+
+[81AF]
+Água Gelada{end}
+
+[81B0]
+Fada Dragão Água{end}
+
+[81B1]
+Elfo Antigo{end}
+
+[81B2]
+Domadora de Feras{end}
+
+[81B3]
+Mina da Água{end}
+
+[81B4]
+Golfinho Branco{end}
+
+[81B5]
+Tubarão do Fundo{end}
+
+[81B6]
+Peixe de Metal{end}
+
+[81B7]
+Bicho do Fundo{end}
+
+[81B8]
+Peixe de 7 Cores{end}
+
+[81B9]
+Robalo Mech{end}
+
+[81BA]
+Dragão Água{end}
+
+[81BB]
+Dragão Rei do Mar{end}
+
+[81BC]
+Turu-Purun{end}
+
+[81BD]
+Guarda do Mar{end}
+
+[81BE]
+Cobra Água{end}
+
+[81BF]
+Cobra Mar Vermelha{end}
+
+[81C0]
+Seadra Espinho{end}
+
+[81C1]
+Tartaruga Branca 30mil{end}
+
+[81C2]
+Kappa Vingador{end}
+
+[81C3]
+Kanikabuto{end}
+
+[81C4]
+Zarigun{end}
+
+[81C5]
+Golem do Milênio{end}
+
+[81C6]
+Golem Destruidor{end}
+
+[81C7]
+Rocha Barril{end}
+
+[81C8]
+Guerreiro Minomushi{end}
+
+[81C9]
+Fantasma de Pedra{end}
+
+[81CA]
+Ataque Kaminari{end}
+
+[81CB]
+Besta de Tropeço{end}
+
+[81CC]
+Caracol Raio{end}
+
+[81CD]
+Pinguim Raio{end}
+
+[81CE]
+Imortal do Trovão{end}
+
+[81CF]
+Cobra Elétrica{end}
+
+[81D0]
+Águia Alada{end}
+
+[81D1]
+Águia Castigada{end}
+
+[81D2]
+Ave Caveira Vermelha{end}
+
+[81D3]
+Ave Sol Carmesim{end}
+
+[81D4]
+Ave Rainha{end}
+
+[81D5]
+Ninja Armado{end}
+
+[81D6]
+Fantasma Mágico{end}
+
+[81D7]
+Caça-Almas{end}
+
+[81D8]
+Come Ar{end}
+
+[81D9]
+Pardal Vermelhão{end}
+
+[81DA]
+Kamen do Mar{end}
+
+[81DB]
+Serpente Sinistra{end}
+
+[81DC]
+Ganigumo{end}
+
+[81DD]
+Alinsection{end}
+
+[81DE]
+Insetos Soldados do Céu{end}
+
+[81DF]
+Cavaleiro Barata{end}
+
+[81E0]
+Kuwagata α{end}
+
+[81E1]
+Ladrão{end}
+
+[81E2]
+Pragtical{end}
+
+[81E3]
+Garvas{end}
+
+[81E4]
+Ameba{end}
+
+[81E5]
+Korogashi{end}
+
+[81E6]
+Boo Koo{end}
+
+[81E7]
+Lobo Flor{end}
+
+[81E8]
+Flor Arco-Íris{end}
+
+[81E9]
+Lírio Barril{end}
+
+[81EA]
+Bola de Agulha{end}
+
+[81EB]
+Pavão{end}
+
+[81EC]
+Hoshiningen{end}
+
+[81ED]
+Maha Vailo{end}
+
+[81EE]
+Sereia Mar Arco-Íris{end}
+
+[81EF]
+Rei Músico{end}
+
+[81F0]
+Wilmee{end}
+
+[81F1]
+Yado Karu{end}
+
+[81F2]
+Morinphen{end}
+
+[81F3]
+Lagarta{end}
+
+[81F4]
+Caça-Dragão{end}
+
+[81F5]
+Inseto Come-Gente{end}
+
+[81F6]
+D. Humano{end}
+
+[81F7]
+Guaxinim Tartaruga{end}
+
+[81F8]
+Fungo Almíscar{end}
+
+[81F9]
+Cara Prisma{end}
+
+[81FA]
+Dogra Vendaval{end}
+
+[81FB]
+Peixe Louco{end}
+
+[81FC]
+Saurus Cyber{end}
+
+[81FD]
+Bracchio-raidus{end}
+
+[81FE]
+Flor Risonha{end}
+
+[81FF]
+Soldado Feijão{end}
+
+[8200]
+Soldado Canhão{end}
+
+[8201]
+Guarda da Sala do Trono{end}
+
+[8202]
+Scizzar Valente{end}
+
+[8203]
+Estátua da Ilha Páscoa{end}
+
+[8204]
+Muka Muka{end}
+
+[8205]
+Pedra de Areia{end}
+
+[8206]
+Tartaruga Pedregulho{end}
+
+[8207]
+Kraken de Fogo{end}
+
+[8208]
+Ave Tartaruga{end}
+
+[8209]
+Ave Caveira{end}
+
+[820A]
+Ave Monstruosa{end}
+
+[820B]
+Açougueiro Bistrô{end}
+
+[820C]
+Moleque Estrela{end}
+
+[820D]
+Espírito da Montanha{end}
+
+[820E]
+Caçador de Pescoço{end}
+
+[820F]
+Milus Radiante{end}
+
+[8210]
+Togex{end}
+
+[8211]
+Cerebrus de Fogo{end}
+
+[8212]
+Eldeen{end}
+
+[8213]
+Areia Mística{end}
+
+[8214]
+Elfos Gêmeos{end}
+
+[8215]
+Kwagar Hércules{end}
+
+[8216]
+Minar{end}
+
+[8217]
+Kamakiriman{end}
+
+[8218]
+Mechaleão{end}
+
+[8219]
+Mega Bola Trovão{end}
+
+[821A]
+Niwatori{end}
+
+[821B]
+Tubarão Corrosivo{end}
+
+[821C]
+Anjo Esqueleto{end}
+
+[821D]
+Hane-Hane{end}
+
+[821E]
+Misairuzame{end}
+
+[821F]
+Tongyo{end}
+
+[8220]
+Canhão Dharma{end}
+
+[8221]
+Dragão Esqueleto{end}
+
+[8222]
+Guerreiro Uau{end}
+
+[8223]
+Griggle{end}
+
+[8224]
+Rato de Osso{end}
+
+[8225]
+Sapo Geleia{end}
+
+[8226]
+Behegon{end}
+
+[8227]
+Elfo Treva{end}
+
+[8228]
+Dragão Alado #2{end}
+
+[8229]
+Cara Cogumelo #2{end}
+
+[822A]
+Guarda de Lava{end}
+
+[822B]
+Tyhone #2{end}
+
+[822C]
+Condenado Errante{end}
+
+[822D]
+Ogro Gruta de Aço #1{end}
+
+[822E]
+Pote do Truque{end}
+
+[822F]
+Herói Oscillo{end}
+
+[8230]
+Invasor de Outra Dimensão{end}
+
+[8231]
+Dragão Menor{end}
+
+[8232]
+Verme Agulha{end}
+
+[8233]
+Fantasma do Sótão{end}
+
+[8234]
+Mamute de Goldfine{end}
+
+[8235]
+Tubarão Preto Come-Gente{end}
+
+[8236]
+Yormungarde{end}
+
+[8237]
+Espinhos da Treva{end}
+
+[8238]
+Antrossauro{end}
+
+[8239]
+Lagarto Babão{end}
+
+[823A]
+Trakadon{end}
+
+[823B]
+Dragão Negro Rei da Selva{end}
+
+[823C]
+Juíza Imperatriz{end}
+
+[823D]
+Dragão Mirim{end}
+
+[823E]
+Bruxa da Mata Negra{end}
+
+[823F]
+Ancião da Mata Funda{end}
+
+[8240]
+Escorpião Gigante Tundra{end}
+
+[8241]
+Goblin Corvo{end}
+
+[8242]
+Mago Leo{end}
+
+[8243]
+Flor do Abismo{end}
+
+[8244]
+Robô Patrulha{end}
+
+[8245]
+Takuhee{end}
+
+[8246]
+Bruxa Treva{end}
+
+[8247]
+Previsão do Tempo{end}
+
+[8248]
+Corrente que Prende{end}
+
+[8249]
+Caracol Mecânico{end}
+
+[824A]
+Kappa Verde{end}
+
+[824B]
+Larvas Monstro{end}
+
+[824C]
+Vaso Vivo{end}
+
+[824D]
+Planta Tentáculo{end}
+
+[824E]
+Cobra de Bico{end}
+
+[824F]
+Jarro Mutante{end}
+
+[8250]
+Muse-A{end}
+
+[8251]
+Tartaruga Come Fogo{end}
+
+[8252]
+Espectro Rosa Dunn{end}
+
+[8253]
+Reflexo Capeta #1{end}
+
+[8254]
+Ghoul Comilão{end}
+
+[8255]
+Besta Pálida{end}
+
+[8256]
+Mini Quimera{end}
+
+[8257]
+Chuva Violenta{end}
+
+[8258]
+Maça Chave #2{end}
+
+[8259]
+Ternura{end}
+
+[825A]
+Soldado Pinguim{end}
+
+[825B]
+Dragão Fada{end}
+
+[825C]
+Marmota Gorda do Mal{end}
+
+[825D]
+Besta Líquida{end}
+
+[825E]
+Varas Gêmeas #2{end}
+
+[825F]
+Bicão{end}
+
+[8260]
+Amizade Brilhante{end}
+
+[8261]
+Mosca Lâmina{end}
+
+[8262]
+Lagarto Elétrico{end}
+
+[8263]
+Batedor Sombra Hiro{end}
+
+[8264]
+Dama da Fé{end}
+
+[8265]
+Dragão Trovão 2 Cabeças{end}
+
+[8266]
+Aranha Caçadora{end}
+
+[8267]
+Estrela Mar Blindada{end}
+
+[8268]
+Ampulheta da Coragem{end}
+
+[8269]
+Besta Marinha{end}
+
+[826A]
+Guerreiro da Tradição{end}
+
+[826B]
+Espírito de Rocha{end}
+
+[826C]
+Snakeyashi{end}
+
+[826D]
+Cavaleiro Súcubo{end}
+
+[826E]
+Bruxa Doente{end}
+
+[826F]
+Troço da Lama{end}
+
+[8270]
+Gyojin Maré Alta{end}
+
+[8271]
+Fada da Fonte{end}
+
+[8272]
+Amazona dos Mares{end}
+
+[8273]
+Nekogal #2{end}
+
+[8274]
+Aprendiz de Bruxa{end}
+
+[8275]
+Rato Blindado{end}
+
+[8276]
+Guerreiro Lagarto Velho{end}
+
+[8277]
+Donzela do Luar{end}
+
+[8278]
+Ogro Gruta de Pedra{end}
+
+[8279]
+Ovo Alado Vida Nova{end}
+
+[827A]
+Lagarto da Noite{end}
+
+[827B]
+Sósia da Rainha{end}
+
+[827C]
+Coroa Asa Azul{end}
+
+[827D]
+Trent{end}
+
+[827E]
+Rainha das Folhas Secas{end}
+
+[827F]
+Bugroth Anfíbio{end}
+
+[8280]
+Rastejante Ácido{end}
+
+[8281]
+Invasor do Trono{end}
+
+[8282]
+Ovelha Mística #1{end}
+
+[8283]
+Mago do Disco{end}
+
+[8284]
+Víbora de Fogo{end}
+
+[8285]
+Guarda Real{end}
+
+[8286]
+Gosma Nojenta{end}
+
+[8287]
+Hyosube{end}
+
+[8288]
+Máquina Atacante{end}
+
+[8289]
+Hibikime{end}
+
+[828A]
+Corvo de Chicote{end}
+
+[828B]
+Kunai com Corrente{end}
+
+[828C]
+Labirinto Mágico{end}
+
+[828D]
+Elimina Guerreiro{end}
+
+[828E]
+Salamandra{end}
+
+[828F]
+Quebra-Maldição{end}
+
+[8290]
+Descanso Eterno{end}
+
+[8291]
+Megamorfo{end}
+
+[8292]
+Metalmorfo{end}
+
+[8293]
+Trompetista Alado{end}
+
+[8294]
+Tempestade de Mancha{end}
+
+[8295]
+Esmaga Carta{end}
+
+[8296]
+Spray Extermina{end}
+
+[8297]
+Sopro de Luz{end}
+
+[8298]
+Correnteza Eterna{end}
+
+[8299]
+Maldição Escudo Milênio{end}
+
+[829A]
+Ritual do Yamadron{end}
+
+[829B]
+Ritual Guarda Portão{end}
+
+[829C]
+Castelo Brilhante{end}
+
+[829D]
+Magia Sombra{end}
+
+[829E]
+Ritual Lustro Negro{end}
+
+[829F]
+Ritual do Zera{end}
+
+[82A0]
+Espanador da Harpia{end}
+
+[82A1]
+Ritual Leão Guerra{end}
+
+[82A2]
+Ritual Espelho Besta{end}
+
+[82A3]
+Dragão Supremo{end}
+
+[82A4]
+Dança de Abertura{end}
+
+[82A5]
+Receita Hambúrguer{end}
+
+[82A6]
+Volta Sennen Genjin{end}
+
+[82A7]
+Prece do Novox{end}
+
+[82A8]
+Maldição Dragão 3 Chifres{end}
+
+[82A9]
+Casa da Fita Adesiva{end}
+
+[82AA]
+Eatgaboon{end}
+
+[82AB]
+Armadilha de Urso{end}
+
+[82AC]
+Fio Invisível{end}
+
+[82AD]
+Buraco Ácido{end}
+
+[82AE]
+Ruína Geral{end}
+
+[82AF]
+Leque Goblin{end}
+
+[82B0]
+Reação Ruim Simochi{end}
+
+[82B1]
+Armadilha Reversa{end}
+
+[82B2]
+Armadilha Falsa{end}
+
+[82B3]
+Volta Dragão Serpente{end}
+
+[82B4]
+Jura da Tartaruga{end}
+
+[82B5]
+Contrato da Máscara{end}
+
+[82B6]
+Volta do Chakra{end}
+
+[82B7]
+Ritual Marionete{end}
+
+[82B8]
+Pacto Besouro Lança{end}
+
+[82B9]
+Jura Espada Garma{end}
+
+[82BA]
+Prece Rainha Cosmo{end}
+
+[82BB]
+Volta Cavaleiro Osso{end}
+
+[82BC]
+Jura Baleia Fortaleza{end}
+
+[82BD]
+Show da Espada{end}
+
+[82BE]
+Hambúrguer Faminto{end}
+
+[82BF]
+Sengenjin{end}
+
+[82C0]
+Guarda Caveira{end}
+
+[82C1]
+Dragão de 3 Chifres{end}
+
+[82C2]
+Dragão Serpente Noite{end}
+
+[82C3]
+Cavaleiro Caveira{end}
+
+[82C4]
+Rainha Cosmo{end}
+
+[82C5]
+Chakra{end}
+
+[82C6]
+Tartaruga Caranguejo{end}
+
+[82C7]
+Mikazukinoyaiba{end}
+
+[82C8]
+Dragão Meteoro{end}
+
+[82C9]
+Dragão Meteoro Negro{end}
+
+[82CA]
+Pégaso Asa de Fogo{end}
+
+[82CB]
+Marionete Psycho{end}
+
+[82CC]
+Espada Garma{end}
+
+[82CD]
+Besouro Lança{end}
+
+[82CE]
+Baleia Fortaleza{end}
+
+[82CF]
+Dokurorider{end}
+
+[82D0]
+Máscara Luz e Treva{end}
+
+[82D1]
+Ritual Magia Negra{end}
+
+[82D2]
+Mago do Caos Negro{end}
+
+[8300 8322 8323 8324 8325 8326 8327]
+Dragão{end}
+
+[8301]
+Mago{end}
+
+[8302]
+Zumbi{end}
+
+[8303]
+Guerreiro{end}
+
+[8304]
+Besta Guerreiro{end}
+
+[8305]
+Besta{end}
+
+[8306]
+Besta Alada{end}
+
+[8307]
+Capeta{end}
+
+[8308]
+Fada{end}
+
+[8309]
+Inseto{end}
+
+[830A]
+Dino{end}
+
+[830B]
+Réptil{end}
+
+[830C]
+Peixe{end}
+
+[830D]
+Serpente Mar{end}
+
+[830E]
+Máquina{end}
+
+[830F]
+Trovão{end}
+
+[8310]
+Água{end}
+
+[8311]
+Fogo{end}
+
+[8312]
+Rocha{end}
+
+[8313]
+Planta{end}
+
+[8314]
+Magia{end}
+
+[8315]
+Armadilha{end}
+
+[8316]
+Ritual{end}
+
+[8317]
+Equipamento{end}
+
+[8318]
+Marte {sp}{end}
+
+[8319]
+Júpiter{end}
+
+[831A]
+Saturno{sp}{end}
+
+[831B]
+Urano {sp}{end}
+
+[831C]
+Plutão{sp}{end}
+
+[831D]
+Netuno{end}
+
+[831E]
+Mercúrio{end}
+
+[831F]
+Sol   {sp}{end}
+
+[8320]
+Lua   {sp}{end}
+
+[8321]
+Vênus {sp}{end}
+
+[8328]
+Montar Deck{end}
+
+[8329]
+Simon Muran{end}
+
+[832A]
+Teana{end}
+
+[832B]
+Jono{end}
+
+[832C]
+Morador1{end}
+
+[832D]
+Morador2{end}
+
+[832E]
+Morador3{end}
+
+[832F]
+Seto{end}
+
+[8330]
+Heishin{end}
+
+[8331]
+Rex Raptor{end}
+
+[8332]
+Weevil Underwood{end}
+
+[8333]
+Mai Valentine{end}
+
+[8334]
+Bandido Keith{end}
+
+[8335]
+Shadi{end}
+
+[8336]
+Yami Bakura{end}
+
+[8337]
+Pegasus{end}
+
+[8338]
+Isis{end}
+
+[8339]
+Kaiba{end}
+
+[833A]
+Soldado Mago{end}
+
+[833B]
+Jono 2o{end}
+
+[833C]
+Teana 2o{end}
+
+[833D]
+Mago do Mar{end}
+
+[833E]
+Mago Brabo Secmeton{end}
+
+[833F]
+Mago da Mata{end}
+
+[8340]
+Mago Brabo Anubisius{end}
+
+[8341]
+Mago da Serra{end}
+
+[8342]
+Mago Brabo Atenza{end}
+
+[8343]
+Mago do Deserto{end}
+
+[8344]
+Mago Brabo Martis{end}
+
+[8345]
+Mago do Campo{end}
+
+[8346]
+Mago Brabo Kepura{end}
+
+[8347]
+Mago do Labirinto{end}
+
+[8348]
+Seto 2o{end}
+
+[8349]
+Guarda Sebek{end}
+
+[834A]
+Guarda Neku{end}
+
+[834B]
+Heishin 2o{end}
+
+[834C]
+Seto 3o{end}
+
+[834D]
+DarkNite{end}
+
+[834E]
+Nitemare{end}
+
+[834F]
+Mestre Duelo K{end}
+
+[8350]
+{f8 02 18}Metrópole{end}
+
+[8351]
+{f8 02 0C}Templo da Mata{end}
+
+[8352]
+{f8 02 0C}Templo Deserto{end}
+
+[8353]
+{f8 02 0C}Vale do Rei{end}
+
+[8354]
+{f8 02 18}Templo do Mar{end}
+
+[8355]
+{f8 02 04}Templo da Glória{end}
+
+[8356]
+{f8 02 04}Templo da Serra{end}
+
+[8357]
+{f8 02 04}Ruínas Proibidas{end}
+
+[8358]
+{f8 02 0C}Templo do Campo{end}
+
+[8359]
+{f8 02 14}Templo Vasto{end}
+
+[835A]
+{f8 02 18}Praça{end}
+
+[835B]
+{f8 02 28}Templo{end}
+
+[835C]
+{if 0047 L8E6E}{f8 02 14}{cont}
+{:L8E62}
+Campo Duelo{end}
+
+{:L8E6E}
+{f8 02 04}Velha {jump L8E62}
+
+[835D]
+{if 0047 L8E8A}{f8 02 18}{cont}
+{:L8E80}
+Loja{end}
+
+{:L8E8A}
+{f8 02 0C}Velha {jump L8E80}
+
+[835E]
+Palácio do Faraó{end}
+
+[835F]
+Escondida {jump L8E80}
+
+
