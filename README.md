@@ -1,81 +1,202 @@
-# Yu-Gi-Oh! Forbidden Memories Recompiled
+# Yu-Gi-Oh! Forbidden Memories — versão nativa para PC
 
-**Yu-Gi-Oh! Forbidden Memories** (PS1, USA) rebuilt from its decompiled source as a
-native PC game for Windows and Linux, with a macOS ARM64 source build. Bring your own disc image; no game data is
-included but the text of the European translations (below).
+Este projeto transforma o **Yu-Gi-Oh! Forbidden Memories** (PlayStation 1, versão americana)
+em um jogo de **Windows** de verdade, sem emulador. O código do jogo foi decompilado e
+recompilado para PC.
 
-This is not a static recompilation: the game code was decompiled
-by hand into C that matches the original byte for byte, then ported to PC.
+> **Importante:** o jogo **não vem junto**. Você precisa ter a sua própria cópia do jogo
+> (um arquivo `.bin`). Este repositório só tem o código do programa.
 
-![Your field at 4x resolution with 3D Monsters](docs/screenshots/field.jpg)
+> **Status:** experimental. As mudanças deste projeto (veja
+> [O que este projeto muda](#o-que-este-projeto-muda)) ainda estão sendo testadas.
 
-## Features
+![O campo de duelo em resolução 4x](docs/screenshots/field.jpg)
 
-- Up to 4x internal resolution, widescreen and HD text
-- **3D Monsters**: face-up monsters stand on the field as their battle models
-- Optional **Forbidden Memories HD** pack: redrawn cards, frames and portraits
-- Mods: framework for new cards past the original 722, fusions, textures, music, gameplay tables
-- **FM Editor**: make mods without writing JSON: cards, art, fusions, duelists, decks, packs, the title screen and more ([guide](tools/pc/fm_editor/README.md))
-- Save slots, fusion helper, card drop rates, rebindable controls
-- **Game > Language**: the European releases' own English, French, German, Italian and Spanish
+---
 
-![HD Free Duel portraits](docs/screenshots/portraits.jpg)
+## Do que você precisa
 
-## Play
+- Um PC com **Windows 10 ou 11 (64 bits)**.
+- **Internet na primeira vez** que abrir o jogo (ele baixa sozinho as ferramentas que precisa).
+- Cerca de **2 GB livres** no disco.
+- O arquivo **`.bin`** do jogo **Yu-Gi-Oh! Forbidden Memories (USA)** — código **SLUS-01411**.
+  - Geralmente ele vem acompanhado de um arquivo `.cue` com o mesmo nome. Só o `.bin` é usado.
+  - Versões europeias ou japonesas **não funcionam**.
 
-Download the latest build from [Releases](https://github.com/Unchiga/Yu-Gi-Oh-Forbidden-Memories-Recompiled/releases),
-extract it and run `memories-pc.exe` (Windows) or `./memories-pc` (Linux). On first
-launch, pick your USA disc's `.bin`. The game can tell you when a newer release is out
-(**Help > Check for updates at start** turns it off; see [Updates](notes/updates.md)).
+Você **não** precisa instalar nada antes: nem Python, nem compilador. O próprio programa cuida disso.
 
-### Bring your save from an emulator
+---
 
-Your save from the original game (an emulator's memory card, or a PS1 card copied to a PC)
-loads in the port. Copy the memory card file (`.mcr`, `.mcd`, `.srm`, `.gme`, `.mcs`, `.psv`,
-...; DuckStation keeps its cards in its `memcards` folder, ePSXe in `memcards`) into the
-port's `saves` folder: `Documents\My Games\YFM Re-Decomp\saves` on Windows,
-`~/.local/share/YFM Re-Decomp/saves` on Linux. Then pick **LOAD** on the title screen: the
-save is copied into an empty slot (the card file is renamed `.imported`) and you can load it.
-Emulator save states are not memory cards and cannot be imported; save in game first.
+## Como instalar e jogar (passo a passo)
 
-### HD pack
+### 1. Baixe este projeto
 
-1. From the same release, download `yfm-redecomp-hd-mod-<version>.zip`.
-2. Close the game and extract the zip into the game folder, the one with `memories-pc.exe`
-   or `memories-pc`. You should end up with `mods/assets-hd` beside the other mods.
-3. Start the game. The pack is on by default: press **F10** for the menu bar and open
-   **Game > Mods** to check it, or to turn it or any of its parts off.
-4. For the best look, pick **Video > Resolution > Internal 4x** and turn on **Video > HD text**.
+No topo desta página do GitHub, clique no botão verde **Code** e depois em **Download ZIP**.
 
-**From source:** put the `.bin` in `game/` and run `play.bat` or `./play.sh`. The first
-run builds everything (Linux needs `gcc` and `python3`). On Windows, `play.bat` first
-extracts the disc into plain files (`game/disc/`, indexed by `game/yfm-disc.txt`); after
-that the `.bin` is no longer needed. See [PC build](notes/pc-build.md).
+Antes de extrair o ZIP: clique com o botão direito nele, vá em **Propriedades**, marque
+**Desbloquear** (se aparecer) e clique em **OK**. Isso evita avisos do Windows mais tarde.
 
-On Apple Silicon, `./play.sh` builds and runs the macOS target using Python 3,
-Xcode command-line tools, and verified dependencies installed under `tmp/`.
-See [macOS build](notes/macos-build.md) and the [ARM64 runtime guide](notes/macos-arm64.md).
-Native save states use F5/F7 and have build and platform compatibility limits;
-see [save-state compatibility](notes/macos-arm64.md#save-state-use-and-compatibility). Code mods
-need a macOS ARM64 build; existing i386 code-mod binaries cannot be loaded.
-See [macOS code mods](notes/modding.md#native-macos-arm64-code-mods).
+Extraia o ZIP para uma pasta fácil de achar, por exemplo `C:\Jogos\yfm-native`.
 
-**Languages:** `languages/*.txt` is the text of the five European releases, read off the
-PAL discs by the port itself. With the discs in `game/pal`, `python3 tools/pc/export_languages.py`
-writes them again, and `--check` compares them ([Translations](notes/translation.md),
-"The official languages"). They are the only game data in the repository: text, no pictures.
+> Quem usa Git pode simplesmente rodar
+> `git clone https://github.com/Luizhsampaio/yfm-native.git`.
 
-## Decompilation
+### 2. Coloque o jogo na pasta `game`
 
-Every game function matches the original executable byte for byte:
+Dentro da pasta do projeto, crie uma pasta chamada **`game`** (se ela ainda não existir) e
+copie o seu arquivo **`.bin`** para dentro dela. O nome do arquivo não importa.
 
-```sh
-make tools   # pinned toolchain
-make match   # rebuild SLUS_014.11 exactly (see notes/setup.md)
+Deve ficar assim:
+
+```
+yfm-native\
+   game\
+      Yu-Gi-Oh! Forbidden Memories (USA).bin
+   play.bat
+   ...
 ```
 
+### 3. Abra o jogo
+
+Dê **dois cliques em `play.bat`**.
+
+**A primeira vez demora** (de 5 a 15 minutos, dependendo do PC e da internet). Uma janela
+preta vai mostrar o progresso. Nessa primeira vez o programa:
+
+1. **Abre o seu `.bin`** e copia os arquivos do jogo para a pasta `game\disc`
+   (leva poucos segundos e é feito só uma vez);
+2. **Baixa as ferramentas** de que precisa (dentro da pasta `tmp`, sem instalar nada no Windows);
+3. **Monta o jogo** para o seu PC;
+4. **Abre o jogo.**
+
+**Das próximas vezes**, é só dar dois cliques em `play.bat` de novo — abre em segundos.
+
+### 4. (Opcional) Apague o `.bin`
+
+Depois que o jogo abrir pela primeira vez, a pasta `game` vai ter o arquivo `yfm-disc.txt`
+e a pasta `disc`. A partir daí o **`.bin` não é mais necessário** e pode ser apagado
+(guarde uma cópia em outro lugar, se quiser).
+
+Não apague nem mexa na pasta `game\disc` nem no `game\yfm-disc.txt`: é deles que o jogo lê.
+
+---
+
+## Controles
+
+Dá para jogar com **teclado** ou **controle** (Xbox e compatíveis). Os controles podem ser
+trocados no menu do jogo.
+
+| PlayStation | Teclado | Controle Xbox |
+|---|---|---|
+| Direcionais | Setas | Direcional ou analógico esquerdo |
+| ✕ (Xis) — confirmar | X | A |
+| ◯ (Bola) — voltar | S | B |
+| ▢ (Quadrado) | Z | X |
+| △ (Triângulo) | A | Y |
+| L1 / R1 | Q / W | LB / RB |
+| L2 / R2 | E / R | LT / RT |
+| Start | Enter | Menu/Start |
+| Select | Shift direito | View/Back |
+
+**Dica:** para ver a batalha em 3D, escolha o monstro alvo do ataque e confirme com
+**Quadrado (tecla Z)** em vez de Xis.
+
+### Menu do programa
+
+Aperte **F10** para abrir a barra de menus. Nela você encontra, entre outras coisas:
+
+- **Video > Resolution > Internal 4x** — gráficos mais nítidos;
+- **Video > HD text** — textos em alta resolução;
+- **Game > Mods** — ativar e desativar mods;
+- **Game > Language** — idioma (os idiomas das versões europeias).
+
+> O jogo pode avisar que existe uma "versão nova". Esse aviso é do **projeto original**
+> (veja [Créditos](#créditos-e-licença)), não deste. Para desligar:
+> **Help > Check for updates at start**.
+
+---
+
+## Saves (jogo salvo)
+
+Os saves ficam em **`Documentos\My Games\YFM Re-Decomp\saves`**.
+
+**Trazer o save de um emulador:** copie o arquivo de cartão de memória do emulador
+(`.mcr`, `.mcd`, `.srm`, `.gme`, `.mcs`, `.psv`...) para essa pasta `saves`. Depois escolha
+**LOAD** na tela inicial. (No DuckStation e no ePSXe esses arquivos ficam na pasta `memcards`.)
+"Save states" de emulador não servem: salve dentro do jogo antes.
+
+---
+
+## Problemas comuns
+
+**"O Windows protegeu o computador" (tela azul do SmartScreen)**
+Clique em **Mais informações** e depois em **Executar assim mesmo**. Isso acontece porque o
+programa é montado no seu PC e não tem assinatura digital.
+
+**O antivírus bloqueia o jogo / "Acesso negado"**
+Alguns antivírus (principalmente em computadores de empresa) bloqueiam programas recém-criados.
+Em PC pessoal, adicione a pasta do projeto como exceção no antivírus. Em PC de empresa, fale
+com o suporte de TI ou use outro computador.
+
+**"Put your disc image in the game folder first"**
+O programa não achou o jogo. Confira se:
+- a pasta se chama exatamente `game` e está **dentro** da pasta do projeto (ao lado do `play.bat`);
+- o arquivo dentro dela é o **`.bin`** (não o `.cue`).
+
+**"this is not the Yu-Gi-Oh! Forbidden Memories (USA, SLUS-01411) disc"**
+O `.bin` não é da versão americana do jogo. Só a versão USA (SLUS-01411) funciona.
+
+**A janela preta mostra um erro e o jogo não abre**
+- Na primeira vez, confira se o PC está conectado à internet e rode o `play.bat` de novo.
+- Se o erro continuar, a janela mostra onde ficou o relatório do problema (pasta `tmp\pc`,
+  arquivos `crash-...txt` e `last-session.log`). Abra uma *issue* aqui no GitHub e anexe esses arquivos.
+
+**Quero atualizar o projeto**
+Baixe o ZIP novo (ou rode `git pull`) e **copie a sua pasta `game` antiga para dentro dele**.
+A pasta `game` nunca é substituída pela atualização.
+
+---
+
+## Avisos importantes
+
+- **Não envie a pasta `game` para o GitHub nem compartilhe os arquivos do jogo.** Eles são
+  da Konami. O projeto já está configurado para o Git ignorar essa pasta (arquivo `.gitignore`);
+  não apague esse arquivo.
+- Cada pessoa deve usar a sua própria cópia do jogo.
+
+---
+
+## O que este projeto muda
+
+Este repositório parte do
+[Yu-Gi-Oh! Forbidden Memories Recompiled](https://github.com/Unchiga/Yu-Gi-Oh-Forbidden-Memories-Recompiled)
+e tem o objetivo de deixar o jogo **100% nativo**:
+
+- **Animações de ataque dos monstros em código nativo.** No projeto original, as animações de
+  ataque de cada monstro (código do PlayStation guardado no arquivo `MODEL.MRG`) rodavam num
+  "mini emulador" embutido. Aqui elas são traduzidas automaticamente para C durante a montagem
+  do jogo (`tools/pc/model_recomp.py`).
+- **O jogo roda a partir de arquivos abertos, sem o `.bin`.** O `.bin` é aberto uma única vez
+  e os arquivos do jogo vão para `game\disc` (`tools/pc/extract_disc.py`). Depois disso o `.bin`
+  pode ser apagado.
+
+Próximos passos planejados: converter os arquivos do jogo para formatos comuns (imagens PNG,
+áudio, vídeo) e remover a dependência do mapa de memória do PlayStation.
+
+---
+
+## Para desenvolvedores
+
+- Como o jogo é montado: [notes/pc-build.md](notes/pc-build.md)
+  (inclui a seção sobre o disco extraído).
+- Mods: [notes/modding.md](notes/modding.md) · FM Editor: [tools/pc/fm_editor/README.md](tools/pc/fm_editor/README.md)
+- Comparar as animações traduzidas com o interpretador original:
+  `python tools\pc\test_model_recomp.py`
+- Decompilação: todas as funções do jogo batem byte a byte com o original
+  (`make tools` e `make match`; veja [notes/setup.md](notes/setup.md)).
+
 <details>
-<summary>Progress</summary>
+<summary>Progresso da decompilação</summary>
 
 <!-- BEGIN GENERATED PROGRESS -->
 
@@ -106,20 +227,13 @@ _Generated from `config/slus_01411/functions.csv` and `config/slus_01411/overlay
 
 </details>
 
-## Docs
+---
 
-[Modding](notes/modding.md) · [FM Editor](tools/pc/fm_editor/README.md) · [More cards](notes/more-cards.md) · [Fusion helper](notes/fusion-helper.md) ·
-[Card drops](notes/card-drops.md) · [Card packs](notes/card-packs.md) · [Translations](notes/translation.md) · [Updates](notes/updates.md) · [Setup](notes/setup.md) · [Build](notes/build.md) ·
-[Releases](notes/pc-release.md)
+## Créditos e licença
 
-## Community
-
-Join the [Discord](https://discord.gg/Gn6Mag52q) to follow development, ask questions
-and report issues.
-
-## License
-
-The PC port (`src/pc/`, `tools/pc/`, `tests/pc/`, `mods/`, `examples/` and the build
-and play scripts) is [MIT](LICENSE): keep the copyright notice and please link back
-here. The decompilation builds on [memories-decomp](https://github.com/krystalgamer/memories-decomp)
-by its authors. Yu-Gi-Oh! and Forbidden Memories belong to Konami.
+- Port para PC original: [Unchiga e colaboradores](https://github.com/Unchiga/Yu-Gi-Oh-Forbidden-Memories-Recompiled),
+  licença [MIT](LICENSE) (o aviso de copyright deles deve ser mantido).
+- Decompilação: [memories-decomp](https://github.com/krystalgamer/memories-decomp), de seus autores.
+- Detalhes em [NOTICE](NOTICE).
+- **Yu-Gi-Oh!** e **Forbidden Memories** pertencem à **Konami**. Nenhum arquivo do jogo é
+  distribuído aqui.
