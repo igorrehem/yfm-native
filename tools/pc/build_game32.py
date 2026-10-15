@@ -974,6 +974,12 @@ def main():
             NATIVE_CFLAGS.extend([f"-I{SDL_SOURCE}/include", f"-I{SDL_BUILD}/include-revision"])
     os.chdir(ROOT)
     os.makedirs(options.build + "/obj", exist_ok=True)
+    # MODEL.MRG's variant modules, translated to C from the user's disc into
+    # the build folder (tools/pc/model_recomp.py); without a disc the table
+    # is empty and the interpreter runs them.
+    import model_recomp
+    NATIVE.extend(os.path.relpath(source, ROOT).replace(os.sep, "/")
+                  for source in model_recomp.generate(model_recomp.Path(options.build, "model-recomp")))
     if A64:
         # The canary: is the compiler's AArch64 __ptr32 store bug still there?
         # MEMORIES_PTR32_PASS=0 skips the pass, which is refused while it is.

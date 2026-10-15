@@ -7,18 +7,21 @@
 #include "game/model_spark_effect.h"
 #include "game/model_slot_properties.h"
 #include "pc/guest/mips.h"
+#include "pc/guest/model_recomp.h"
 #include "pc/debug/log.h"
 
 /* Each MODEL.MRG record carries two small MIPS control modules that the
  * loader swaps into fixed slots: a primary module (slot A 0x8013A000, slot B
  * 0x8017A000; in every record seen it is `return 2`) and a variant module
  * (0x8013B000 / 0x8017B000) holding the monster's attack choreography and
- * impact particles. The game calls each through the word at +4. There are
- * 1,181 distinct variant modules, so they are not translated one by one:
- * the default runs the loaded module through the interpreter, which keeps
- * every monster's own attack movement. A module the interpreter cannot run
- * (reported once per loaded module) falls back to the native approximation
- * below, as does MEMORIES_MODEL_MODULES=native. */
+ * impact particles. The game calls each through the word at +4. The 1,181
+ * distinct variant modules are 324 programs, which the build translates to C
+ * from the user's disc (tools/pc/model_recomp.py, src/pc/guest/model_recomp.h);
+ * a loaded module runs as that C while its code is the bytes it was translated
+ * from, and through the interpreter otherwise (a mod, another disc, or
+ * MEMORIES_MODEL_MODULES=interpreter). The primary modules are interpreted.
+ * A module that cannot run (reported once per loaded module) falls back to
+ * the native approximation below, as does MEMORIES_MODEL_MODULES=native. */
 
 typedef struct {
     ModelSparkEffect effect;
@@ -85,7 +88,7 @@ static int native_variant(void *context, int command)
 /* module: the slot base (the identifier word; the entry is at +4). */
 static int run_module(uint32_t module, int variant, void *context, int command)
 {
-    static int native = -1;
+    static int native = -1, interpret = 0;
     static uint32_t failed[2][2]; /* [slot][variant]: identifier of a module that failed */
     int slot = module >= 0x8017A000u;
     uint32_t identifier = *(const uint32_t *)(uintptr_t)module;
@@ -95,12 +98,20 @@ static int run_module(uint32_t module, int variant, void *context, int command)
     if (native < 0) {
         const char *mode = getenv("MEMORIES_MODEL_MODULES");
         native = mode && strcmp(mode, "native") == 0;
+        interpret = mode && strcmp(mode, "interpreter") == 0;
     }
     if (!native && entry != 0 && failed[slot][variant] != identifier) {
         uint32_t args[2], result;
+        int translated = 1;
         args[0] = (uint32_t)(uintptr_t)context;
         args[1] = (uint32_t)command;
-        if (!Memories_MipsTry(module + 4, args, 2, &result)) {
+        if (variant && !interpret) {
+            translated = Memories_ModelRecompTry(module, args, 2, &result);
+            if (!translated) {
+                return (int)result;
+            }
+        }
+        if (translated > 0 && !Memories_MipsTry(module + 4, args, 2, &result)) {
             return (int)result;
         }
         fprintf(stderr, "memories-pc: model %s module %u (slot %c) cannot run; using the native stand-in\n",

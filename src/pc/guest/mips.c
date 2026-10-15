@@ -20,6 +20,7 @@
 #define _GNU_SOURCE
 #include "mips.h"
 #include "image.h"
+#include "model_recomp.h"
 #ifdef MEMORIES_TRANSLATED
 #include "translated_runtime.h"
 #endif
@@ -437,4 +438,57 @@ uint32_t Memories_MipsThunk(uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3, 
         exit(71);
     }
     return result;
+}
+
+/* The bridges translated modules use (model_recomp.h): the same guest stack,
+ * nesting and native calls as the interpreter's. */
+int Memories_MipsStackBegin(uint32_t *sp, uint32_t *saved)
+{
+    if (ensure_stack()) {
+        return -1;
+    }
+    *saved = current_sp;
+    *sp = ((current_sp ? current_sp : stack_top) - 64) & ~0xFu;
+    return 0;
+}
+
+void Memories_MipsStackEnd(uint32_t saved)
+{
+    current_sp = saved;
+}
+
+uint32_t Memories_MipsHand(uint32_t value)
+{
+    return (uint32_t)HANDED(value);
+}
+
+uint32_t Memories_RecompNative(MemoriesRecompContext *c, uint32_t target, uint32_t pc)
+{
+    State s;
+    memset(&s, 0, sizeof(s));
+    memcpy(s.r, c->r, sizeof(s.r));
+    s.hi = c->hi;
+    s.lo = c->lo;
+    s.pc = pc;
+    s.escape = c->escape;
+    return call_native(&s, target);
+}
+
+_Noreturn void Memories_RecompBadReturn(MemoriesRecompContext *c, uint32_t pc, uint32_t target, uint32_t expected)
+{
+    State s;
+    memset(&s, 0, sizeof(s));
+    s.escape = c->escape;
+    fprintf(stderr, "memories-pc: translated module expected to return to 0x%08x\n", expected);
+    fail(&s, pc, "translated return to an unexpected address", target);
+    abort();
+}
+
+_Noreturn void Memories_RecompBadJump(MemoriesRecompContext *c, uint32_t pc, uint32_t target)
+{
+    State s;
+    memset(&s, 0, sizeof(s));
+    s.escape = c->escape;
+    fail(&s, pc, "translated switch to an unknown case", target);
+    abort();
 }

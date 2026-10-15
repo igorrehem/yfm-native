@@ -11,6 +11,7 @@
 #include "pc/mods/events.h"
 #include "image.h"
 #include "retail_image.h"
+#include "model_recomp.h"
 #include "pc/audio/spu.h"
 #include "pc/audio/replace.h"
 #include "pc/compat/gte.h"
@@ -248,6 +249,7 @@ void Memories_StateSubsystems(MemoriesState *state)
     Memories_StateJumps(state);
 #endif
     RetailImage_State(state);
+    Memories_ModelRecompState(state);
     Spu_State(state);
     LibSpu_State(state);
     LibDs_State(state);

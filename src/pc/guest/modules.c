@@ -12,6 +12,7 @@
 #include "pc/render/texture_dump.h"
 #include "image.h"
 #include "retail_image.h"
+#include "model_recomp.h"
 #include "pc/debug/monitor.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -50,6 +51,7 @@ void Memories_GuestWritten(void *destination, size_t length)
     uintptr_t first = (uintptr_t)destination;
     unsigned i;
     RetailImage_Written(first, length);
+    Memories_ModelRecompWritten(first, length);
     for (i = 0; snapshots && i < Memories_ModuleCount; i++) {
         const MemoriesModule *module = &Memories_Modules[i];
         if (first <= module->bank && module->bank + 4 <= first + length &&
