@@ -8,7 +8,8 @@ programs (the module's first word names its program) with per-monster data,
 and every program is self-contained: its code reaches the game only through
 direct calls, and every data word pointing into its code is a switch table.
 
-This script reads MODEL.MRG out of the user's disc image, follows each
+This script reads MODEL.MRG out of the user's disc (the folder
+tools/pc/extract_disc.py writes, or the .bin image), follows each
 program's code from its entry at +4 (direct calls, branches and switch tables),
 checks that the slot B copy differs from slot A only by the relocation of the
 module's own addresses, and writes C with the interpreter's semantics into the
@@ -52,14 +53,31 @@ def s16(value):
 
 
 def find_disc():
+    """The extracted folder's index (game/yfm-disc.txt) or a .bin image."""
     disc = os.environ.get("MEMORIES_DISC")
     if disc:
         return Path(disc)
+    if (ROOT / "game" / "yfm-disc.txt").is_file():
+        return ROOT / "game" / "yfm-disc.txt"
     found = sorted(glob.glob(str(ROOT / "game" / "*.bin")))
     return Path(found[0]) if found else None
 
 
+def model_file(disc: Path) -> Path | None:
+    """MODEL.MRG as a plain file of an extracted folder (tools/pc/extract_disc.py), else None."""
+    if disc.name != "yfm-disc.txt":
+        return None
+    for line in disc.read_text(encoding="utf-8").splitlines():
+        fields = line.split()
+        if fields and fields[0] == "data" and fields[-1].upper().endswith("/DATA/MODEL.MRG"):
+            return disc.parent / fields[-1]
+    raise DiscError(f"{disc}: no plain DATA/MODEL.MRG in the index")
+
+
 def read_model_mrg(disc: Path) -> bytes:
+    plain = model_file(disc)
+    if plain:
+        return plain.read_bytes()
     image = Mode2Image(disc)
     pvd = image.read_extent(16, LOGICAL_BLOCK_SIZE)
     if pvd[1:6] != b"CD001":
@@ -593,8 +611,12 @@ def generate(out: Path, disc: Path | None = None, quiet=False):
     generator = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     stamp = None
     if disc and disc.exists():
-        info = disc.stat()
-        stamp = dict(disc=str(disc.resolve()), size=info.st_size, mtime=info.st_mtime_ns, generator=generator,
+        try:
+            source = model_file(disc) or disc
+        except (DiscError, OSError):
+            source = disc
+        info = source.stat()
+        stamp = dict(disc=str(source.resolve()), size=info.st_size, mtime=info.st_mtime_ns, generator=generator,
                      version=GENERATOR_VERSION)
     try:
         previous = json.loads(stamp_path.read_text(encoding="utf-8"))

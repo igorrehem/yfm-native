@@ -620,13 +620,16 @@ def guest_addresses():
 def exe_icon(build, windres):
     """The executable's icon on Windows: the game's memory card icon (the
     save header template, src/pc/platform/save_icon.h), made here from the
-    game's own game/SLUS_014.11 and never kept in the repository. The .ico's
+    game's own SLUS_014.11 (game/, or game/disc/ as tools/pc/extract_disc.py
+    writes it) and never kept in the repository. The .ico's
     path, or None without the game, the template, or a resource compiler."""
     try:
         with open("config/pc/guest_addresses.txt") as table:
             address = next(int(line.split()[1], 16) for line in table
                            if line.split()[:1] == ["gSaveData_aHeaderTemplate"])
-        with open("game/SLUS_014.11", "rb") as executable:
+        found = next((path for path in ("game/SLUS_014.11", "game/disc/SLUS_014.11") if os.path.isfile(path)),
+                     "game/SLUS_014.11")
+        with open(found, "rb") as executable:
             image = executable.read()
     except (OSError, StopIteration, ValueError, IndexError):
         return None

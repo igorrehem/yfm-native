@@ -1,13 +1,15 @@
 @echo off
 rem Play the native PC game: put your disc image (the .bin of the USA disc) in
-rem game\, then run this. The first run builds the game, which fetches what it
-rem needs into tmp\ (Python if it is not installed, the compiler, CMake and
-rem Ninja, and the libraries; a few minutes); later runs rebuild only what
-rem changed. "trace" logs unported calls and keeps going; "load [slot]" starts
-rem from a save state slot (default 1). play.sh is the Linux counterpart.
+rem game\, then run this. The first run extracts the disc into game\disc (the
+rem game's files as plain files, indexed by game\yfm-disc.txt; after that the
+rem .bin can be deleted) and builds the game, which fetches what it needs into
+rem tmp\ (Python if it is not installed, the compiler, CMake and Ninja, and the
+rem libraries; a few minutes); later runs rebuild only what changed. "trace"
+rem logs unported calls and keeps going; "load [slot]" starts from a save state
+rem slot (default 1). play.sh is the Linux counterpart.
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
-if not exist game\*.bin (
+if not exist game\yfm-disc.txt if not exist game\*.bin (
     if not exist game mkdir game
     echo Put your disc image in the game folder first: the .bin of
     echo Yu-Gi-Oh! Forbidden Memories ^(USA, SLUS-01411^). Any file name ending in .bin.
@@ -22,6 +24,10 @@ python -c "import sys; sys.exit(sys.version_info < (3, 8))" >nul 2>&1 && set PYT
 if not defined PYTHON if exist tmp\pc\tools\python\python.exe set "PYTHON=%CD%\tmp\pc\tools\python\python.exe"
 if not defined PYTHON call :fetch_python || goto :failed
 
+if not exist game\yfm-disc.txt (
+    echo Extracting the disc into game\disc ^(once^)...
+    "%PYTHON%" tools\pc\extract_disc.py || goto :failed
+)
 "%PYTHON%" tools\pc\build.py --target windows || goto :failed
 if /i "%~1"=="trace" set MEMORIES_STUB_TRACE=1
 if /i "%~1"=="load" (

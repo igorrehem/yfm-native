@@ -48,7 +48,9 @@ Emulator save states are not memory cards and cannot be imported; save in game f
 4. For the best look, pick **Video > Resolution > Internal 4x** and turn on **Video > HD text**.
 
 **From source:** put the `.bin` in `game/` and run `play.bat` or `./play.sh`. The first
-run builds everything (Linux needs `gcc` and `python3`). See [PC build](notes/pc-build.md).
+run builds everything (Linux needs `gcc` and `python3`). On Windows, `play.bat` first
+extracts the disc into plain files (`game/disc/`, indexed by `game/yfm-disc.txt`); after
+that the `.bin` is no longer needed. See [PC build](notes/pc-build.md).
 
 On Apple Silicon, `./play.sh` builds and runs the macOS target using Python 3,
 Xcode command-line tools, and verified dependencies installed under `tmp/`.

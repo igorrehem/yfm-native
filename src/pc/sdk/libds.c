@@ -1,4 +1,5 @@
-/* LIBDS/LIBCD over a raw MODE2/2352 disc image (the player's, found by
+/* LIBDS/LIBCD over the player's disc: a raw MODE2/2352 image, or the folder
+ * tools/pc/extract_disc.py writes from it (platform/disc_source.h; found by
  * platform/game_files.c). Commands complete, and sectors arrive, on the VBlank
  * tick, which is interrupt context in the original too: a callback never runs
  * inside the call that queued it. Only async-signal-safe calls are used once
@@ -10,6 +11,7 @@
 #include "pc/audio/replace.h"
 #include "pc/sdk/disc.h"
 #include "pc/platform/game_files.h"
+#include "pc/platform/disc_source.h"
 #include "pc/render/texture_dump.h"
 #include "pc/guest/image.h"
 #include "pc/debug/crash.h"
@@ -37,7 +39,7 @@ typedef struct Pending {
     u8 result[8];
 } Pending;
 
-static int disc = -1;
+static DiscSource *disc;
 static int disc_sectors;
 static Pending queue[QUEUE];
 static volatile unsigned queue_head, queue_tail;
@@ -79,8 +81,7 @@ int CdPosToInt(DslLOC *loc) { return loc_to_lba(loc); }
 
 static int read_physical(int lba, u8 *out)
 {
-    int ok = disc >= 0 && lba >= 0 && lba < disc_sectors &&
-        pread(disc, out, RAW_SECTOR, (off_t)lba * RAW_SECTOR) == RAW_SECTOR;
+    int ok = disc && lba >= 0 && lba < disc_sectors && DiscSource_Read(disc, lba, out);
     if (ok) disc_bytes_total += RAW_SECTOR;
     return ok;
 }
@@ -140,29 +141,17 @@ void Memories_DiscStats(int *lba, unsigned *bytes_per_second)
 
 int DsInit(void)
 {
-    if (disc < 0) {
-        char why[512];
+    if (!disc) {
+        char why[512], opened[1200];
         const char *path = GameFiles_Disc(why, sizeof(why));
-        disc = path ? open(path, O_RDONLY
-#ifdef _WIN32
-                           | O_BINARY
-#endif
-                           ) : -1;
-        if (disc < 0) {
-            char text[640];
-            snprintf(text, sizeof(text), "cannot open the disc image %s", path ? path : why);
+        disc = path ? DiscSource_Open(path, opened, sizeof(opened)) : NULL;
+        if (!disc) {
+            char text[1800];
+            snprintf(text, sizeof(text), "cannot open the disc: %s", path ? opened : why);
             Crash_ReportFatal("disc", text);
             _exit(1);
         }
-        {
-            struct stat info;
-            if (fstat(disc, &info) || info.st_size < 0 ||
-                (uint64_t)info.st_size / RAW_SECTOR > INT32_MAX) {
-                Crash_ReportFatal("disc", "cannot determine disc image size");
-                _exit(1);
-            }
-            disc_sectors = (int)(info.st_size / RAW_SECTOR);
-        }
+        disc_sectors = DiscSource_Sectors(disc);
     }
     TextureDump_SetDiscFiles(Memories_DiscFileInfo);
     queue_head = queue_tail = 0;
@@ -202,7 +191,7 @@ static DslFILE *search_file(DslFILE *file, const char *name, int effective)
     u8 raw[RAW_SECTOR];
     u32 extent, size, i;
     const char *part = name;
-    if (disc < 0) {
+    if (!disc) {
         DsInit();
     }
     if (!(effective ? read_raw(16, raw) : read_physical(16, raw))) {
@@ -251,7 +240,7 @@ DslFILE *DsSearchFile(DslFILE *file, char *name) { return search_file(file, name
 
 int Memories_DiscSectorCount(void)
 {
-    if (disc < 0) DsInit();
+    if (!disc) DsInit();
     return disc_sectors;
 }
 
@@ -627,7 +616,7 @@ int Memories_DiscReadSectors(int lba, int sectors, void *out)
     int i;
     if (!out || lba < 0 || sectors <= 0 || lba > INT32_MAX - sectors ||
         (size_t)sectors > SIZE_MAX / 2048) return 0;
-    if (disc < 0) {
+    if (!disc) {
         DsInit();
     }
     for (i = 0; i < sectors; i++) {

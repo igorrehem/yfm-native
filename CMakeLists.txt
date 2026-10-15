@@ -47,7 +47,8 @@ if(MEMORIES_SANITIZERS)
 endif()
 
 if(BUILD_TESTING)
-    add_executable(memories_game_files_test tests/pc/game_files_test.c src/pc/platform/game_files.c)
+    add_executable(memories_game_files_test tests/pc/game_files_test.c src/pc/platform/game_files.c
+        src/pc/platform/disc_source.c)
     target_include_directories(memories_game_files_test PRIVATE src tests/pc)
     if(NOT MSVC)
         target_compile_options(memories_game_files_test PRIVATE -Wall -Wextra -Wpedantic -Werror)

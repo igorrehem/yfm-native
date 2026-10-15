@@ -2328,11 +2328,13 @@ int Platform_SelectDisc(char *path, size_t size, char *why, size_t why_size)
         {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Quit"},
         {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Choose ROM..."}
     };
-    static const SDL_DialogFileFilter filters[] = {{"PlayStation disc image (.bin)", "bin;BIN"}};
+    static const SDL_DialogFileFilter filters[] = {{"PlayStation disc image (.bin)", "bin;BIN"},
+                                                   {"Extracted disc (yfm-disc.txt)", "txt"}};
     const SDL_MessageBoxData welcome = {
         SDL_MESSAGEBOX_INFORMATION, NULL, "Welcome to Forbidden Memories Recompiled",
         "Choose your copy of Yu-Gi-Oh! Forbidden Memories to begin.\n\n"
-        "Select the .bin ROM from your USA disc (SLUS-01411).\n"
+        "Select the .bin ROM from your USA disc (SLUS-01411), or the yfm-disc.txt\n"
+        "of a folder extracted from it.\n"
         "Your ROM stays where it is. We'll remember its location for next time.\n\n"
         "If you moved a previously selected ROM, choose its new location.",
         2, buttons, NULL
@@ -2353,7 +2355,7 @@ int Platform_SelectDisc(char *path, size_t size, char *why, size_t why_size)
         selection.size = size;
         selection.why = why;
         selection.why_size = why_size;
-        SDL_ShowOpenFileDialog(disc_selected, &selection, NULL, filters, 1, NULL, false);
+        SDL_ShowOpenFileDialog(disc_selected, &selection, NULL, filters, 2, NULL, false);
         while (!SDL_GetAtomicInt(&selection.done)) {
             SDL_PumpEvents(); /* Linux portal replies need the event loop. */
             SDL_Delay(10);

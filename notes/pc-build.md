@@ -25,6 +25,25 @@ and fetches what that needs into `tmp/` (about a minute on Linux, longer on
 Windows); later runs rebuild what changed and start at once. `trace` and
 `load [slot]` work with both.
 
+### Without the `.bin`: the extracted disc
+
+`python tools/pc/extract_disc.py` (which `play.bat` runs once when `game/`
+has a `.bin` and no `game/yfm-disc.txt`) writes the disc's files as plain
+files into `game/disc/` (`SLUS_014.11`, `SYSTEM.CNF`, `DATA/...`) and the index
+`game/yfm-disc.txt` that places each at its sectors. Data files hold exactly
+the bytes the ISO 9660 file system gives them; `DATA/MASTER.XA` and
+`DATA/MOVIE.STR` keep their raw 2352-byte sectors (Form2 audio and the
+subheaders the drive filters on), and the 174 sectors outside any file (system
+area, volume descriptor, directories, lead-out) go raw into `disc/system.raw`.
+The extractor reads the folder back and compares it with the image before it
+writes the index; afterwards the `.bin` can be deleted.
+
+The port (`src/pc/platform/disc_source.c`) prefers that folder to an image
+and rebuilds every sector from it, framing and standard EDC/ECC included, so
+the drive model sees the same bytes as from the `.bin`. Opening the folder
+checks its EDC/ECC code against the Form1 sectors kept raw in `system.raw`.
+For the USA disc every one of the 199,906 data sectors rebuilds bit for bit.
+
 What each needs installed: on Linux, `gcc` (with binutils) and `python3`, which
 `play.sh` checks for and names the package to install; not their 32-bit
 (multilib) parts, CMake or Ninja. On Windows, nothing: `play.bat` uses an
